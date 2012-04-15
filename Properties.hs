@@ -35,7 +35,7 @@ data Event = MotionEvent
            | ButtonReleaseEvent
            | FocusEvent
            | BlurEvent
-  deriving Show
+  deriving (Show, Eq)
 
 -- Basic property definition
 data Visible = Visible Bool

@@ -16,7 +16,8 @@ module GUI (
         newEntry,
         
         get,
-        set
+        set,
+        on
     ) where
 
 import Control.Concurrent.MVar
@@ -44,8 +45,9 @@ version = 0.1
 type Parent = Maybe Identifier
 type Connection = W.Screen () Object
 type Type = String
+type EventHandler = Event -> IO ()
 
-data Global = Global { out :: Buffer ActionToken, nextId :: MVar Identifier, props :: State [P.Prop] }
+data Global = Global { out :: Buffer ActionToken, nextId :: MVar Identifier, props :: State [P.Prop], events :: State [(Event, EventHandler)] }
 data Object = Object Type Identifier Global
 
 data ActionToken
@@ -66,24 +68,27 @@ setState state i Nothing  = HT.delete state i
 
 processor :: (Connection -> IO ()) -> Buffer InputToken -> Buffer OutputToken -> IO ()
 processor main inp out = do props <- newState
+                            events <- newState
                             actions <- newBuffer
                             nextId <- newMVar 1
-                            conn <- getScreen $ Global actions nextId props
+                            conn <- getScreen $ Global actions nextId props events
                             actionThread <- forkIO $ main conn
-                            processor' props actions `finally` killThread actionThread
-  where processor' :: State [P.Prop] -> Buffer ActionToken -> IO ()
-        processor' props actions = do (actionInp, serverInp) <- bGet2IO (actions, inp)
-                                      mapM_ (handleServer props out) $ mapMaybe id [serverInp]
-                                      mapM_ (handleAction props out) $ mapMaybe id [actionInp]
-                                      processor' props actions
+                            processor' props events actions `finally` killThread actionThread
+  where processor' :: State [P.Prop] -> State [(Event, EventHandler)] -> Buffer ActionToken -> IO ()
+        processor' props events actions = do (actionInp, serverInp) <- bGet2IO (actions, inp)
+                                             mapM_ (handleServer props events out) $ mapMaybe id [serverInp]
+                                             mapM_ (handleAction props out) $ mapMaybe id [actionInp]
+                                             processor' props events actions
 
-handleServer :: State [P.Prop] -> Buffer OutputToken -> InputToken -> IO ()
-handleServer props out token =
+handleServer :: State [P.Prop] -> State [(Event, EventHandler)] -> Buffer OutputToken -> InputToken -> IO ()
+handleServer props events out token =
   case token of
-    IEstablish v -> if v == version
+    IEstablish v -> if v == version -- TODO: don't accept any other tokens before we have seen Establish
                      then bPutIO out $ OAcknowledge version
                      else serverError out ("Wrong client version: " ++ show v)
-    ISignal id name time args -> return () -- TODO: implement
+    ISignal id name time args -> do -- TODO: implement properly
+                                    es <- getHandlerState events id (toEvent name)
+                                    mapM_ (\x -> x (toEvent name)) es
     IKeepalive -> return () -- Do nothing at all.
     IClose -> quit
     IError msg -> do serverError out ("Client error: " ++ msg)
@@ -99,6 +104,18 @@ serverError out s = do putStrLn ("ERROR: " ++ s)
 
 quit :: IO ()
 quit = undefined -- TODO: close more gracefully
+
+toEvent :: String -> Event
+toEvent "Motion" = MotionEvent
+toEvent "Scroll" = ScrollEvent
+toEvent "Enter" = EnterEvent
+toEvent "Leave" = LeaveEvent
+toEvent "KeyPress" = KeyPressEvent
+toEvent "KeyRelease" = KeyReleaseEvent
+toEvent "ButtonPress" = ButtonPressEvent
+toEvent "ButtonRelease" = ButtonReleaseEvent
+toEvent "Focus" = FocusEvent
+toEvent "Blur" = BlurEvent
 
 fromTuple :: (String, String) -> Maybe P.Prop
 fromTuple (n, v) = case n of
@@ -156,6 +173,18 @@ getPropertyState s i p = do mps <- getState s i
                                                (a, (x:b)) -> return x
                                    Nothing -> error "Property error: no such object"
 
+putHandlerState :: State [(Event, EventHandler)] -> Identifier -> (Event, EventHandler) -> IO ()
+putHandlerState s i e = do mes <- getState s i
+                           case mes of
+                             Just es -> setState s i $ Just (e:es)
+                             Nothing -> setState s i $ Just [e]
+
+getHandlerState :: State [(Event, EventHandler)] -> Identifier -> Event -> IO [EventHandler]
+getHandlerState s i e = do mes <- getState s i
+                           case mes of
+                                  Just es -> return $ map snd . filter (\x -> fst x == e) $ es
+                                  Nothing -> return []
+
 instance GUIObject Object P.Prop where
     setProperty (Object t i g) prop = do putPropertyState False (props g) i (toProp prop)
                                          putToken g $ AUpdate i (toProp prop)
@@ -164,6 +193,9 @@ instance GUIObject Object P.Prop where
 
 instance IdObject Object where
     getIdentifier (Object _ i _) = i
+
+instance EventObject Object Event where
+    on (Object t i g) e f = putHandlerState (events g) i (e, f)
 
 getScreen :: Global -> IO Connection
 getScreen global = do i <- getNextId global

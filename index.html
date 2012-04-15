@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+
+<!-- This file is an extremely simplifified test file. Use with care! -->
+
+<html>
+<head>
+<script>
+var ws;
+var elems = [];
+
+function makeSignalHandler(id, event)
+{
+    return function()
+    {
+        ws.send(window.JSON.stringify({type: "signal", name: event, id: id, time: 1, args: []}));
+    }
+}
+
+function makeSetHandler(id, prop, val)
+{
+    return function()
+    {
+        var e = document.getElementById("obj" + id);
+        ws.send(window.JSON.stringify({type: "set", name: prop, id: id, value: e[val]}));
+    }
+}
+
+function messageReceived(msg)
+{
+    console.log("Received: " + msg.data);
+    try
+    {
+        var data = window.JSON.parse(msg.data);
+        switch(data.type)
+        {
+            case "create":
+                var e;
+                switch (data["class"])
+                {
+                    case "Button":
+                        e = document.createElement("button");
+                        break;
+                    case "Entry":
+                        e = document.createElement("input");
+                        e.onchange = makeSetHandler(data.id, "Text", "value");
+                        break;
+                    default:
+                        e = document.createElement("div");
+                        break;
+                }
+                e.id = "obj" + data.id;
+                if (data["class"] != "Screen")
+                {
+                    e.style.display = "none";
+                }
+                document.body.appendChild(e);
+                break;
+            case "set":
+                var e = document.getElementById("obj" + data.id);
+                switch (data.name)
+                {
+                    case "Parent":
+                        var ee = document.getElementById("obj" + data.value);
+                        ee.appendChild(e);
+                        break;
+                    case "Visible":
+                        e.style.display = data.value ? "block" : "none";
+                        break;
+                    case "Label":
+                        e.innerHTML = data.value;
+                        break;
+                    case "Text":
+                        e.value = data.value;
+                        break;
+                    case "Events":
+                        if (data.value == "[ButtonReleaseEvent]")
+                        {
+                            e["onmouseup"] = makeSignalHandler(data.id, "ButtonRelease");
+                        }
+                        break;
+                    default:
+                        console.log("Unrecognized parameter: " + data.name);
+                        break;
+                }
+                break;
+            default:
+                console.log("Unrecognized action: " + data.type);
+                break;
+        }
+    }
+    catch(e)
+    {
+        console.log("Error handling data: " + msg.data);
+        throw e;
+    }
+}
+
+function keepalive()
+{
+  ws.send(window.JSON.stringify({type: "keepalive"}));
+}
+
+function init()
+{
+    ws = new WebSocket('ws://localhost:9000');
+    ws.onmessage = messageReceived;
+    window.setInterval("keepalive()", 10000);
+}
+
+window.onload = init;
+</script>
+<style>
+div
+{
+    border: 1px solid black;
+    padding: 5px;
+    display: inline-block;
+}
+</style>
+</head>
+<body>
+<h1>Everything below is generated through the websocket.</h1>
+</body>
+</html>

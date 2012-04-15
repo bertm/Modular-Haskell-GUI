@@ -39,7 +39,8 @@ instance GUIObject b Prop => GUIObject (ObjectT a b) Prop where
     addChildObject (O b) = addChildObject b
 instance IdObject b => IdObject (ObjectT a b) where
     getIdentifier (O b) = getIdentifier b
-
+instance EventObject b Event => EventObject (ObjectT a b) Event where
+    on (O b) = on b
 
 -- Widgets
 type Screen a b = ObjectT (AbstractScreen a) b

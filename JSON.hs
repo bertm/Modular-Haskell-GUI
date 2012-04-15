@@ -5,6 +5,8 @@ module JSON (readToken, writeToken) where
 import Text.JSON (JSON, JSValue)
 import qualified Text.JSON as JS
 
+import Debug.Trace
+
 -- We need Server for the definition of TokenReader and TokenWriter
 import Server
 import Tokens
@@ -15,7 +17,9 @@ instance JSON OutputToken where
   showJSON (OAcknowledge version) = JS.makeObj [("type", JS.showJSON "acknowledge"), ("version", JS.showJSON version)]
   showJSON (OCreate id cls)       = JS.makeObj [("type", JS.showJSON "create"), ("class", JS.showJSON cls), ("id", JS.showJSON id)]
   showJSON (OAction id name args) = JS.makeObj [("type", JS.showJSON "action"), ("name", JS.showJSON name), ("id", JS.showJSON id), ("args", JS.showJSON args)]
-  showJSON (OSet id name val)    = JS.makeObj [("type", JS.showJSON "set"), ("name", JS.showJSON name), ("id", JS.showJSON id), ("value", JS.showJSON val)]
+  showJSON (OSet id name val)     = JS.makeObj [("type", JS.showJSON "set"), ("name", JS.showJSON name), ("id", JS.showJSON id), ("value", JS.showJSON val)]
+  showJSON (OError msg)           = JS.makeObj [("type", JS.showJSON "error"), ("msg", JS.showJSON msg)]
+  showJSON OClose                 = JS.makeObj [("type", JS.showJSON "close")]
 
 -- Making InputToken instance of JSON so we can read InputTokens from the JSON-text input stream.
 instance JSON InputToken where
@@ -43,12 +47,15 @@ instance JSON InputToken where
                                _          -> JS.Ok IUnknown
   showJSON = error "Input tokens should not be written."
 
+debug = flip const
+--debug = trace
+
 -- The tokenizer for the JSON protocol implementation
 readToken :: TokenReader String InputToken
-readToken s = case JS.decode s of
-                        JS.Ok a    -> (a, [])
-                        JS.Error a -> error a
+readToken s = debug "read" (case JS.decode s of
+                JS.Ok a    -> (a, [])
+                JS.Error a -> error a)
 
 -- The token writer for the JSON protocol implementation
 writeToken :: TokenWriter String OutputToken
-writeToken  = JS.encode
+writeToken t = debug (t `seq` "write") JS.encode t

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -XMultiParamTypeClasses -XFunctionalDependencies #-}
 
-module Types (GUIObject (..), IdObject (..), Setter (..), Getter (..), Property (..)) where
+module Types (GUIObject (..), IdObject (..), Setter (..), Getter (..), Property (..), EventObject (..)) where
 
 class Property p pp | p -> pp where
     toProp :: p -> pp
@@ -13,6 +13,9 @@ class GUIObject o pp | o -> pp where
 
 class IdObject o where
     getIdentifier :: o -> Int
+
+class EventObject o e | o -> e where
+    on :: o -> e -> (e -> IO ()) -> IO ()
 
 class (GUIObject o pp, Property p pp) => Setter o pp p where
     set :: o -> (a -> p) -> a -> IO ()
