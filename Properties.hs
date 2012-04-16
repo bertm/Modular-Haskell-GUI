@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XMultiParamTypeClasses #-}
+{-# OPTIONS_GHC -XMultiParamTypeClasses -XExistentialQuantification -XFlexibleContexts #-}
 
 -- | Definition of all possible properties widgets may or may not have.
 
@@ -35,7 +35,36 @@ data Event = MotionEvent
            | ButtonReleaseEvent
            | FocusEvent
            | BlurEvent
-  deriving (Show, Eq)
+           | forall a p. Property p Prop => Change (a -> p)
+           | ChangeEvent Prop
+
+instance Eq Event where
+  MotionEvent == MotionEvent = True
+  ScrollEvent == ScrollEvent = True
+  EnterEvent == EnterEvent = True
+  LeaveEvent == LeaveEvent = True
+  KeyPressEvent == KeyPressEvent = True
+  KeyReleaseEvent == KeyReleaseEvent = True
+  ButtonPressEvent == ButtonPressEvent = True
+  ButtonReleaseEvent == ButtonReleaseEvent = True
+  FocusEvent == FocusEvent = True
+  BlurEvent == BlurEvent = True
+  Change a == Change b = sameProp (toProp $ a undefined) (toProp $ b undefined)
+  ChangeEvent a == ChangeEvent b = sameProp a b
+  _ == _ = False
+
+instance Show Event where
+  show MotionEvent = "MotionEvent"
+  show ScrollEvent = "ScrollEvent"
+  show EnterEvent = "EnterEvent"
+  show KeyPressEvent = "KeyPressEvent"
+  show KeyReleaseEvent = "KeyReleaseEvent"
+  show ButtonPressEvent = "ButtonPressEvent"
+  show ButtonReleaseEvent = "ButtonReleaseEvent"
+  show FocusEvent = "FocusEvent"
+  show BlurEvent = "BlurEvent"
+  show (Change _) = "Change"
+  show (ChangeEvent _) = "ChangeEvent"
 
 -- Basic property definition
 data Visible = Visible Bool

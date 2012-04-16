@@ -11,7 +11,7 @@ module Tokens (
 
 type Identifier    = Int
 type Time          = Integer
-type Version       = Float
+type Version       = String
 
 -- | Input tokens, originating from the client
 data InputToken

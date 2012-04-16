@@ -40,7 +40,7 @@ import Tokens
 
 -- | GUI version
 version :: Version
-version = 0.1
+version = "1.0"
 
 type Parent = Maybe Identifier
 type Connection = W.Screen () Object
@@ -70,9 +70,9 @@ processor :: (Connection -> IO ()) -> Buffer InputToken -> Buffer OutputToken ->
 processor main inp out = do props <- newState
                             events <- newState
                             actions <- newBuffer
-                            nextId <- newMVar 1
+                            nextId <- newMVar 1000
                             conn <- getScreen $ Global actions nextId props events
-                            actionThread <- forkIO $ main conn
+                            actionThread <- forkIO $ (threadDelay 1000000 >> main conn)
                             processor' props events actions `finally` killThread actionThread
   where processor' :: State [P.Prop] -> State [(Event, EventHandler)] -> Buffer ActionToken -> IO ()
         processor' props events actions = do (actionInp, serverInp) <- bGet2IO (actions, inp)
@@ -94,7 +94,9 @@ handleServer props events out token =
     IError msg -> do serverError out ("Client error: " ++ msg)
                      quit
     ISet id name value -> case fromTuple (name, value) of
-                            Just prop -> putPropertyState True props id prop
+                            Just prop -> do putPropertyState True props id prop
+                                            es <- getHandlerState events id (ChangeEvent prop)
+                                            mapM_ (\x -> x undefined) es
                             Nothing -> serverError out "Client tried to set incorrect property"
     IUnknown    -> serverError out "Received unrecognized token"
 
@@ -146,9 +148,10 @@ toTuple p = case p of
 handleAction :: State [P.Prop] -> Buffer OutputToken -> ActionToken -> IO ()
 handleAction state out token =
   case token of
-    AUpdate i f   -> let (p, v) = toTuple f
-                     in bPutIO out $ OSet i p v
-    ANew i t    -> bPutIO out $ OCreate i t
+    AUpdate i f              -> let (p, v) = toTuple f
+                                in bPutIO out $ OSet i p v
+--    AUpdate i (ParentProp p) -> do
+    ANew i t                 -> bPutIO out $ OCreate i t
 
 putToken :: Global -> ActionToken -> IO ()
 putToken global token = bPutIO (out global) $ token
@@ -195,12 +198,13 @@ instance IdObject Object where
     getIdentifier (Object _ i _) = i
 
 instance EventObject Object Event where
-    on (Object t i g) e f = putHandlerState (events g) i (e, f)
+    on (Object t i g) e f = case e of
+                              (Change a) -> putHandlerState (events g) i ((ChangeEvent . toProp . a $ error "For your eyes only"), f)
+                              _ -> putHandlerState (events g) i (e, f)
 
 getScreen :: Global -> IO Connection
-getScreen global = do i <- getNextId global
-                      putToken global $ ANew i "Screen"
-                      return $ W.newObject (Object "Screen" i global)
+getScreen global = do -- putToken global $ ANew 2 "Screen" -- TODO: should we send this?
+                      return $ W.newObject (Object "Screen" 2 global)
 
 newChild t ds p = let Object _ _ g = W.obj p
                   in do i <- getNextId g

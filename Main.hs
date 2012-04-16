@@ -6,6 +6,8 @@ import JSON
 
 import GUI
 
+import Debug.Trace
+
 main :: IO ()
 main = start server 9000
 
@@ -29,3 +31,4 @@ run screen = do window <- newWindow screen
                 on button ButtonReleaseEvent (\x -> do Text a <- get entry Text
                                                        set button Label ("You typed: " ++ a)
                                                        set entry Text "")
+                on entry (Change Text) $ const (get entry Text >>= (\(Text x) -> set button Label x))

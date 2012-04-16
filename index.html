@@ -42,17 +42,14 @@ function messageReceived(msg)
                         break;
                     case "Entry":
                         e = document.createElement("input");
-                        e.onchange = makeSetHandler(data.id, "Text", "value");
+                        e.onkeyup = makeSetHandler(data.id, "Text", "value");
                         break;
                     default:
                         e = document.createElement("div");
                         break;
                 }
                 e.id = "obj" + data.id;
-                if (data["class"] != "Screen")
-                {
-                    e.style.display = "none";
-                }
+                e.style.display = "none";
                 document.body.appendChild(e);
                 break;
             case "set":
@@ -104,6 +101,7 @@ function init()
 {
     ws = new WebSocket('ws://localhost:9000');
     ws.onmessage = messageReceived;
+    document.body.id = "obj2";
     window.setInterval("keepalive()", 10000);
 }
 
@@ -119,6 +117,5 @@ div
 </style>
 </head>
 <body>
-<h1>Everything below is generated through the websocket.</h1>
 </body>
 </html>
