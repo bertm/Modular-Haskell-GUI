@@ -8,11 +8,18 @@
 var ws;
 var elems = [];
 
+function logger(e)
+{
+    //console.log(e);
+}
+
 function makeSignalHandler(id, event)
 {
     return function()
     {
-        ws.send(window.JSON.stringify({type: "signal", name: event, id: id, time: 1, args: []}));
+        s = window.JSON.stringify({type: "signal", name: event, id: id, time: 1, args: []});
+        logger("Sending: " + s);
+        ws.send(s);
     }
 }
 
@@ -21,13 +28,15 @@ function makeSetHandler(id, prop, val)
     return function()
     {
         var e = document.getElementById("obj" + id);
-        ws.send(window.JSON.stringify({type: "set", name: prop, id: id, value: e[val]}));
+        var s = window.JSON.stringify({type: "set", name: prop, id: id, value: e[val]});
+        logger("Sending: " + s);
+        ws.send(s);
     }
 }
 
 function messageReceived(msg)
 {
-    console.log("Received: " + msg.data);
+    logger("Received: " + msg.data);
     try
     {
         var data = window.JSON.parse(msg.data);
@@ -61,7 +70,7 @@ function messageReceived(msg)
                         ee.appendChild(e);
                         break;
                     case "Visible":
-                        e.style.display = data.value ? "block" : "none";
+                        e.style.display = data.value == "True" ? "block" : "none";
                         break;
                     case "Label":
                         e.innerHTML = data.value;
@@ -76,18 +85,18 @@ function messageReceived(msg)
                         }
                         break;
                     default:
-                        console.log("Unrecognized parameter: " + data.name);
+                        logger("Unrecognized parameter: " + data.name);
                         break;
                 }
                 break;
             default:
-                console.log("Unrecognized action: " + data.type);
+                logger("Unrecognized action: " + data.type);
                 break;
         }
     }
     catch(e)
     {
-        console.log("Error handling data: " + msg.data);
+        logger("Error handling data: " + msg.data);
         throw e;
     }
 }

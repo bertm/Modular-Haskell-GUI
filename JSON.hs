@@ -23,7 +23,7 @@ instance JSON OutputToken where
 
 -- Making InputToken instance of JSON so we can read InputTokens from the JSON-text input stream.
 instance JSON InputToken where
-  readJSON (JS.JSObject o) = trace (show o) (case JS.valFromObj "type" o of
+  readJSON (JS.JSObject o) = debug (show o) (case JS.valFromObj "type" o of
                                -- Establish token
                                JS.Ok "establish" -> case JS.valFromObj "version" o of
                                                       JS.Ok version -> JS.Ok $ IEstablish version

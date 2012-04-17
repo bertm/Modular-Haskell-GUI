@@ -22,13 +22,22 @@ run :: Connection -> IO ()
 run screen = do window <- newWindow screen
                 button <- newButton window
                 entry <- newEntry window
-                Label xx <- get button Label
+                entry2 <- newEntry window
+                
+                -- Set some properties
                 set button Label "Click me"
+                set entry Text "Type here"
                 set window Visible True
                 set button Visible True
-                Label xx <- get button Label
+                set entry Visible True
+                set entry2 Visible True
+                
+                -- Capture button releases on button
                 set button Events [ButtonReleaseEvent]
-                on button ButtonReleaseEvent (\x -> do Text a <- get entry Text
-                                                       set button Label ("You typed: " ++ a)
-                                                       set entry Text "")
-                on entry (Change Text) $ const (get entry Text >>= (\(Text x) -> set button Label x))
+                on button ButtonReleaseEvent $ const (do Text a <- get entry Text
+                                                         set button Label ("You typed: " ++ a)
+                                                         set entry Text "")
+                -- Monitor for changes on entry text
+                on entry (Change Text) $ const (do Text a <- get entry Text
+                                                   set entry2 Text a)
+
