@@ -47,6 +47,20 @@ instance JSON InputToken where
                                _          -> JS.Ok IUnknown)
   showJSON = error "Input tokens should not be written."
 
+
+instance JSON Value where
+  showJSON (StringV v) = JS.showJSON v
+  showJSON (FloatV v) = JS.showJSON v
+  showJSON (IntegerV v) = JS.showJSON v
+  showJSON (BoolV v) = JS.showJSON v
+  showJSON (ObjectV v) = JS.encJSDict v
+  showJSON (ListV v) = JS.showJSON v
+  readJSON v@(JS.JSObject _) = fmap ObjectV $ JS.decJSDict "ObjectV" v
+  readJSON v@(JS.JSArray _) = fmap ListV $ JS.readJSONs v
+  readJSON v@(JS.JSString _) = fmap StringV $ JS.readJSON v
+  readJSON (JS.JSRational True v) = JS.Ok $ FloatV $ fromRational v
+  readJSON (JS.JSRational False v) = JS.Ok $ IntegerV $ round v
+
 debug = flip const
 --debug = trace
 

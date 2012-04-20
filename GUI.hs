@@ -57,24 +57,30 @@ data ActionToken
 
 type State a = HashTable Identifier a
 newState :: IO (State a)
-newState = HT.fromList HT.hashInt []
+newState = HT.fromList (HT.hashInt . fromInteger) []
 
-getState :: State a -> Int -> IO (Maybe a)
+getState :: State a -> Identifier -> IO (Maybe a)
 getState state i = HT.lookup state i
 
-setState :: State a -> Int -> Maybe a -> IO ()
+setState :: State a -> Identifier -> Maybe a -> IO ()
 setState state i (Just s) = HT.insert state i s
 setState state i Nothing  = HT.delete state i
 
 processor :: (Connection -> IO ()) -> Buffer InputToken -> Buffer OutputToken -> IO ()
-processor main inp out = do props <- newState
-                            events <- newState
-                            actions <- newBuffer
-                            nextId <- newMVar 1000
-                            conn <- getScreen $ Global actions nextId props events
-                            actionThread <- forkIO $ (threadDelay 1000000 >> main conn)
-                            processor' props events actions `finally` killThread actionThread
-  where processor' :: State [P.Prop] -> State [(Event, EventHandler)] -> Buffer ActionToken -> IO ()
+processor main inp out = do first <- bGetIO inp
+                            case first of
+                              IEstablish v -> if v == version
+                                               then (bPutIO out $ OAcknowledge version) >> run
+                                               else serverError out "Wrong client version"
+                              _            -> serverError out "Handshake failed"
+  where run = do props <- newState
+                 events <- newState
+                 actions <- newBuffer
+                 nextId <- newMVar 1000
+                 conn <- getScreen $ Global actions nextId props events
+                 actionThread <- forkIO $ main conn
+                 processor' props events actions `finally` killThread actionThread
+        processor' :: State [P.Prop] -> State [(Event, EventHandler)] -> Buffer ActionToken -> IO ()
         processor' props events actions = do (actionInp, serverInp) <- bGet2IO (actions, inp)
                                              mapM_ (handleServer props events out) $ mapMaybe id [serverInp]
                                              mapM_ (handleAction props out) $ mapMaybe id [actionInp]
@@ -83,15 +89,13 @@ processor main inp out = do props <- newState
 handleServer :: State [P.Prop] -> State [(Event, EventHandler)] -> Buffer OutputToken -> InputToken -> IO ()
 handleServer props events out token =
   case token of
-    IEstablish v -> if v == version -- TODO: don't accept any other tokens before we have seen Establish
-                     then bPutIO out $ OAcknowledge version
-                     else serverError out ("Wrong client version: " ++ show v)
+    IEstablish v -> serverError out "Connection already established."
     ISignal id name time args -> do -- TODO: implement properly
                                     es <- getHandlerState events id (toEvent name)
                                     mapM_ (\x -> x (toEvent name)) es
     IKeepalive -> return () -- Do nothing at all.
     IClose -> quit
-    IError msg -> do serverError out ("Client error: " ++ msg)
+    IError msg -> do serverError out ("Client error: " ++ msg) -- Shouldn't we just close the connection, without OError?
                      quit
     ISet id name value -> case fromTuple (name, value) of
                             Just prop -> do putPropertyState True props id prop
@@ -119,29 +123,29 @@ toEvent "ButtonRelease" = ButtonReleaseEvent
 toEvent "Focus" = FocusEvent
 toEvent "Blur" = BlurEvent
 
-fromTuple :: (String, String) -> Maybe P.Prop
-fromTuple (n, v) = case n of
-                     "Label" -> Just $ P.LabelProp $ Label v
-                     "Text" -> Just $ P.TextProp $ Text v
+fromTuple :: (String, Value) -> Maybe P.Prop
+fromTuple t = case t of
+                     ("Label", StringV v) -> Just $ P.LabelProp $ Label v
+                     ("Text", StringV v)  -> Just $ P.TextProp $ Text v
                      -- TODO: append
                      _ -> Nothing
 
-toTuple :: P.Prop -> (String, String)
+toTuple :: P.Prop -> (String, Value)
 toTuple p = case p of
-              P.VisibleProp (Visible v) -> ("Visible", show v)
-              P.SizeProp (Size (a, b)) -> ("Size", show a ++ " " ++ show b)
-              P.MarginProp (Margin (a, b, c, d)) -> ("Margin", show a ++ " " ++ show b ++ " " ++ show c ++ " " ++ show d)
-              P.SensitiveProp (Sensitive v) -> ("Sensitive", show v)
-              P.FocusProp (Focus v) -> ("Focus", show v)
-              P.TitleProp (Title v) -> ("Title", v)
-              P.OpacityProp (Opacity v) -> ("Opacity", show v)
-              P.LabelProp (Label v) -> ("Label", v)
-              P.ParentProp (Parent v) -> ("Parent", show v)
-              P.TextProp (Text v) -> ("Text", v)
-              P.EditableProp (Editable v) -> ("Editable", show v)
-              P.VisibilityProp (Visibility v) -> ("Visibility", show v)
-              P.MaxLengthProp (MaxLength v) -> ("MaxLength", show v)
-              P.EventsProp (Events v) -> ("Events", show v)
+              P.VisibleProp (Visible v) -> ("Visible", BoolV v)
+              P.SizeProp (Size (a, b)) -> ("Size", ListV $ map IntegerV [a, b])
+              P.MarginProp (Margin (a, b, c, d)) -> ("Margin", ListV $ map IntegerV [a, b, c, d])
+              P.SensitiveProp (Sensitive v) -> ("Sensitive", BoolV v)
+              P.FocusProp (Focus v) -> ("Focus", BoolV v)
+              P.TitleProp (Title v) -> ("Title", StringV v)
+              P.OpacityProp (Opacity v) -> ("Opacity", FloatV v)
+              P.LabelProp (Label v) -> ("Label", StringV v)
+              P.ParentProp (Parent v) -> ("Parent", IntegerV v)
+              P.TextProp (Text v) -> ("Text", StringV v)
+              P.EditableProp (Editable v) -> ("Editable", BoolV v)
+              P.VisibilityProp (Visibility v) -> ("Visibility", BoolV v)
+              P.MaxLengthProp (MaxLength v) -> ("MaxLength", IntegerV v)
+              P.EventsProp (Events v) -> ("Events", ListV $ map (StringV . show) v)
               
 
 -- TODO: remove the actiontoken part entirely as it is redundant

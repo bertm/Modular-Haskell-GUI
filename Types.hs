@@ -12,7 +12,7 @@ class GUIObject o pp | o -> pp where
     addChildObject :: (GUIObject oo pp, IdObject oo) => o -> oo -> IO ()
 
 class IdObject o where
-    getIdentifier :: o -> Int
+    getIdentifier :: o -> Integer
 
 class EventObject o e | o -> e where
     on :: o -> e -> (e -> IO ()) -> IO ()

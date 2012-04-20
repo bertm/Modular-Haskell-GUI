@@ -69,9 +69,9 @@ instance Show Event where
 -- Basic property definition
 data Visible = Visible Bool
   deriving Show
-data Size = Size (Int, Int)
+data Size = Size (Integer, Integer)
   deriving Show
-data Margin = Margin (Int, Int, Int, Int)
+data Margin = Margin (Integer, Integer, Integer, Integer)
   deriving Show
 data Sensitive = Sensitive Bool
   deriving Show
@@ -83,7 +83,7 @@ data Opacity = Opacity Float
   deriving Show
 data Label = Label String
   deriving Show
-data Parent = Parent Int
+data Parent = Parent Integer
   deriving Show
 data Text = Text String
   deriving Show
@@ -91,7 +91,7 @@ data Editable = Editable Bool
   deriving Show
 data Visibility = Visibility Bool
   deriving Show
-data MaxLength = MaxLength Int
+data MaxLength = MaxLength Integer
   deriving Show
 data Events = Events [Event]
   deriving Show

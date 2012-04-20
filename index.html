@@ -13,13 +13,18 @@ function logger(e)
     //console.log(e);
 }
 
+function jsonSend(o)
+{
+    var s = window.JSON.stringify(o);
+    logger("Sending: " + s);
+    ws.send(s);
+}
+
 function makeSignalHandler(id, event)
 {
     return function()
     {
-        s = window.JSON.stringify({type: "signal", name: event, id: id, time: 1, args: []});
-        logger("Sending: " + s);
-        ws.send(s);
+        jsonSend({type: "signal", name: event, id: id, time: 1, args: []});
     }
 }
 
@@ -28,9 +33,7 @@ function makeSetHandler(id, prop, val)
     return function()
     {
         var e = document.getElementById("obj" + id);
-        var s = window.JSON.stringify({type: "set", name: prop, id: id, value: e[val]});
-        logger("Sending: " + s);
-        ws.send(s);
+        jsonSend({type: "set", name: prop, id: id, value: e[val]});
     }
 }
 
@@ -70,7 +73,7 @@ function messageReceived(msg)
                         ee.appendChild(e);
                         break;
                     case "Visible":
-                        e.style.display = data.value == "True" ? "block" : "none";
+                        e.style.display = data.value ? "block" : "none";
                         break;
                     case "Label":
                         e.innerHTML = data.value;
@@ -79,7 +82,7 @@ function messageReceived(msg)
                         e.value = data.value;
                         break;
                     case "Events":
-                        if (data.value == "[ButtonReleaseEvent]")
+                        if (data.value[0] == "ButtonReleaseEvent")
                         {
                             e["onmouseup"] = makeSignalHandler(data.id, "ButtonRelease");
                         }
@@ -106,10 +109,16 @@ function keepalive()
   ws.send(window.JSON.stringify({type: "keepalive"}));
 }
 
+function establish()
+{
+  jsonSend({type: "establish", version: "1.0"});
+}
+
 function init()
 {
     ws = new WebSocket('ws://localhost:9000');
     ws.onmessage = messageReceived;
+    ws.onopen = establish;
     document.body.id = "obj2";
     window.setInterval("keepalive()", 10000);
 }
