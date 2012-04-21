@@ -1,0 +1,145 @@
+body
+{
+    font-family: 'Trebuchet MS', Tahoma, Arial, sans-serif;
+    color: #333;
+    margin: 0 auto;
+    padding-bottom: 10px;
+    width: 900px;
+    background: #f7f5f1;
+}
+
+ul
+{
+	list-style: disc;
+    padding-left: 20px;
+}
+
+h1, h2, h3
+{
+    font-weight: bold;
+}
+
+h1
+{
+    color: #2376bd;
+    font-size: 200%;
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+h2
+{
+    color: #2376bd;
+    font-size: 150%;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+h3
+{
+    font-size: 130%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+pre
+{
+    display: block;
+    border: 1px solid #8d8677;
+    background: #efebe5;
+    padding: 5px;
+    padding-top: 2px;
+}
+
+code
+{
+    font-family: monospace;
+    background-color: #cac1b3;
+    color: #000;
+    white-space: pre;
+}
+
+pre code
+{
+    background: #efebe5;
+}
+
+a
+{
+    color: #104674;
+}
+
+a:visited
+{
+    color: #db213f;
+    color: #5d329e;
+}
+
+p
+{
+    margin: 10px 0;
+}
+
+em
+{
+    font-style: italic;
+}
+
+strong
+{
+    font-weight: bold;
+}
+
+td>p
+{
+    margin: 0;
+}
+
+.navigation
+{
+    border: 1px solid #8d8677;
+    background: #efebe5;
+    text-align: center;
+    padding: 4px;
+    margin-top: 10px;
+}
+
+.description
+{
+    line-height: 1.4;
+}
+
+.description h1, .description h2, .description h3,
+.description h4, .description h5, .description h6
+{
+    color: #333;
+    font-size: 100%;
+    margin-top: 5px;
+    margin-bottom: -15px;
+}
+
+.description h1, #description .description  h2
+{
+    font-size: 110%;
+    margin-top: 5px;
+    margin-bottom: -10px;
+}
+
+#description .description  h1
+{
+    font-size: 130%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+li.current-class
+{
+    font-weight: bold;
+}
+
+td.name
+{
+    white-space: nowrap;
+    font-weight: bold;
+    padding-right: 10px;
+}
