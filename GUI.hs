@@ -141,8 +141,21 @@ toTuple p = case p of
               P.EditableProp (Editable v) -> ("editable", BoolV v)
               P.VisibilityProp (Visibility v) -> ("visibility", BoolV v)
               P.MaxLengthProp (MaxLength v) -> ("max-length", IntegerV v)
-              P.EventsProp (Events v) -> ("events", ListV $ map (StringV . show) v)
+              P.EventsProp (Events v) -> ("events", IntegerV $ sum $ map eventBitmask v)
               
+eventBitmask :: Event -> Integer
+eventBitmask e =
+  case e of
+    MotionEvent         -> 1
+    ScrollEvent         -> 4
+    EnterEvent          -> 16
+    LeaveEvent          -> 64
+    KeyPressEvent       -> 256
+    KeyReleaseEvent     -> 1024
+    ButtonPressEvent    -> 4096
+    ButtonReleaseEvent  -> 16384
+    FocusEvent          -> 65536
+    BlurEvent           -> 262144
 
 oCreate :: Global -> Identifier -> String -> IO ()
 oCreate g i t = bPutIO (out g) $ OCreate i t
