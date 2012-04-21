@@ -14,6 +14,7 @@ module GUI (
         newButton,
         newWindow,
         newEntry,
+        newBox,
         
         get,
         set,
@@ -126,27 +127,30 @@ fromTuple t = case t of
 
 toTuple :: P.Prop -> (String, Value)
 toTuple p = case p of
-              P.VisibleProp (Visible v) -> ("Visible", BoolV v)
-              P.SizeProp (Size (a, b)) -> ("Size", ListV $ map IntegerV [a, b])
-              P.MarginProp (Margin (a, b, c, d)) -> ("Margin", ListV $ map IntegerV [a, b, c, d])
-              P.SensitiveProp (Sensitive v) -> ("Sensitive", BoolV v)
-              P.FocusProp (Focus v) -> ("Focus", BoolV v)
-              P.TitleProp (Title v) -> ("Title", StringV v)
-              P.OpacityProp (Opacity v) -> ("Opacity", FloatV v)
-              P.LabelProp (Label v) -> ("Label", StringV v)
-              P.ParentProp (Parent v) -> ("Parent", IntegerV v)
-              P.TextProp (Text v) -> ("Text", StringV v)
-              P.EditableProp (Editable v) -> ("Editable", BoolV v)
-              P.VisibilityProp (Visibility v) -> ("Visibility", BoolV v)
-              P.MaxLengthProp (MaxLength v) -> ("MaxLength", IntegerV v)
-              P.EventsProp (Events v) -> ("Events", ListV $ map (StringV . show) v)
+              P.VisibleProp (Visible v) -> ("visible", BoolV v)
+              P.SizeProp (Size (a, b)) -> ("size", ListV $ map IntegerV [a, b])
+              P.MarginProp (Margin (a, b, c, d)) -> ("margin", ListV $ map IntegerV [a, b, c, d])
+              P.SensitiveProp (Sensitive v) -> ("sensitive", BoolV v)
+              P.CanFocusProp (CanFocus v) -> ("can-focus", BoolV v)
+              P.TitleProp (Title v) -> ("title", StringV v)
+              P.OpacityProp (Opacity v) -> ("opacity", FloatV v)
+              P.LabelProp (Label v) -> ("label", StringV v)
+              P.ParentProp (Parent v) -> error "Setting parent through property is deprecated" -- TODO: remove? ("Parent", IntegerV v)
+              P.TextProp (Text v) -> ("text", StringV v)
+              P.EditableProp (Editable v) -> ("editable", BoolV v)
+              P.VisibilityProp (Visibility v) -> ("visibility", BoolV v)
+              P.MaxLengthProp (MaxLength v) -> ("max-length", IntegerV v)
+              P.EventsProp (Events v) -> ("events", ListV $ map (StringV . show) v)
               
 
 oCreate :: Global -> Identifier -> String -> IO ()
 oCreate g i t = bPutIO (out g) $ OCreate i t
 
 oSet :: Global -> Identifier -> P.Prop -> IO ()
-oSet g i prop = let (p, v) = toTuple prop in  bPutIO (out g) $ OSet i p v
+oSet g i prop = let (p, v) = toTuple prop in bPutIO (out g) $ OSet i p v
+
+oAction :: Global -> Identifier -> String -> [Value] -> IO ()
+oAction g i n a = bPutIO (out g) $ OAction i n a
 
 putPropertyState :: Bool -> State [P.Prop] -> Identifier -> P.Prop -> IO ()
 putPropertyState safe s i p = do mps <- getState s i
@@ -184,7 +188,8 @@ instance GUIObject Object P.Prop where
     setProperty (Object t i g) prop = do putPropertyState False (props g) i (toProp prop)
                                          oSet g i (toProp prop)
     getProperty (Object t i g) prop = getPropertyState (props g) i (toProp (prop $ error "Property error: undefined"))
-    addChildObject (Object t p g) c = oSet g (getIdentifier c) (P.ParentProp $ Parent p)
+    addChildObject (Object t p g) c | p >= 1000 = oAction g p "add" [ObjectV [("id", IntegerV $ getIdentifier c)]]
+                                    | otherwise = return ()
 
 instance IdObject Object where
     getIdentifier (Object _ i _) = i
@@ -195,7 +200,7 @@ instance EventObject Object Event where
                               _ -> putHandlerState (events g) i (e, f)
 
 getScreen :: Global -> IO Connection
-getScreen global = do -- oCreate global 2 "Screen" -- TODO: should we send this?
+getScreen global = do --oCreate global 1000 "MainWindow" -- TODO: should we send this?
                       return $ W.newObject (Object "Screen" 2 global)
 
 newChild t ds p = let Object _ _ g = W.obj p
@@ -208,7 +213,7 @@ newChild t ds p = let Object _ _ g = W.obj p
                                               P.SizeProp v -> setProperty (W.obj o) v
                                               P.MarginProp v -> setProperty (W.obj o) v
                                               P.SensitiveProp v -> setProperty (W.obj o) v
-                                              P.FocusProp v -> setProperty (W.obj o) v
+                                              P.CanFocusProp v -> setProperty (W.obj o) v
                                               P.TitleProp v -> setProperty (W.obj o) v
                                               P.OpacityProp v -> setProperty (W.obj o) v
                                               P.LabelProp v -> setProperty (W.obj o) v
@@ -234,4 +239,7 @@ newButton = newChild "Button" buttonDefaults
 
 newEntry :: Container a Object -> IO (Entry () Object)
 newEntry = newChild "Entry" entryDefaults
+
+newBox :: Container a Object -> IO (Box () Object)
+newBox = newChild "Box" boxDefaults
 

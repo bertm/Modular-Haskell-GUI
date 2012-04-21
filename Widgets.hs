@@ -17,6 +17,8 @@ module Widgets (
         windowDefaults,
         Entry,
         entryDefaults,
+        Box,
+        boxDefaults,
         
         -- * Object manipulation
         newObject,
@@ -52,18 +54,22 @@ instance GUIObject b Prop => Setter (Widget a b) Prop Visible
 instance GUIObject b Prop => Setter (Widget a b) Prop Size
 instance GUIObject b Prop => Setter (Widget a b) Prop Margin
 instance GUIObject b Prop => Setter (Widget a b) Prop Sensitive
-instance GUIObject b Prop => Setter (Widget a b) Prop Focus
+instance GUIObject b Prop => Setter (Widget a b) Prop CanFocus
 instance GUIObject b Prop => Setter (Widget a b) Prop Events
 widgetDefaults = [VisibleProp (Visible False),
-                  SizeProp (Size (100, 100)),
-                  MarginProp (Margin (0, 0, 0, 0)),
-                  SensitiveProp (Sensitive False),
-                  FocusProp (Focus False),
+--                  SizeProp (Size (100, 100)),
+--                  MarginProp (Margin (0, 0, 0, 0)),
+                  SensitiveProp (Sensitive True),
+                  CanFocusProp (CanFocus False),
                   EventsProp (Events [])]
 
 type Container a b = Widget (AbstractContainer a) b
 data AbstractContainer a = AbstractContainer
 containerDefaults = widgetDefaults
+
+type Box a b = Container (AbstractBox a) b
+data AbstractBox a = AbstractBox
+boxDefaults = containerDefaults
 
 type Bin a b = Container (AbstractBin a) b
 data AbstractBin a = AbstractBin

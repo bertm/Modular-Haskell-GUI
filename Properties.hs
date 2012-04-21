@@ -7,7 +7,7 @@ module Properties (
     Size (..),
     Margin (..),
     Sensitive (..),
-    Focus (..),
+    CanFocus (..),
     Title (..),
     Opacity (..),
     Label (..),
@@ -75,7 +75,7 @@ data Margin = Margin (Integer, Integer, Integer, Integer)
   deriving Show
 data Sensitive = Sensitive Bool
   deriving Show
-data Focus = Focus Bool
+data CanFocus = CanFocus Bool
   deriving Show
 data Title = Title String
   deriving Show
@@ -83,7 +83,7 @@ data Opacity = Opacity Float
   deriving Show
 data Label = Label String
   deriving Show
-data Parent = Parent Integer
+data Parent = Parent Integer -- TODO: remove?
   deriving Show
 data Text = Text String
   deriving Show
@@ -109,9 +109,9 @@ instance Property Margin Prop
 instance Property Sensitive Prop
   where toProp = SensitiveProp
         get o a = getProperty o Sensitive >>= (\(SensitiveProp v) -> return v)
-instance Property Focus Prop
-  where toProp = FocusProp
-        get o a = getProperty o Focus >>= (\(FocusProp v) -> return v)
+instance Property CanFocus Prop
+  where toProp = CanFocusProp
+        get o a = getProperty o CanFocus >>= (\(CanFocusProp v) -> return v)
 instance Property Title Prop
   where toProp = TitleProp
         get o a = getProperty o Title >>= (\(TitleProp v) -> return v)
@@ -142,7 +142,7 @@ data Prop = VisibleProp Visible
           | SizeProp Size
           | MarginProp Margin
           | SensitiveProp Sensitive
-          | FocusProp Focus
+          | CanFocusProp CanFocus
           | TitleProp Title
           | OpacityProp Opacity
           | LabelProp Label
@@ -160,7 +160,7 @@ sameProp (VisibleProp _) (VisibleProp _) = True
 sameProp (SizeProp _) (SizeProp _) = True
 sameProp (MarginProp _) (MarginProp _) = True
 sameProp (SensitiveProp _) (SensitiveProp _) = True
-sameProp (FocusProp _) (FocusProp _) = True
+sameProp (CanFocusProp _) (CanFocusProp _) = True
 sameProp (TitleProp _) (TitleProp _) = True
 sameProp (OpacityProp _) (OpacityProp _) = True
 sameProp (LabelProp _) (LabelProp _) = True

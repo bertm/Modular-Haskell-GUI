@@ -20,14 +20,16 @@ server = makeServer readToken writeToken (processor run)
 
 run :: Connection -> IO ()
 run screen = do window <- newWindow screen
-                button <- newButton window
-                entry <- newEntry window
-                entry2 <- newEntry window
+                box <- newBox window
+                button <- newButton box
+                entry <- newEntry box
+                entry2 <- newEntry box
                 
                 -- Set some properties
                 set button Label "Click me"
                 set entry Text "Type here"
                 set window Visible True
+                set box Visible True
                 set button Visible True
                 set entry Visible True
                 set entry2 Visible True
