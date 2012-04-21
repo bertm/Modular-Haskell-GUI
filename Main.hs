@@ -19,13 +19,17 @@ server = makeServer readToken writeToken (processor run)
 -- Main application logic
 
 run :: Connection -> IO ()
-run screen = do window <- newWindow screen
+run screen = do mainWindow <- newMainWindow screen
+                set mainWindow Title "A GUI application"
+
+                window <- newWindow screen
                 box <- newBox window
                 button <- newButton box
                 entry <- newEntry box
                 entry2 <- newEntry box
                 
                 -- Set some properties
+                set window Title "Test Window"
                 set button Label "Click me"
                 set entry Text "Type here"
                 set window Visible True

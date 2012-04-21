@@ -15,6 +15,7 @@ module GUI (
         newWindow,
         newEntry,
         newBox,
+        newMainWindow,
         
         get,
         set,
@@ -243,3 +244,5 @@ newEntry = newChild "Entry" entryDefaults
 newBox :: Container a Object -> IO (Box () Object)
 newBox = newChild "Box" boxDefaults
 
+newMainWindow :: Connection -> IO (MainWindow () Object)
+newMainWindow = newChild "MainWindow" mainWindowDefaults

@@ -19,6 +19,8 @@ module Widgets (
         entryDefaults,
         Box,
         boxDefaults,
+        MainWindow,
+        mainWindowDefaults,
         
         -- * Object manipulation
         newObject,
@@ -86,6 +88,11 @@ data AbstractWindow a = AbstractWindow
 instance GUIObject b Prop => Setter (Window a b) Prop Title
 instance GUIObject b Prop => Setter (Window a b) Prop Opacity
 windowDefaults = TitleProp (Title "") : OpacityProp (Opacity 1) : binDefaults
+
+type MainWindow a b = Bin (AbstractMainWindow a) b
+data AbstractMainWindow a = AbstractMainWindow
+instance GUIObject b Prop => Setter (MainWindow a b) Prop Title
+mainWindowDefaults = TitleProp (Title "") : binDefaults
 
 type Entry a b = Widget (AbstractEntry a) b
 data AbstractEntry a = AbstractEntry
