@@ -18,6 +18,10 @@ Class.define('MainWindow', {
         // Add event handlers.
         Screen.connect('size-change', this.onScreenSizeChange, this);
         
+        // Check for an existing main window.
+        if (Application.getMainWindow())
+            throw new Error("There can only be one main window.");
+        
         // Set application its main window.
         Application.setMainWindow(this);
     },
@@ -25,6 +29,9 @@ Class.define('MainWindow', {
     destroy: function()
     {
         MainWindow.base.destroy.call(this);
+        
+        // Remove application its main window.
+        Application.setMainWindow(null);
         
         // Remove event handlers.
         Screen.disconnect('size-change', this.onScreenSizeChange, this);

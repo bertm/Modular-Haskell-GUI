@@ -32,11 +32,13 @@ run screen = do mainWindow <- newMainWindow screen
                 set window Title "Test Window"
                 set button Label "Click me"
                 set entry Text "Type here"
-                set window Visible True
                 set box Visible True
                 set button Visible True
                 set entry Visible True
                 set entry2 Visible True
+                
+                -- Finally show window, to correctly center it
+                set window Visible True
                 
                 -- Capture button releases on button
                 set button Events [ButtonReleaseEvent]
