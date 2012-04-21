@@ -22,8 +22,14 @@ Class.define('Entry', {
         this.inputEl = this.el.find('input');
         
         // Attach event handlers.
-        this.inputEl.connect('focus', this.onFocus, this);
-        this.inputEl.connect('blur', this.onBlur, this);
+        this.inputEl.connect('change', this.onInputEvent, this);
+        this.inputEl.connect('paste', this.onInputEvent, this);
+        
+        EventManager.registerHandler(this.inputEl, EventMask.KEY_PRESS, this.onInputEvent, this);
+        EventManager.registerHandler(this.inputEl, EventMask.BUTTON_PRESS, this.onInputEvent, this);
+        EventManager.registerHandler(this.inputEl, EventMask.BUTTON_RELEASE, this.onInputEvent, this);
+        
+        // TODO: Handle focus.
         
         // Change detection:
         // paste, etc.
@@ -59,7 +65,11 @@ Class.define('Entry', {
      * Event handlers.
      */
     
-    //..
+    onInputEvent: function()
+    {
+        // Set new input text.
+        this.setText(this.inputEl.getProperty('value'));
+    },
     
     /*
      * Properties.

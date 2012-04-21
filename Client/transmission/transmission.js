@@ -110,9 +110,6 @@ Singleton.define('Transmission', {
             this.closeReason = e.message;
         }
         
-        // Show close reason.
-        console.log("Closing connection. Reason:\n" + this.closeReason);
-        
         // Close connection.
         this.conn.close();
     },
@@ -168,7 +165,7 @@ Singleton.define('Transmission', {
                 obj._id = id;
                 
                 // Register propert-change signal handler.
-                obj.connect('property-changed', this.onObjectPropertyChange, this);
+                obj.connect('property-change', this.onObjectPropertyChange, this);
                 
                 return true;
             };
@@ -212,7 +209,13 @@ Singleton.define('Transmission', {
                     throw new Error('Object does not have a property named \'' + name + '\'.');
                 
                 // Set property.
+                this.settingProperty = name;
+                this.settingObject   = obj;
+                
                 obj.setProperty(name, value);
+                
+                delete this.settingProperty;
+                delete this.settingObject;
                 
                 return true;
             };
@@ -316,18 +319,52 @@ Singleton.define('Transmission', {
     {
         this.state = TransmissionState.CLOSED;
         
-        console.log('Connection closed.');
+        // Set reason if there is none.
+        if (!this.closeReason)
+            this.closeReason = 'Lost connection with server.';
+        
+        // Show close reason.
+        console.log("Connection closed. Reason:\n" + this.closeReason);
+        
+        // Destroy all objects.
+        for (var id in this.objects)
+        {
+            this.objects[id].destroy();
+        }
+        
+        this.objects = {};
+        
+        // Show a nice message.
+        var window = new Window({
+            margin: 15,
+            deletable: false,
+            resizable: false,
+            maximizable: false,
+            modal: true,
+            title: "An error occurred"
+        });
+        var label = new Label({label: this.closeReason});
+        
+        window.add(label);
+        window.showAll();
     },
     
     onObjectPropertyChange: function(obj, name)
     {
+        // Skip signals that came from our own setter.
+        if (this.settingProperty && (this.settingProperty === name) && (this.settingObject === obj))
+            return;
+        
         console.log('A property has changed: ' + name);
         
         var id    = obj._id;
         var value = obj.getProperty(name); // TODO: Give value with it?
         
+        console.log('Sending property: ' + name + ', with value:');
+        console.log(value);
+        
         // Send a set message.
-        conn.send({
+        this.conn.send({
             type: MessageType.SET,
             id: id,
             name: name,

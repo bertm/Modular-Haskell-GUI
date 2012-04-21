@@ -685,6 +685,7 @@ Class.define('Widget', {
          * Event mask that determines which event signals are enabled.
          *
          * @type int
+         * @see #EventMask
          */
         events: {
             write: function(events)

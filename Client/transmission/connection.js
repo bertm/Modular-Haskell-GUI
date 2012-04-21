@@ -44,8 +44,12 @@ Class.define('Connection', {
     close: function()
     {
         if (this.open && !this.closed)
+        {
             this.socket.close();
+            this.onSocketClose();
+        }
         
+        this.open   = false;
         this.closed = true;
     },
     
@@ -125,8 +129,12 @@ Class.define('Connection', {
     
     onSocketClose: function()
     {
+        if (this.closed)
+            return;
+        
         this.signalDispatcher.emit('close', this);
         
+        this.open   = false;
         this.closed = true;
     }
 });

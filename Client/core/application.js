@@ -55,6 +55,11 @@ Singleton.define('Application', {
      */
     
     properties: {
+        /**
+         * The currently active window. Set to null to deactive the currenly active window.
+         *
+         * @type AbtractWindow
+         */
         'active-window': {
             write: function(activeWindow)
             {
@@ -69,10 +74,21 @@ Singleton.define('Application', {
             read: true,
             defaultValue: null
         },
+        /**
+         * The main window of the application.
+         *
+         * @type MainWindow
+         */
         'main-window': {
             read: true,
             defaultValue: null
         },
+        /**
+         * Event mask that determines which event signals are enabled.
+         *
+         * @type int
+         * @see #EventMask
+         */
         'events': {
             write: function(events)
             {

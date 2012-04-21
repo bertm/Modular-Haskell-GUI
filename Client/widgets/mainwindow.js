@@ -15,6 +15,10 @@ Class.define('MainWindow', {
     {
         MainWindow.base.initialize.call(this);
         
+        // Store original document title, and set new title.
+        this.originalTitle = document.title || '(untitled)';
+        document.title = '(untitled)';
+        
         // Add event handlers.
         Screen.connect('size-change', this.onScreenSizeChange, this);
         
@@ -32,6 +36,9 @@ Class.define('MainWindow', {
         
         // Remove application its main window.
         Application.setMainWindow(null);
+        
+        // Set original title.
+        document.title = this.originalTitle;
         
         // Remove event handlers.
         Screen.disconnect('size-change', this.onScreenSizeChange, this);

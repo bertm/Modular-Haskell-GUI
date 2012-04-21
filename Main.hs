@@ -40,6 +40,12 @@ run screen = do mainWindow <- newMainWindow screen
                 -- Finally show window, to correctly center it
                 set window Visible True
                 
+                -- Add a button to the main window
+                button2 <- newButton mainWindow
+                set button2 Visible True
+                set button2 Label "Main button label"
+                set mainWindow Visible True
+                
                 -- Capture button releases on button
                 set button Events [ButtonReleaseEvent]
                 on button ButtonReleaseEvent $ const (do Text a <- get entry Text

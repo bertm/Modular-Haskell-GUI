@@ -233,7 +233,7 @@ Class.define('Scale', {
         return true;
     },
     
-    onAdjustmentChanged: function(adj)
+    onAdjustmentChange: function(adj)
     {
         // Calculate label.
         var digits = (this.digits < 0) ? 6 : this.digits;
@@ -247,7 +247,7 @@ Class.define('Scale', {
         // Size label.
         this.labelEl.setSize(Util.measureTextSize(label));
         
-        Scale.base.onAdjustmentChanged.call(this, adj);
+        Scale.base.onAdjustmentChange.call(this, adj);
     },
     
     /*
@@ -265,7 +265,7 @@ Class.define('Scale', {
             {
                 this.digits = digits;
                 
-                this.onAdjustmentChanged(this.adjustment);
+                this.onAdjustmentChange(this.adjustment);
             },
             read: true,
             defaultValue: 1

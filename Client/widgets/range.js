@@ -37,7 +37,7 @@ Class.define('Range', {
         EventManager.registerHandler(this.sliderEl, EventMask.BUTTON_PRESS | EventMask.MOTION, this.onSliderEvent, this);
         
         // Check for changes on adjustment.
-        this.adjustment.connect('change', this.onAdjustmentChanged, this);
+        this.adjustment.connect('change', this.onAdjustmentChange, this);
     },
     
     destroy: function()
@@ -48,7 +48,7 @@ Class.define('Range', {
         
         // Remove event handlers.
         Screen.disconnect('motion-event', this.onScreenMotion, this);
-        this.adjustment.disconnect('change', this.onAdjustmentChanged, this);
+        this.adjustment.disconnect('change', this.onAdjustmentChange, this);
     },
     
     /*
@@ -179,7 +179,7 @@ Class.define('Range', {
         this.adjustment.setFraction(fraction);
     },
     
-    onAdjustmentChanged: function(adj)
+    onAdjustmentChange: function(adj)
     {
         // Set new fraction.
         this.fraction = adj.getFraction();
@@ -207,13 +207,13 @@ Class.define('Range', {
                     return false;
                 
                 // Replace signal handler.
-                this.adjustment.disconnect('change', this.onAdjustmentChanged, this);
-                adjustment.connect('change', this.onAdjustmentChanged, this);
+                this.adjustment.disconnect('change', this.onAdjustmentChange, this);
+                adjustment.connect('change', this.onAdjustmentChange, this);
                 
                 this.adjustment = adjustment;
                 
                 // Set new value.
-                this.onAdjustmentChanged(adjustment);
+                this.onAdjustmentChange(adjustment);
             },
             read: true
         },
