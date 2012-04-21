@@ -47,12 +47,8 @@ type Connection = W.Screen () Object
 type Type = String
 type EventHandler = Event -> IO ()
 
-data Global = Global { out :: Buffer ActionToken, nextId :: MVar Identifier, props :: State [P.Prop], events :: State [(Event, EventHandler)] }
+data Global = Global { out :: Buffer OutputToken, nextId :: MVar Identifier, props :: State [P.Prop], events :: State [(Event, EventHandler)] }
 data Object = Object Type Identifier Global
-
-data ActionToken
-  = AUpdate Identifier P.Prop
-  | ANew Identifier Type
 
 
 type State a = HashTable Identifier a
@@ -75,16 +71,14 @@ processor main inp out = do first <- bGetIO inp
                               _            -> serverError out "Handshake failed"
   where run = do props <- newState
                  events <- newState
-                 actions <- newBuffer
                  nextId <- newMVar 1000
-                 conn <- getScreen $ Global actions nextId props events
+                 conn <- getScreen $ Global out nextId props events
                  actionThread <- forkIO $ main conn
-                 processor' props events actions `finally` killThread actionThread
-        processor' :: State [P.Prop] -> State [(Event, EventHandler)] -> Buffer ActionToken -> IO ()
-        processor' props events actions = do (actionInp, serverInp) <- bGet2IO (actions, inp)
-                                             mapM_ (handleServer props events out) $ mapMaybe id [serverInp]
-                                             mapM_ (handleAction props out) $ mapMaybe id [actionInp]
-                                             processor' props events actions
+                 processor' props events `finally` killThread actionThread
+        processor' :: State [P.Prop] -> State [(Event, EventHandler)] -> IO ()
+        processor' props events = do serverInp <- bGetIO inp
+                                     handleServer props events out serverInp
+                                     processor' props events
 
 handleServer :: State [P.Prop] -> State [(Event, EventHandler)] -> Buffer OutputToken -> InputToken -> IO ()
 handleServer props events out token =
@@ -148,17 +142,11 @@ toTuple p = case p of
               P.EventsProp (Events v) -> ("Events", ListV $ map (StringV . show) v)
               
 
--- TODO: remove the actiontoken part entirely as it is redundant
-handleAction :: State [P.Prop] -> Buffer OutputToken -> ActionToken -> IO ()
-handleAction state out token =
-  case token of
-    AUpdate i f              -> let (p, v) = toTuple f
-                                in bPutIO out $ OSet i p v
---    AUpdate i (ParentProp p) -> do
-    ANew i t                 -> bPutIO out $ OCreate i t
+oCreate :: Global -> Identifier -> String -> IO ()
+oCreate g i t = bPutIO (out g) $ OCreate i t
 
-putToken :: Global -> ActionToken -> IO ()
-putToken global token = bPutIO (out global) $ token
+oSet :: Global -> Identifier -> P.Prop -> IO ()
+oSet g i prop = let (p, v) = toTuple prop in  bPutIO (out g) $ OSet i p v
 
 putPropertyState :: Bool -> State [P.Prop] -> Identifier -> P.Prop -> IO ()
 putPropertyState safe s i p = do mps <- getState s i
@@ -194,9 +182,9 @@ getHandlerState s i e = do mes <- getState s i
 
 instance GUIObject Object P.Prop where
     setProperty (Object t i g) prop = do putPropertyState False (props g) i (toProp prop)
-                                         putToken g $ AUpdate i (toProp prop)
+                                         oSet g i (toProp prop)
     getProperty (Object t i g) prop = getPropertyState (props g) i (toProp (prop $ error "Property error: undefined"))
-    addChildObject (Object t p g) c = putToken g $ AUpdate (getIdentifier c) (P.ParentProp $ Parent p)
+    addChildObject (Object t p g) c = oSet g (getIdentifier c) (P.ParentProp $ Parent p)
 
 instance IdObject Object where
     getIdentifier (Object _ i _) = i
@@ -207,13 +195,13 @@ instance EventObject Object Event where
                               _ -> putHandlerState (events g) i (e, f)
 
 getScreen :: Global -> IO Connection
-getScreen global = do -- putToken global $ ANew 2 "Screen" -- TODO: should we send this?
+getScreen global = do -- oCreate global 2 "Screen" -- TODO: should we send this?
                       return $ W.newObject (Object "Screen" 2 global)
 
 newChild t ds p = let Object _ _ g = W.obj p
                   in do i <- getNextId g
                         let o = W.newObject $ Object t i g
-                         in do putToken g $ ANew i t
+                         in do oCreate g i t
                                addChildObject p o
                                mapM_ (\x -> case x of
                                               P.VisibleProp v -> setProperty (W.obj o) v
