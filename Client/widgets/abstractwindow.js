@@ -53,15 +53,27 @@ Class.define('AbstractWindow', {
             {
                 this.visible = visible;
                 
-                visible ? this.el.show() : this.el.hide();
-                
-                if (!visible && this.active)
-                    this.setActive(false);
+                if (visible)
+                {
+                    this.el.show();
+                    
+                    if (this.activateOnShow)
+                        this.setActive(true);
+                    else if (this.modal)
+                        Application.setActiveWindow(null);
+                }
+                else
+                {
+                    this.el.hide();
+                    
+                    if (this.active)
+                        this.setActive(false);
+                }
                 
                 this.layout();
             }
         },
-        // Overrides 'visible' property.
+        // Overrides 'is-visible' property.
         'is-visible': {
             read: function()
             {
@@ -144,6 +156,19 @@ Class.define('AbstractWindow', {
             },
             read: true,
             defaultValue: false
+        },
+        /**
+         * Whether to set this window #active when made #visible.
+         *
+         * @type bool
+         */
+        'activate-on-show': {
+            write: function(activateOnShow)
+            {
+                this.activateOnShow = activateOnShow;
+            },
+            read: true,
+            defaultValue: true
         }
     }
 });

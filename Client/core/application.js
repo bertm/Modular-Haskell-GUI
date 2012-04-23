@@ -26,28 +26,23 @@ Singleton.define('Application', {
      * Internal methods.
      */
     
-    setMainWindow: function(window)
+    setMainWindow: function(mainWindow)
     {
-        this.mainWindow = window;
+        if (this.mainWindow !== mainWindow)
+        {
+            this.mainWindow = mainWindow;
+            
+            this.emitPropertyChangeSignals('main-window');
+        }
     },
     
     // Called by the event manager when an event happens.
     onEvent: function(e, data, capturePhase)
     {
-        if (capturePhase)
-        {
-            if (this.signalDispatcher.emit('capture-' + e.type + '-event', this, e) ||
-                this.signalDispatcher.emit('capture-event', this, e))
-                return true;
-        }
-        else
-        {
-            if (this.signalDispatcher.emit(e.type + '-event', this, e) ||
-                this.signalDispatcher.emit('event', this, e))
-                return true;
-        }
+        var prefix = (capturePhase ? 'capture-' : '');
         
-        return false;
+        return this.signalDispatcher.emit(prefix + e.type + '-event', this, e) ||
+               this.signalDispatcher.emit(prefix + 'event', this, e);
     },
     
     /*

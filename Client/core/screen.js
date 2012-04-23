@@ -7,7 +7,9 @@
 Singleton.define('Screen', {
     initialize: function()
     {
-        // Screen emits resize events.
+        // NOTE: Use of browser internals (window.resize).
+        
+        // Check for a resize event on the window.
         var body = Element.getBody();
         var self = this;
         window.onresize = function()
@@ -16,10 +18,8 @@ Singleton.define('Screen', {
             body.invalidate();
             self.size = body.getSize();
             
-            // TODO: Generalize.
-            self.signalDispatcher.emit('size-change', self);
-            self.signalDispatcher.emit('property-change', self, 'size');
-            self.signalDispatcher.emit('change', self);
+            // Emit signals.
+            self.emitPropertyChangeSignals('size');
         };
         
         // Set size.

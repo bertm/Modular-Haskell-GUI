@@ -13,6 +13,10 @@ Class.define('MainWindow', {
     
     initialize: function()
     {
+        // Check for an existing main window.
+        if (Application.getMainWindow())
+            throw new Error("There can only be one main window.");
+        
         MainWindow.base.initialize.call(this);
         
         // Store original document title, and set new title.
@@ -21,10 +25,6 @@ Class.define('MainWindow', {
         
         // Add event handlers.
         Screen.connect('size-change', this.onScreenSizeChange, this);
-        
-        // Check for an existing main window.
-        if (Application.getMainWindow())
-            throw new Error("There can only be one main window.");
         
         // Set application its main window.
         Application.setMainWindow(this);

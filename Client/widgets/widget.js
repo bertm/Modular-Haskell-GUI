@@ -57,6 +57,8 @@ Class.define('Widget', {
     setParent: function(parent)
     {
         this.parent = parent;
+        
+        this.emitPropertyChangeSignals('parent');
     },
     
     /*
@@ -136,7 +138,7 @@ Class.define('Widget', {
         
         // Create a new requisition.
         var oldRequisition = this.requisition;
-        this.requisition = undefined;
+        this.requisition   = undefined;
         var newRequisition = this.requestSize();
         
         // TODO: Indicate a margin change, check for difference.
@@ -310,20 +312,10 @@ Class.define('Widget', {
     // Event handler.
     onEvent: function(e, data, capturePhase)
     {
-        if (capturePhase)
-        {
-            if (this.signalDispatcher.emit('capture-' + e.type + '-event', this, e) ||
-                this.signalDispatcher.emit('capture-event', this, e))
-                return true;
-        }
-        else
-        {
-            if (this.signalDispatcher.emit(e.type + '-event', this, e) ||
-                this.signalDispatcher.emit('event', this, e))
-                return true;
-        }
+        var prefix = (capturePhase ? 'capture-' : '');
         
-        return false;
+        return this.signalDispatcher.emit(prefix + e.type + '-event', this, e) ||
+               this.signalDispatcher.emit(prefix + 'event', this, e);
     },
     
     /*

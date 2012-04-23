@@ -26,17 +26,10 @@ Class.define('Entry', {
         this.inputEl.connect('paste', this.onInputEvent, this);
         
         EventManager.registerHandler(this.inputEl, EventMask.KEY_PRESS, this.onInputEvent, this);
-        EventManager.registerHandler(this.inputEl, EventMask.BUTTON_PRESS, this.onInputEvent, this);
+        EventManager.registerHandler(this.inputEl, EventMask.BUTTON_PRESS, this.onButtonPress, this);
         EventManager.registerHandler(this.inputEl, EventMask.BUTTON_RELEASE, this.onInputEvent, this);
         
-        // TODO: Handle focus.
-        
-        // Change detection:
-        // paste, etc.
-        //this.inputEl.connect('keyup', this.onKeyUp, this);
-        //this.inputEl.connect('keydown', this.onKeyDown, this);
-        //this.inputEl.connect('mousedown', this.onMouseDown, this);
-        //this.inputEl.connect('mousedown', this.onMouseUp, this);
+        // TODO: Button release!? More events?
     },
     
     getHtml: function()
@@ -59,11 +52,16 @@ Class.define('Entry', {
         return {width: 150, height: 20};
     },
     
-    // TODO: What about focus, they will now focus the element, not the input element.
-    
     /*
      * Event handlers.
      */
+    
+    onButtonPress: function()
+    {
+        this.focus();
+        
+        this.onInputEvent();
+    },
     
     onInputEvent: function()
     {

@@ -276,6 +276,17 @@ Class.define('Instance', {
     },
     
     /*
+     * Private methods.
+     */
+    
+    emitPropertyChangeSignals: function(name)
+    {
+        this.signalDispatcher.emit(name + '-change', this);
+        this.signalDispatcher.emit('property-change', this, name);
+        this.signalDispatcher.emit('change', this);
+    },
+    
+    /*
      * Statics.
      */
     

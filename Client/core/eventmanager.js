@@ -32,12 +32,35 @@ Singleton.define('EventManager', {
 
             
             // Prevent default focus on mousedown.
-            var target = e.target ? e.target : e.srcElement;
-            if (target.nodeName !== 'INPUT')
-            {
-                e.preventDefault ? e.preventDefault() : (e.returnValue = false);
-            }
+            //var target = e.target ? e.target : e.srcElement;
+            //if (target.nodeName !== 'INPUT')
+            //{
+            //    e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+            //}
         }, this);
+        
+        // Listen for focus events on any node.
+        var self = this;
+        var onFocus = function(e) { self.onFocus(e || event); };
+        
+        if (window.addEventListener)
+            document.body.addEventListener('focus', onFocus, true);
+        else
+            window.attachEvent('onfocusin', onFocus);
+        
+        // TODO: Blur?
+        
+        /*
+        
+        On focus event (focusin on IE, focus capture in other browsers):
+            - Check if it's our focus element.
+            - If not, focus our focus element.
+        
+        On window focus:
+            - Focus our focus element.
+        
+        
+        */
         
         // Set modifiers.
         this.modifiers = EventModifierMask.NONE;
@@ -113,15 +136,16 @@ Singleton.define('EventManager', {
     {
         if (element)
         {
-            console.info('Sending focus event.');
-            
             // Focus element, we want keyboard input.
-            document.body.focus(); 
+            document.body.focus();
             
             element.focus();
             
             // Set keyboard grab.
             this.keyboardGrabNode = element.getNode();
+            
+            // TODO: Set element?
+            // TODO: Remove focus/blur from element.
             
             // 
             
@@ -140,15 +164,15 @@ Singleton.define('EventManager', {
             
             return true;
         }
-        else if (this.focusElement)
+        else if (this.keyboardGrabNode) // TODO: Set element?
         {
-            console.info('Sending blur event.');
-            
             // Blur element.
-            element.blur();
+            this.keyboardGrabNode.blur();
             
             // Unset keyboard grab.
             this.keyboardGrabNode = null;
+            
+            // TODO: Set element?
             
             /*
             if (!this.triggerEvent(this.focusElement, new FocusChangeEvent(foo, this.modifiers, false)))
@@ -174,6 +198,26 @@ Singleton.define('EventManager', {
     /*
      * Private methods.
      */
+    
+    // Called when an element in the body gets focus.
+    onFocus: function(e)
+    {
+        var target = e.target ? e.target : e.srcElement;
+        
+        if (this.keyboardGrabNode)
+        {
+            if (target === this.keyboardGrabNode)
+                return;
+            
+            // Focus the keyboard grab node instead.
+            this.keyboardGrabNode.focus();
+        }
+        else
+        {
+            // Blur target: no element has the keyboard grab.
+            target.blur();
+        }
+    },
     
     /*
     // TODO: ..

@@ -8,52 +8,63 @@
  * Event base class.
  */
 Class.define('Event', {
-    extend: 'Object',
-    
     /*
      * Public methods.
      */
     
-    construct: function(widget, modifiers)
+    construct: function(source, modifiers)
     {
         this.date      = new Date();
-        this.source    = widget;
+        this.source    = source;
         this.modifiers = modifiers;
+        
+        // We are not constructing the instance here, so
+        // a signal dispatcher is not created.
     },
+    
+    /*
+     * Disable signal proxy methods.
+     */
+    
+    connect: function() { },
+    connectFirst: function() { },
+    connectLast: function() { },
+    disconnect: function() { },
     
     /*
      * Properties.
      */
     
-    getType: function()
-    {
-        return this.type;
-    },
-    getTimestamp: function()
-    {
-        return +this.date - this.date.getTimezoneOffset() * 60000;
-    },
-    getSource: function()
-    {
-        return this.source;
-    },
-    getModifiers: function()
-    {
-        return this.modifiers;
-    },
-    hasModifier: function(modifier)
-    {
-        return (this.modifiers & modifier);
+    properties: {
+        type: {
+            read: true,
+            defaultValue: null
+        },
+        timestamp: {
+            read: function()
+            {
+                return +this.date - this.date.getTimezoneOffset() * 60000;
+            }
+        },
+        source: {
+            read: true,
+            defaultValue: null
+        },
+        modifiers: {
+            read: true,
+            defaultValue: EventModifierMask.NONE
+        },
     },
     
     /*
-     * Internal methods.
+     * Actions.
      */
     
-    // Only to be used by EventManager, to set the source.
-    setSource: function(source)
-    {
-        this.source = source;
+    actions: {
+        hasModifier: function(modifier)
+        {
+            return (this.modifiers & modifier);
+        }
     }
 });
 
@@ -79,17 +90,21 @@ Class.define('PointerEvent', {
      * Properties.
      */
     
-    getX: function()
-    {
-        return this.x;
-    },
-    getY: function()
-    {
-        return this.y;
-    },
-    getPosition: function()
-    {
-        return {x: this.x, y: this.y};
+    properties: {
+        x: {
+            read: true,
+            defaultValue: 0
+        },
+        y: {
+            read: true,
+            defaultValue: 0
+        },
+        position: {
+            read: function()
+            {
+                return {x: this.x, y: this.y};
+            }
+        }
     }
 });
 
@@ -127,9 +142,11 @@ Class.define('ScrollEvent', {
      * Properties.
      */
     
-    getDelta: function()
-    {
-        return this.delta;
+    properties: {
+        delta: {
+            read: true,
+            defaultValue: 0
+        }
     }
 });
 
@@ -155,9 +172,11 @@ Class.define('CrossingEvent', {
      * Properties.
      */
     
-    getRelated: function()
-    {
-        return this.related;
+    properties: {
+        related: {
+            read: true,
+            defaultValue: null
+        }
     }
 });
 
@@ -183,9 +202,11 @@ Class.define('ButtonEvent', {
      * Properties.
      */
     
-    getButton: function()
-    {
-        return this.button;
+    properties: {
+        button: {
+            read: true,
+            defaultValue: 0
+        }
     }
 });
 
@@ -211,9 +232,11 @@ Class.define('KeyEvent', {
      * Properties.
      */
     
-    getKey: function()
-    {
-        return this.key;
+    properties: {
+        key: {
+            read: true,
+            defaultValue: 0
+        }
     }
 });
 

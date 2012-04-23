@@ -74,6 +74,17 @@ Singleton.define('Transmission', {
         this.conn.connect('open', this.onConnectionOpen, this);
         this.conn.connect('close', this.onConnectionClose, this);
         this.conn.connect('data', this.onConnectionData, this);
+        
+        // Give singletons an id, and listen for their property changes.
+        for (var id in this.singletons)
+        {
+            var singleton = this.singletons[id];
+            
+            singleton._id = +id;
+            
+            // Register propert-change signal handler.
+            singleton.connect('property-change', this.onObjectPropertyChange, this);
+        }
     },
     
     /*
@@ -161,8 +172,16 @@ Singleton.define('Transmission', {
                 if (this.objects[id])
                     throw new Error('Object with id ' + id + ' already exists.');
                 
-                var obj = this.objects[id] = Instance.create(cls);
+                // Create object. Set id on it before construction.
+                var cls = window[cls];
+                
+                var clsFunc = function Constructor() { };
+                clsFunc.prototype = cls.prototype;
+                
+                var obj = this.objects[id] = new clsFunc;
                 obj._id = id;
+                
+                obj.construct();
                 
                 // Register propert-change signal handler.
                 obj.connect('property-change', this.onObjectPropertyChange, this);
@@ -243,6 +262,8 @@ Singleton.define('Transmission', {
     
     getObjectById: function(id)
     {
+        id = +id;
+        
         if (id < 1000)
         {
             if (this.singletons[id])
@@ -289,6 +310,48 @@ Singleton.define('Transmission', {
         return arg;
     },
     
+    encodeArguments: function(args)
+    {
+        if (!(args instanceof Array))
+            throw new Error('Arguments is not an array.');
+        
+        var result = [];
+        var length = args.length;
+        for (var i = 0; i < length; ++i)
+        {
+            result.push(this.encodeArgument(args[i]));
+        }
+        
+        return result;
+    },
+    
+    encodeArgument: function(arg)
+    {
+        if (arg instanceof Object)
+        {
+            // Encode array.
+            if (arg instanceof Array)
+                return this.encodeArguments(arg);
+            
+            // Check for a known object.
+            if (arg._id !== undefined)
+                return {id: arg._id};
+            
+            // TODO: Check for an instance that has been created on the client.
+            // TODO: Check if it occurs in the classes list.
+            // TODO: Send create message to the server.
+            // NOTE: Use minus ids for those?
+            
+            throw new Error('Got an unexpected object.');
+        }
+        
+        if ((arg === undefined) || (arg === NaN))
+            throw new Error('Got an unexpected value.');
+        
+        // A string, a number, a boolean or null.
+        return arg;
+    },
+    
     /*
      * Event handlers.
      */
@@ -317,14 +380,19 @@ Singleton.define('Transmission', {
     
     onConnectionClose: function(conn)
     {
-        this.state = TransmissionState.CLOSED;
-        
         // Set reason if there is none.
         if (!this.closeReason)
-            this.closeReason = 'Lost connection with server.';
+        {
+            if (this.state === TransmissionState.CONNECTING)
+                this.closeReason = 'Could not connect to server.';
+            else
+                this.closeReason = 'Lost connection with server.';
+        }
         
         // Show close reason.
         console.log("Connection closed. Reason:\n" + this.closeReason);
+        
+        this.state = TransmissionState.CLOSED;
         
         // Destroy all objects.
         for (var id in this.objects)
@@ -333,6 +401,8 @@ Singleton.define('Transmission', {
         }
         
         this.objects = {};
+        
+        // TODO: Remove event listeners from singletons.
         
         // Show a nice message.
         var window = new Window({
@@ -351,14 +421,28 @@ Singleton.define('Transmission', {
     
     onObjectPropertyChange: function(obj, name)
     {
+        // Stop if connection has been closed.
+        //if (this.state !== TransmissionState.ESTABLISHED)
+            return;
+        
         // Skip signals that came from our own setter.
         if (this.settingProperty && (this.settingProperty === name) && (this.settingObject === obj))
             return;
         
         console.log('A property has changed: ' + name);
         
-        var id    = obj._id;
-        var value = obj.getProperty(name); // TODO: Give value with it?
+        try
+        {
+            var id    = obj._id;
+            var value = this.encodeArgument(obj.getProperty(name)); // TODO: Give value with it? Too much overhead?
+        }
+        catch (e)
+        {
+            this.closeReason = e.message;
+            this.conn.close();
+            
+            return;
+        }
         
         console.log('Sending property: ' + name + ', with value:');
         console.log(value);

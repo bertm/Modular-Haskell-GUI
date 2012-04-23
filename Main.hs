@@ -32,6 +32,9 @@ run screen = do mainWindow <- newMainWindow screen
                 set window Title "Test Window"
                 set button Label "Click me"
                 set entry Text "Type here"
+                set button CanFocus True
+                set entry CanFocus True
+                set entry2 CanFocus True
                 set box Visible True
                 set button Visible True
                 set entry Visible True
@@ -44,6 +47,7 @@ run screen = do mainWindow <- newMainWindow screen
                 button2 <- newButton mainWindow
                 set button2 Visible True
                 set button2 Label "Main button label"
+                set button2 CanFocus True
                 set mainWindow Visible True
                 
                 -- Capture button releases on button
