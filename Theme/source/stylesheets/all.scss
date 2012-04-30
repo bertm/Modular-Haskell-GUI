@@ -1,0 +1,862 @@
+/*
+ * Imports.
+ */
+
+@import "../_config";
+
+@import "compass/css3/gradient";
+
+/*
+
+//$foreground-color: hsl(309deg, 54%, 58%); /* Pink. * /
+$foreground-color: #a1c148;
+$background-color: hsl(39deg, 17%, 77%);
+$shadow-color: hsl(0deg, 0%, 46%);
+
+$focus-border-color: #000; /* Black. * /
+$dark-text-color: adjust-color($background-color, $lightness: -70%); /* Almost black. * /
+$bright-text-color: adjust-color($foreground-color, $lightness: 60%); /* White. * /
+
+$normal-background-color: adjust-color($background-color, $saturation: 7%, $lightness: 15%);
+//$foreground-color: hsl(309deg, 54%, 58%); /* Pink. * /
+//$foreground-color: #3b9c2b; /* Green. * /
+//$foreground-color: #d01718; /* Red. * /
+//$background-color: hsl(39deg, 17%, 70%);
+//$shadow-color: hsl(0deg, 0%, 30%);
+
+*/
+
+/*
+ * Body.
+ */
+
+body
+{
+    background: $normal-background-color;
+    font-family: $font-family;
+    font-size: $font-size;
+}
+
+/*
+ * Selection.
+ */
+
+$selection-background-color: adjust-color($foreground-color, $saturation: 8%, $lightness: 1%);
+
+/* Repeating is necessary because a bad selector will ignore the whole ruleset. */
+::selection
+{
+	background: $selection-background-color;
+	color: $bright-text-color;
+}
+
+::-moz-selection
+{
+	background: $selection-background-color;
+	color: $bright-text-color;
+}
+
+::-webkit-selection
+{
+	background: $selection-background-color;
+	color: $bright-text-color;
+}
+
+/*
+ * Label.
+ */
+
+.x-label
+{
+    color: $dark-text-color;
+}
+
+.x-label.x-insensitive, .x-insensitive .x-label
+{
+    color: adjust-color($background-color, $saturation: -3%, $lightness: -5%);
+    text-shadow: lighten($background-color, 50%) 1px 1px 1px;
+}
+
+/*
+ * Entry.
+ */
+
+/* Button, entry. */
+.x-button, .x-entry.x-shadow-in
+{
+    border: 2px groove adjust-color($background-color, $saturation: 10%, $lightness: 9%);
+    border-right-style: ridge;
+    border-bottom-style: ridge;
+    border-radius: 3px;
+    box-shadow: 0px 1px 2px 0px adjust-color($background-color, $lightness: 50%);
+    margin: 1px;
+}
+
+/* Entry. */
+.x-entry>input
+{
+    font-family: $font-family;
+    font-size: $font-size;
+}
+
+.x-entry
+{
+    padding: 0px 3px 0px 3px;
+    background: lighten($shadow-color, 50%);
+}
+
+.x-entry.x-focus
+{
+    border-color: adjust-color($foreground-color, $saturation: 8%, $lightness: 16%);
+}
+
+.x-insensitive .x-entry, .x-entry.x-insensitive
+{
+    background: lighten($background-color, 16%);
+    border: 1px solid adjust-color($background-color, $saturation: -3%, $lightness: -5%);
+    padding: 0px 4px 1px 3px;
+}
+
+.x-entry.x-insensitive>input, .x-insensitive .x-entry>input
+{
+    background: lighten($background-color, 16%);
+    color: adjust-color($background-color, $saturation: -3%, $lightness: -16%);
+    text-shadow: lighten($shadow-color, 50%) 1px 1px 1px;
+    cursor: default;
+}
+
+/*
+ * Button.
+ */
+
+/* Button. */
+.x-button
+{
+    @include filter-gradient(
+        lighten($background-color, 30%),
+        lighten($background-color, 10%)
+    );
+    @include background-image(linear-gradient(
+        lighten($background-color, 30%) 0%,
+        lighten($background-color, 16%) 60%,
+        lighten($background-color, 10%) 100%
+    ));
+    
+    border-top: 1px solid adjust-color($background-color, $saturation: -8%, $lightness: -26%);
+    border-left: 1px solid adjust-color($background-color, $saturation: -8%, $lightness: -26%);
+    
+    padding: 2px 2px 1px 2px;
+}
+
+.x-button>.x-body
+{
+    mmargin: 1px;
+    padding: 1px;
+    border: 1px solid transparent;
+}
+
+/* Focused button. */
+.x-button.x-focus>.x-body
+{
+    border: 1px dotted $focus-border-color;
+    margin: 0px;
+}
+
+/* Pressed and active button. */
+.x-button.x-pressed, .x-button.x-active
+{
+    filter: none;
+    background: adjust-color($background-color, $saturation: 1%, $lightness: 2%);
+}
+
+.x-button.x-pressed>.x-body, .x-button.x-active>.x-body
+{
+    pppadding: 1px 0px 0px 1px; /* TODO: Make style setting? */
+}
+
+/* Insensitive button. */
+.x-button.x-insensitive, .x-insensitive .x-button
+{
+    border: 1px solid adjust-color($background-color, $saturation: -3%, $lightness: -5%);
+    padding: 2px 3px 2px 2px;
+}
+
+/*
+ * Check button, radio button.
+ */
+
+.x-checkbutton, .x-radiobutton
+{
+    height: 20px;
+}
+
+.x-checkbutton>.x-control, .x-radiobutton>.x-control
+{
+    width: 13px;
+    height: 13px;
+    top: 50%;
+    margin: -6px 7px 3px 0px;
+}
+
+.x-checkbutton>.x-control
+{
+    background: url(../images/checkbutton/control.png) no-repeat;
+}
+
+.x-radiobutton>.x-control
+{
+    background: url(../images/radiobutton/control.png) no-repeat;
+}
+
+.x-checkbutton.x-active>.x-control, .x-radiobutton.x-active>.x-control
+{
+    background-position: 0px -13px;
+}
+
+.x-checkbutton.x-insensitive>.x-control, .x-radiobutton.x-insensitive>.x-control,
+.x-insensitive .x-checkbutton>.x-control, .x-insensitive .x-radiobutton>.x-control,
+{
+    background-position: 0px -26px;
+}
+
+.x-checkbutton.x-insensitive.x-active>.x-control, .x-radiobutton.x-insensitive.x-active>.x-control,
+.x-insensitive .x-checkbutton.x-active>.x-control, .x-insensitive .x-radiobutton.x-active>.x-control
+{
+    background-position: 0px -39px;
+}
+
+.x-checkbutton>.x-body, .x-radiobutton>.x-body
+{
+    margin: 1px;
+}
+
+.x-checkbutton.x-focus>.x-body, .x-radiobutton.x-focus>.x-body
+{
+    border: 1px dotted $focus-border-color;
+    margin: 0;
+}
+
+/*
+ * Notebook.
+ * /
+
+.x-notebook>.x-body
+{
+    border: 2px groove adjust-color($background-color, $saturation: 11%, $lightness: 16%);
+    border-radius: 2px;
+    margin-top: 10px;
+    
+    clear: both;
+    position: relative;
+    z-index: -1;
+}
+
+.x-pages
+{
+    position: relative;
+}
+
+.x-page
+{
+    border-top: 1px solid adjust-color($background-color, $saturation: -3%, $lightness: -16%);
+    border-right: 1px solid adjust-color($background-color, $saturation: -3%, $lightness: -16%);
+    border-top-right-radius: 2px;
+    background: adjust-color($background-color, $saturation: 1%, $lightness: 2%);
+    
+    position: relative;
+    float: left;
+    
+    left: 0px;
+    top: 4px;
+    
+    wwidth: 50px;
+    height: 18px;
+}
+
+.x-page.x-active
+{
+    border-top: 1px solid adjust-color($foreground-color, $saturation: -13%, $lightness: -20%);
+    border-left: 1px solid adjust-color($background-color, $saturation: -3%, $lightness: -16%);
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    background: $normal-background-color;
+    left: 0px;
+    top: 1px;
+    
+    height: 22px;
+}
+
+.x-page>.x-label
+{
+    padding: 0px 5px 0px 5px;
+}
+
+.x-page.x-active>.x-label
+{
+    border-top: 2px solid adjust-color($foreground-color, $saturation: 11%, $lightness: 4%);
+}
+
+/*
+ * Frame.
+ */
+
+.x-legend .x-label
+{
+    color: lighten($dark-text-color, 20%);
+}
+
+.x-frame.x-insensitive .x-label, .x-insensitive .x-legend .x-label
+{
+    color: adjust-color($background-color, $saturation: -3%, $lightness: -5%);
+}
+
+/*
+ * Window.
+ */
+
+/* Widget. */
+.x-window
+{
+    border: 2px solid adjust-color($foreground-color, $saturation: 4%, $lightness: -10%);
+    border-radius: 5px;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+    box-shadow: 3px 3px 5px 0px adjust-color($shadow-color, $lightness: 0%, $alpha: -0.2);
+}
+
+.x-window.x-inactive
+{
+    border: 2px solid adjust-color($foreground-color, $saturation: 4%, $lightness: 0%);
+    box-shadow: 3px 3px 5px 0px adjust-color($shadow-color, $lightness: 13%, $alpha: -0.4);
+}
+
+/* Header. */
+.x-window>.x-header
+{
+    background: url(../images/window/header.png); /* TODO: Will this be overriden by filter? */
+    
+    @include filter-gradient(
+        adjust-color($foreground-color, $saturation: 8%, $lightness: 16%),
+        adjust-color($foreground-color, $saturation: 8%, $lightness: 1%)
+    );
+    @include background-image(linear-gradient(
+        adjust-color($foreground-color, $saturation: 8%, $lightness: 16%) 0%,
+        adjust-color($foreground-color, $saturation: 8%, $lightness: 1%) 100%
+    ));
+    
+    border-top: solid 1px adjust-color($foreground-color, $saturation: 26%, $lightness: 30%);
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    
+    height: 21px;
+}
+
+.x-window>.x-header>.x-label
+{
+    position: absolute;
+    width: 100%;
+    margin-top: 3px;
+    color: $bright-text-color;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: none;
+}
+
+/* Header buttons. */
+.x-window>.x-header>.x-delete, .x-window>.x-header>.x-maximize, .x-window>.x-header>.x-restore
+{
+    position: relative;
+    margin: 3px 3px 0px -2px;
+    float: right;
+    width: 16px;
+    height: 13px;
+    border: solid 1px adjust-color($foreground-color, $saturation: -11%, $lightness: -24%);
+    border-radius: 3px;
+}
+
+.x-window>.x-header>.x-delete
+{
+    background: url(../images/window/delete.png) no-repeat 50% 50% lighten($background-color, 16%);
+}
+
+.x-window>.x-header>.x-maximize
+{
+    background: url(../images/window/maximize.png) no-repeat 50% 50% lighten($background-color, 16%);
+}
+
+.x-window>.x-header>.x-restore
+{
+    background: url(../images/window/restore.png) no-repeat 50% 50% lighten($background-color, 16%);
+}
+
+.x-window>.x-header .x-pressed
+{
+    background-color: adjust-color($background-color, $saturation: -4%, $lightness: 2%);
+}
+
+/* Body. */
+.x-window>.x-body
+{
+    border: 2px solid adjust-color($foreground-color, $saturation: 8%, $lightness: 1%);
+    border-top: 1px solid adjust-color($foreground-color, $saturation: -11%, $lightness: -11%);
+    background: $normal-background-color;
+}
+
+/* Resize grip. */
+.x-resize-grip
+{
+    background: url(../images/window/resize-grip.png);
+    width: 17px;
+    height: 17px;
+}
+
+/*
+ * Progress bar.
+ */
+
+.x-progress-bar
+{
+    border: 1px solid adjust-color($background-color, $saturation: -8%, $lightness: -30%);
+    border-radius: 2px;
+    background: adjust-color($background-color, $saturation: 1%, $lightness: 2%);
+}
+
+.x-progress-bar>.x-text
+{
+    box-shadow: inset 2px 2px 3px 0px adjust-color($shadow-color, $lightness: 4%, $alpha: -0.7);
+}
+
+.x-progress-bar>.x-bar
+{
+    background: url(../images/progressbar/bar.png);
+    border: solid 1px adjust-color($foreground-color, $saturation: 22%, $lightness: 17%);
+}
+
+.x-progress-bar>.x-bar>.x-label,
+.x-progress-bar.x-insensitive>.x-bar>.x-label,
+.x-insensitive .x-progress-bar>.x-bar>.x-label
+{
+    /* NOTE: No IE support due to alpha. */
+    
+    @include background-image(linear-gradient(
+        adjust-color($shadow-color, $lightness: 50%, $alpha: -1) 17%,
+        adjust-color($shadow-color, $lightness: -50%, $alpha: -0.92) 70%,
+        adjust-color($shadow-color, $lightness: -50%, $alpha: -0.92) 80%,
+        adjust-color($shadow-color, $lightness: -50%, $alpha: -1) 100%
+    ));
+    
+    /* TODO: Vertical gradient. */
+    
+    color: $bright-text-color;
+    margin-top: -1px;
+    text-align: center;
+    text-shadow: none;
+}
+
+.x-progress-bar>.x-text>.x-label,
+.x-insensitive .x-progress-bar>.x-text>.x-label
+{
+    text-align: center;
+    text-shadow: none;
+    color: $dark-text-color;
+}
+
+$progress-bar-shadow-color: adjust-color($shadow-color, $lightness: 4%, $alpha: -0.7);
+$progress-bar-border-color: adjust-color($foreground-color, $saturation: 9%, $lightness: 2%);
+
+/* North direction. */
+.x-progress-bar.x-orient-vertical>.x-bar
+{
+    box-shadow: 0px -2px 3px 0px $progress-bar-shadow-color;
+}
+
+.x-progress-bar.x-orient-vertical>.x-bar>.x-label
+{
+    border-top: solid 1px $progress-bar-border-color;
+}
+
+/* East direction. */
+.x-progress-bar.x-orient-horizontal>.x-bar
+{
+    box-shadow: 2px 0px 3px 0px $progress-bar-shadow-color;
+    background-position: top right;
+}
+
+.x-progress-bar.x-orient-horizontal>.x-bar>.x-label
+{
+    border-right: solid 1px $progress-bar-border-color;
+}
+
+/* South direction. */
+.x-progress-bar.x-orient-vertical.x-inverted>.x-bar
+{
+    box-shadow: 0px 2px 3px 0px $progress-bar-shadow-color;
+    background-position: right bottom;
+}
+
+.x-progress-bar.x-orient-vertical.x-inverted>.x-bar>.x-label
+{
+    border-bottom: solid 1px $progress-bar-border-color;
+}
+
+/* West direction. */
+.x-progress-bar.x-orient-horizontal.x-inverted>.x-bar
+{
+    box-shadow: -2px 0px 3px 0px $progress-bar-shadow-color;
+    background-position: top left;
+}
+
+.x-progress-bar.x-orient-horizontal.x-inverted>.x-bar>.x-label
+{
+    border-left: solid 1px $progress-bar-border-color;
+}
+
+/*
+ * Scale.
+ */
+
+.x-scale
+{
+    padding: 0px 1px;
+}
+
+.x-scale.x-orient-vertical
+{
+    padding: 1px 0px;
+}
+
+.x-scale>.x-inner
+{
+    height: 19px;
+    border: 1px dotted transparent;
+}
+
+.x-scale.x-orient-vertical>.x-inner
+{
+    height: auto;
+    width: 19px;
+}
+
+.x-scale>.x-inner>.x-track,
+.x-scale>.x-inner>.x-filled
+{
+    top: 7px;
+    height: 3px;
+    border: solid 1px adjust-color($background-color, $saturation: -3%, $lightness: -16%);
+    margin: 0px 2px;
+    background: url(../images/scale/track.png);
+}
+
+.x-scale.x-orient-vertical>.x-inner>.x-track,
+.x-scale.x-orient-vertical>.x-inner>.x-filled
+{
+    top: auto;
+    left: 7px;
+    height: auto;
+    width: 3px;
+    margin: 2px 0px;
+    background: url(../images/scale/track-vert.png);
+}
+
+.x-scale>.x-inner>.x-filled
+{
+    border: solid 1px adjust-color($foreground-color, $saturation: -32%, $lightness: -23%);
+    background: url(../images/scale/filled.png);
+}
+
+.x-scale.x-orient-vertical>.x-inner>.x-filled
+{
+    background: url(../images/scale/filled-vert.png);
+}
+
+.x-scale>.x-inner>.x-slider
+{
+    top: 3px;
+    width: 29px;
+    height: 13px;
+    background: url(../images/scale/slider.png);
+}
+
+.x-scale.x-orient-vertical>.x-inner>.x-slider
+{
+    top: auto;
+    left: 3px;
+    width: 13px;
+    height: 29px;
+    background: url(../images/scale/slider-vert.png);
+}
+
+.x-scale.x-focus>.x-inner
+{
+    border: 1px dotted $focus-border-color;
+}
+
+/*
+ * Scroll bar.
+ */
+
+$scroll-bar-border-color: adjust-color($background-color, $saturation: -5%, $lightness: -31%);
+
+/* Steppers. */
+.x-scroll-bar>.x-stepper-backward,
+.x-scroll-bar>.x-stepper-forward
+{
+    position: absolute;
+    border: solid 1px $scroll-bar-border-color;
+    width: 13px;
+    height: 13px;
+}
+
+.x-scroll-bar.x-orient-horizontal>.x-stepper-backward,
+.x-scroll-bar.x-orient-horizontal.x-insensitive>.x-stepper-backward.x-active
+{
+    border-right: none;
+    background: url(../images/scrollbar/stepper-backward.png) no-repeat 40% 50% $normal-background-color;
+    border-top-left-radius: 2px;
+    border-bottom-left-radius: 2px;
+}
+
+.x-scroll-bar.x-orient-horizontal>.x-stepper-forward,
+.x-scroll-bar.x-orient-horizontal.x-insensitive>.x-stepper-forward.x-active
+{
+    border-left: none;
+    background: url(../images/scrollbar/stepper-forward.png) no-repeat 60% 50% $normal-background-color;
+    border-top-right-radius: 2px;
+    border-bottom-right-radius: 2px;
+}
+
+.x-scroll-bar.x-orient-vertical>.x-stepper-backward,
+.x-scroll-bar.x-orient-vertical.x-insensitive>.x-stepper-backward.x-active
+{
+    border-bottom: none;
+    background: url(../images/scrollbar/stepper-backward-vert.png) no-repeat 50% 40% $normal-background-color;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+}
+
+.x-scroll-bar.x-orient-vertical>.x-stepper-forward,
+.x-scroll-bar.x-orient-vertical.x-insensitive>.x-stepper-forward.x-active
+{
+    border-top: none;
+    background: url(../images/scrollbar/stepper-forward-vert.png) no-repeat 50% 60% $normal-background-color;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+}
+
+.x-scroll-bar.x-orient-horizontal>.x-stepper-backward.x-active
+{
+    background: url(../images/scrollbar/stepper-backward-active.png) no-repeat 40% 50% $normal-background-color;
+}
+
+.x-scroll-bar.x-orient-horizontal>.x-stepper-forward.x-active
+{
+    background: url(../images/scrollbar/stepper-forward-active.png) no-repeat 60% 50% $normal-background-color;
+}
+
+.x-scroll-bar.x-orient-vertical>.x-stepper-backward.x-active
+{
+    background: url(../images/scrollbar/stepper-backward-vert-active.png) no-repeat 50% 40% $normal-background-color;
+}
+
+.x-scroll-bar.x-orient-vertical>.x-stepper-forward.x-active
+{
+    background: url(../images/scrollbar/stepper-forward-vert-active.png) no-repeat 50% 60% $normal-background-color;
+}
+
+/* Track. */
+.x-scroll-bar>.x-inner
+{
+    position: absolute;
+    height: 15px;
+}
+
+.x-scroll-bar.x-orient-vertical>.x-inner
+{
+    height: auto;
+    width: 15px;
+}
+
+.x-scroll-bar>.x-inner>.x-track
+{
+    height: 13px;
+    border: solid 1px $scroll-bar-border-color;
+    background: url(../images/scrollbar/track.png);
+}
+
+.x-scroll-bar.x-orient-vertical>.x-inner>.x-track
+{
+    height: auto;
+    width: 13px;
+    background: url(../images/scrollbar/track-vert.png);
+}
+
+/* Slider. */
+.x-scroll-bar>.x-inner>.x-slider
+{
+    border: 1px solid $scroll-bar-border-color;
+    width: 13px;
+    height: 13px;
+    background: url(../images/scrollbar/slider.png);
+    visibility: hidden;
+}
+
+.x-scroll-bar>.x-inner>.x-slider.x-active
+{
+    visibility: visible;
+}
+
+.x-scroll-bar.x-orient-vertical>.x-inner>.x-slider
+{
+    background: url(../images/scrollbar/slider-vert.png);
+}
+
+/*
+ * Spinner.
+ */
+
+.x-spinner
+{
+    width: 32px;
+    height: 32px;
+    background: url(../images/spinner/inactive.png) no-repeat 50% 50%;
+}
+
+.x-spinner.x-active
+{
+    background: url(../images/spinner/active.gif) no-repeat 50% 50%;
+}
+
+/*
+ * Menu bar.
+ */
+
+.x-menu-bar
+{
+    background: adjust-color($background-color, $saturation: 1%, $lightness: 13%);
+    height: 22px;
+    border-bottom: solid 1px adjust-color($background-color, $saturation: -2%, $lightness: 3%);
+}
+
+/*
+ * Menu.
+ */
+
+.x-menu
+{
+    background: adjust-color($background-color, $saturation: 1%, $lightness: 13%);
+    border: solid 1px adjust-color($background-color, $saturation: -2%, $lightness: 3%);
+    box-shadow: 3px 3px 2px 0px lighten($shadow-color, 7%);
+}
+
+/*
+ * Menu item.
+ */
+
+/* Item. */
+.x-menu-item
+{
+    margin: 1px;
+    border: 1px solid transparent;
+    padding: 2px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.x-menu-bar>.x-menu-item
+{
+    padding: 2px;
+}
+
+.x-menu-item.x-pressed,
+.x-menu-item.x-active,
+.x-menu-item:hover
+{
+    border: 1px solid adjust-color($foreground-color, $saturation: 5%, $lightness: -9%);
+    border-radius: 2px;
+    background: adjust-color($foreground-color, $saturation: 5%, $lightness: 24%);
+}
+
+.x-menu-item.x-pressed,
+.x-menu-item.x-active
+{
+    background: adjust-color($foreground-color, $saturation: 22%, $lightness: 17%);
+}
+
+/* Label. */
+.x-menu-item.x-insensitive.x-pressed>.x-label,
+.x-menu-item.x-insensitive.x-active>.x-label,
+.x-menu-item:hover>.x-label
+{
+    color: $dark-text-color;
+}
+
+.x-menu-item.x-pressed>.x-label,
+.x-menu-item.x-active>.x-label
+{
+    color: $bright-text-color;
+}
+
+/* Insensitive. */
+.x-menu-item.x-insensitive.x-pressed,
+.x-menu-item.x-insensitive.x-active
+{
+    background: adjust-color($background-color, $saturation: 2%, $lightness: 10%);
+    border: 1px solid adjust-color($background-color, $saturation: -5%, $lightness: -5%);
+}
+
+/*
+ * Separator menu item.
+ */
+
+.x-separator-menu-item
+{
+    padding: 2px;
+    padding-left: 20px;
+}
+
+.x-separator-menu-item>.x-inner
+{
+    position: relative;
+    border-bottom: 2px groove lighten($shadow-color, 50%);
+    height: 0px;
+}
+/*
+.x-separator-menu-item>.x-inner
+{
+    position: relative;
+    border-right: 2px groove lighten($shadow-color, 50%);
+    width: 0px;
+    left: 50%;
+    height: 100%;
+}
+*/
+
+/*
+ * Paned.
+ */
+
+.x-paned.x-orient-horizontal>.x-splitter
+{
+    cursor: col-resize;
+    background: url(../images/paned/splitter.png) no-repeat 50% 50%;
+}
+
+.x-paned.x-orient-vertical>.x-splitter
+{
+    cursor: row-resize;
+    background: url(../images/paned/splitter-vert.png) no-repeat 50% 50%;
+}
+
+/*
+ * Scrolled window.
+ */
+
+.x-scrolled-window
+{
+    background: $normal-background-color;
+}
+
+.x-scrolled-window>.x-body
+{
+    background: $alternate-background-color;
+}
