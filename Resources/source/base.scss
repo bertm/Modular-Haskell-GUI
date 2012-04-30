@@ -1,0 +1,516 @@
+@import "compass/css3/user-interface";
+@import "compass/css3/border-radius";
+@import "compass/css3/box-shadow";
+
+@mixin opacity($opacity: 1)
+{
+    opacity: $opacity;
+    filter: alpha(opacity=$opacity*100);
+}
+
+/*
+ * Main elements.
+ */
+
+html
+{
+    height: 100%;
+    overflow: hidden;
+}
+
+body
+{
+    font-family: sans-serif;
+    overflow: hidden;
+    cursor: default;
+    height: 100%;
+}
+
+/* Make text unselectable. */
+body, .x-label, .x-entry.x-disabled input
+{
+    @include user-select(none);
+}
+
+/*
+ * Cursors.
+ */
+
+.x-cursor-resize-n, .x-cursor-resize-n *
+{
+    cursor: n-resize !important;
+}
+
+.x-cursor-resize-s, .x-cursor-resize-s *
+{
+    cursor: s-resize !important;
+}
+
+.x-cursor-resize-e, .x-cursor-resize-e *
+{
+    cursor: e-resize !important;
+}
+
+.x-cursor-resize-w, .x-cursor-resize-w *
+{
+    cursor: w-resize !important;
+}
+
+.x-cursor-resize-ne, .x-cursor-resize-ne *
+{
+    cursor: ne-resize !important;
+}
+
+.x-cursor-resize-nw, .x-cursor-resize-nw *
+{
+    cursor: nw-resize !important;
+}
+
+.x-cursor-resize-sw, .x-cursor-resize-sw *
+{
+    cursor: sw-resize !important;
+}
+
+.x-cursor-resize-se, .x-cursor-resize-se *
+{
+    cursor: se-resize !important;
+}
+
+.x-cursor-resize-col, .x-cursor-resize-col *
+{
+    cursor: col-resize !important;
+}
+
+.x-cursor-resize-row, .x-cursor-resize-row *
+{
+    cursor: row-resize !important;
+}
+
+.x-cursor-drag, .x-cursor-drag *
+{
+    cursor: move !important;
+}
+
+/*
+ * Shadow types.
+ */
+
+.x-shadow-none
+{
+    border: solid 2px transparent;
+}
+
+.x-shadow-in
+{
+    border: 1px solid #999;
+    border-right: 1px solid #FFF;
+    border-bottom: 1px solid #FFF;
+}
+
+.x-shadow-out
+{
+    border: 1px solid #FFF;
+    border-right: 1px solid #999;
+    border-bottom: 1px solid #999;
+}
+
+.x-shadow-etched-in
+{
+    border: 2px groove #FFF;
+}
+
+.x-shadow-etched-out
+{
+    border: 2px ridge #FFF;
+}
+
+/*
+ * Justifications.
+ */
+
+.x-justify-left
+{
+    text-align: left;
+}
+
+.x-justify-right
+{
+    text-align: right;
+}
+
+.x-justify-center
+{
+    text-align: center;
+}
+
+.x-justify-fill
+{
+    text-align: justify;
+}
+
+/*
+ * Overlay.
+ */
+
+.x-overlay
+{
+    position: absolute;
+    display: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ccc;
+}
+
+/*
+ * Text measurement.
+ */
+
+.x-text-measure
+{
+    position: absolute;
+    left: -1000px;
+    top: -1000px;
+    width: auto;
+    display: inline;
+    visibility: hidden;
+    white-space: nowrap;
+}
+
+/*
+ * Widget.
+ */
+
+.x-body
+{
+    position: relative;
+}
+
+.x-widget
+{
+    position: absolute;
+    display: none;
+    overflow: hidden;
+    cursor: default;
+}
+
+/*
+ * Separator.
+ */
+
+.x-separator-horizontal>.x-inner
+{
+    position: relative;
+    border-bottom: 2px groove #FFF;
+    height: 0px;
+    top: 50%;
+}
+
+.x-separator-vertical>.x-inner
+{
+    position: relative;
+    border-right: 2px groove #FFF;
+    width: 0px;
+    left: 50%;
+    height: 100%;
+}
+
+/*
+ * Entry.
+ */
+ 
+.x-entry>input
+{
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+.x-entry.x-no-frame
+{
+    border: none !important;
+    @include border-radius(0px !important);
+    @include box-shadow(none !important);
+}
+
+/*
+ * Label.
+ */
+
+.x-label
+{
+    cursor: default;
+    white-space: nowrap;
+}
+
+.x-wrap
+{
+    white-space: normal;
+}
+
+/*
+ * Check button, radio button.
+ */
+
+.x-checkbutton>.x-control, .x-radiobutton>.x-control
+{
+    position: relative;
+    float: left;
+}
+
+.x-checkbutton>.x-body, .x-radiobutton>.x-body
+{
+    float: left;
+}
+
+/*
+ * Frame.
+ */
+
+.x-legend
+{
+    margin: 0px 7px 0px 7px;
+    
+    white-space: normal;
+}
+
+.x-frame
+{
+    ppadding: 3px;
+}
+
+/*
+ * Window.
+ */
+
+.x-window
+{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+/* Resizers. */
+.x-resizer-n, .x-resizer-s, .x-resizer-w, .x-resizer-e,
+.x-resizer-nw, .x-resizer-sw, .x-resizer-se, .x-resizer-ne
+{
+    position: absolute;
+    background: #FFF;
+    @include opacity(0);
+}
+
+.x-resizer-n, .x-resizer-s
+{
+    left: -2px;
+    height: 6px;
+    width: 100%;
+}
+
+.x-resizer-n
+{
+    cursor: n-resize;
+    top: -2px;
+}
+
+.x-resizer-s
+{
+    cursor: s-resize;
+    bottom: -2px;
+}
+
+.x-resizer-e, .x-resizer-w
+{
+    top: -2px;
+    width: 6px;
+    height: 100%;
+}
+
+.x-resizer-e
+{
+    cursor: e-resize;
+    right: -2px;
+}
+.x-resizer-w
+{
+    cursor: w-resize;
+    left: -2px;
+}
+
+.x-resizer-ne, .x-resizer-nw, .x-resizer-sw, .x-resizer-se
+{
+    width: 6px;
+    height: 6px;
+}
+
+.x-resizer-ne
+{
+    right: -2px;
+    top: 0px;
+    cursor: ne-resize;
+}
+
+.x-resizer-nw
+{
+    left: -2px;
+    top: 0px;
+    cursor: nw-resize;
+}
+
+.x-resizer-sw
+{
+    left: -2px;
+    bottom: -2px;
+    cursor: sw-resize;
+}
+
+.x-resizer-se, .x-resize-grip
+{
+    right: -2px;
+    bottom: -2px;
+    cursor: se-resize;
+}
+
+.x-resize-grip
+{
+    position: absolute;
+    margin: 0px 4px 4px 0px;
+}
+
+/* No decoration. */
+.x-window.x-no-decoration
+{
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    @include border-radius(0px !important);
+    @include box-shadow(none !important);
+}
+
+.x-window.x-no-decoration>.x-header
+{
+    display: none !important;
+}
+
+.x-window.x-no-decoration>.x-body
+{
+    border: none !important;
+    margin: 0 !important;
+    @include border-radius(0px !important);
+    @include box-shadow(none !important);
+}
+
+/* Header buttons. */
+.x-window>.x-header>.x-restore
+{
+    display: none;
+}
+
+/*
+ * Progress bar.
+ */
+
+.x-progress-bar
+{
+    overflow: hidden;
+}
+
+.x-progress-bar>.x-text
+{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+}
+
+.x-progress-bar>.x-bar
+{
+    position: relative;
+    overflow: hidden;
+    display: none;
+}
+
+/* West direction. */
+.x-progress-bar.x-orient-horizontal.x-inverted>.x-bar,
+.x-progress-bar.x-orient-horizontal.x-inverted>.x-bar>.x-label
+{
+    position: absolute;
+    right: 0px;
+}
+
+/* South direction. */
+.x-progress-bar.x-orient-vertical>.x-bar,
+.x-progress-bar.x-orient-vertical>.x-bar>.x-label
+{
+    position: absolute;
+    bottom: 0px;
+}
+
+/* North direction. */
+.x-progress-bar.x-orient-vertical.x-inverted>.x-bar,
+.x-progress-bar.x-orient-vertical.x-inverted>.x-bar>.x-label
+{
+    position: absolute;
+    top: 0px;
+}
+
+/*
+ * Scale, scroll bar.
+ */
+
+.x-scale>.x-inner, .x-scroll-bar>.x-inner
+{
+    position: relative;
+}
+
+.x-scale>.x-inner>.x-track, .x-scale>.x-inner>.x-filled,
+.x-scale>.x-inner>.x-slider, .x-scale>.x-label,
+.x-scroll-bar>.x-inner>.x-track, .x-scroll-bar>.x-inner>.x-filled,
+.x-scroll-bar>.x-inner>.x-slider
+{
+    position: absolute;
+}
+
+.x-scale.x-orient-horizontal.x-inverted>.x-inner>.x-filled,
+.x-scroll-bar.x-orient-horizontal.x-inverted>.x-inner>.x-filled
+{
+    right: 0px;
+}
+
+.x-scale.x-orient-vertical>.x-inner>.x-filled,
+.x-scroll-bar.x-orient-vertical>.x-inner>.x-filled
+{
+    top: 0px;
+}
+
+.x-scale.x-orient-vertical.x-inverted>.x-inner>.x-filled,
+.x-scroll-bar.x-orient-vertical.x-inverted>.x-inner>.x-filled
+{
+    bottom: 0px;
+}
+
+/*
+ * Paned.
+ */
+
+.x-paned>.x-splitter
+{
+    position: absolute;
+    display: none;
+}
+
+/*
+ * Scrolled window.
+ */
+
+.x-scrolled-window
+{
+    overflow: visible;
+}
+
+.x-scrolled-window>.x-body
+{
+    overflow: hidden;
+}
+
