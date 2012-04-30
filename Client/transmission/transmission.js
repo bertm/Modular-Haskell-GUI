@@ -422,7 +422,7 @@ Singleton.define('Transmission', {
     onObjectPropertyChange: function(obj, name)
     {
         // Stop if connection has been closed.
-        //if (this.state !== TransmissionState.ESTABLISHED)
+        if (this.state !== TransmissionState.ESTABLISHED)
             return;
         
         // Skip signals that came from our own setter.
