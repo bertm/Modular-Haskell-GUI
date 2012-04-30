@@ -34,7 +34,9 @@ Class.define('Range', {
         // Add event handlers.
         EventManager.registerHandler(this.el, EventMask.SCROLL, this.onScroll, this);
         EventManager.registerHandler(this.el, EventMask.BUTTON_PRESS, this.onButtonPress, this);
-        EventManager.registerHandler(this.sliderEl, EventMask.BUTTON_PRESS | EventMask.MOTION, this.onSliderEvent, this);
+        EventManager.registerHandler(this.sliderEl,
+            EventMask.BUTTON_PRESS | EventMask.BUTTON_RELEASE | EventMask.MOTION,
+            this.onSliderEvent, this);
         
         // Check for changes on adjustment.
         this.adjustment.connect('change', this.onAdjustmentChange, this);
@@ -153,6 +155,13 @@ Class.define('Range', {
     
     onSliderEvent: function(e)
     {
+        if (e.getType() === EventType.BUTTON_RELEASE)
+        {
+            this.sliderEl.removeClass('x-pressed');
+            
+            return;
+        }
+        
         if (!this.getIsSensitive() || !e.hasModifier(EventModifierMask.PRIMARY_BUTTON))
             return;
         
@@ -162,6 +171,8 @@ Class.define('Range', {
                 x: e.getX() - this.sliderEl.getOffset().x,
                 y: e.getY() - this.sliderEl.getOffset().y
             };
+            
+            this.sliderEl.addClass('x-pressed');
             
             return;
         }

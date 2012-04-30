@@ -120,8 +120,8 @@ Class.define('AbstractWindow', {
                     // Unset application its active window.
                     Application.setActiveWindow(null);
                     
-                    // Remove active class.
-                    this.el.removeClass('x-active');
+                    // Add inactive class.
+                    this.el.addClass('x-inactive');
                     
                     return;
                 }
@@ -140,8 +140,8 @@ Class.define('AbstractWindow', {
                 // Set application its active window.
                 Application.setActiveWindow(this);
                 
-                // Add active class.
-                this.el.addClass('x-active');
+                // Remove inactive class.
+                this.el.removeClass('x-inactive');
                 
                 // Give focus to our focus child.
                 if (this.lastFocusChild)

@@ -111,7 +111,7 @@ Class.define('Window', {
     getHtml: function()
     {
         var html =
-            '<div class="x-widget x-window">' +
+            '<div class="x-widget x-window x-inactive">' +
                 '<div class="x-header">' +
                     '<div class="x-label" />' +
                     '<div class="x-delete" />' +
@@ -628,21 +628,7 @@ Class.define('Window', {
                     this.allocateSize(this.allocation);
             }
         },
-        position: { // TODO: Move to widget? Create position and offset? Just the getter though. Override with extra setter.
-            write: function(position)
-            {
-                // TODO: ..
-            },
-            read: function()
-            {
-                // TODO: ..
-            }
-        },
-        /**
-         * The title of the window, that will be shown in the header.
-         *
-         * @type string
-         */
+        // Overrides 'title' property.
         title: {
             write: function(title)
             {
@@ -652,6 +638,16 @@ Class.define('Window', {
             },
             read: true,
             defaultValue: ''
+        },
+        position: { // TODO: Move to widget? Create position and offset? Just the getter though. Override with extra setter.
+            write: function(position)
+            {
+                // TODO: ..
+            },
+            read: function()
+            {
+                // TODO: ..
+            }
         },
         /**
          * Whether the window is maximized. Setting it will only have an effect if #maximizable is `true`.

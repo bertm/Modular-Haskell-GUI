@@ -48,6 +48,9 @@ Singleton.define('EventManager', {
         else
             window.attachEvent('onfocusin', onFocus);
         
+        window.onblur = function(e) { return self.onWindowBlur(e || event); };
+        
+        window.oncontextmenu = function(e) { return false; };
         // TODO: Blur?
         
         /*
@@ -136,13 +139,16 @@ Singleton.define('EventManager', {
     {
         if (element)
         {
+            // Set keyboard grab.
+            this.keyboardGrabNode = element.getNode();
+            
+            var self = this;
+            this.keyboardGrabNode.onblur = function(e) { return self.onBlur(e || event); }
+            
             // Focus element, we want keyboard input.
             document.body.focus();
             
             element.focus();
-            
-            // Set keyboard grab.
-            this.keyboardGrabNode = element.getNode();
             
             // TODO: Set element?
             // TODO: Remove focus/blur from element.
@@ -167,6 +173,7 @@ Singleton.define('EventManager', {
         else if (this.keyboardGrabNode) // TODO: Set element?
         {
             // Blur element.
+            delete this.keyboardGrabNode.onblur;
             this.keyboardGrabNode.blur();
             
             // Unset keyboard grab.
@@ -208,14 +215,38 @@ Singleton.define('EventManager', {
         {
             if (target === this.keyboardGrabNode)
                 return;
-            
+        //    
             // Focus the keyboard grab node instead.
+        //    document.body.focus();
+        //    
             this.keyboardGrabNode.focus();
         }
         else
         {
             // Blur target: no element has the keyboard grab.
             target.blur();
+        }
+    },
+    
+    onBlur: function(e)
+    {
+        var target = e.target ? e.target : e.srcElement;
+        
+        if (this.keyboardGrabNode === target) // NOTE: Who else might it be?
+        {
+            this.focusTimer = Util.defer(function()
+                {
+                    target.focus();
+                }, this);
+        }
+    },
+    
+    onWindowBlur: function(e)
+    {
+        if (this.focusTimer)
+        {
+            Util.clearDelay(this.focusTimer);
+            delete this.focusTimer;
         }
     },
     
@@ -326,11 +357,11 @@ Singleton.define('EventManager', {
         var key = e.keyCode;
         
         // Handle special keys.
-        if (key === 16) // Shift.
+        if (key === Key.SHIFT)
             press ? (this.modifiers |= EventModifierMask.SHIFT) : (this.modifiers &= ~EventModifierMask.SHIFT);
-        else if (key === 17) // Control.
+        else if (key === Key.CONTROL)
             press ? (this.modifiers |= EventModifierMask.CONTROL) : (this.modifiers &= ~EventModifierMask.CONTROL);
-        else if (key === 18) // Alt.
+        else if (key === Key.ALT)
             press ? (this.modifiers |= EventModifierMask.ALT) : (this.modifiers &= ~EventModifierMask.ALT);
         else if ((key === 91) || (key === 92)) // Super.
             press ? (this.modifiers |= EventModifierMask.SUPER) : (this.modifiers &= ~EventModifierMask.SUPER);

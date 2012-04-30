@@ -19,7 +19,7 @@ Singleton.define('Application', {
         // Add body classes.
         //Element.getBody().addClass('x-ie');
         
-        //this.showSomeStuff();
+        this.showSomeStuff();
     },
     
     /*
@@ -125,7 +125,7 @@ Singleton.define('Application', {
         
         var window = new MainWindow({
             title: 'Test window',
-            margin: 10
+            //margin: 10
             //sensitive: false
             //modal: true
             //opacity: 0.7
@@ -245,7 +245,7 @@ Singleton.define('Application', {
             adjustment: scale.getAdjustment()
         });
         
-        var scrolledWindow = new ScrolledWindow({'shadow-type': ShadowType.NONE});
+        var scrolledWindow = new ScrolledWindow({'shadow-type': ShadowType.IN});
         
         var menuBar = new MenuBar();
         var statusBar = new StatusBar();
@@ -414,7 +414,7 @@ Singleton.define('Application', {
         
         var topBox = new Box({spacing: 5});
         
-        topBox.add(new Entry());
+        topBox.add(new Entry({'sensitive': false, 'text': 'abc'}));
         topBox.add(buttonBox);
         
         wholeBox.add(topBox);

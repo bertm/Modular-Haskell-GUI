@@ -183,5 +183,25 @@ Class.define('ScrollBar', {
         }
         
         // TODO: Interval.
+    },
+    
+    onAdjustmentChange: function(adj)
+    {
+        var backwardStepperActive = (adj.getValue() !== adj.getLower());
+        var forwardStepperActive  = (adj.getValue() !== (adj.getUpper() - adj.getPageSize()));
+        
+        backwardStepperActive ?
+            this.backwardStepperEl.addClass('x-active') :
+            this.backwardStepperEl.removeClass('x-active');
+        
+        forwardStepperActive ?
+            this.forwardStepperEl.addClass('x-active') :
+            this.forwardStepperEl.removeClass('x-active');
+        
+        (backwardStepperActive || forwardStepperActive) ?
+            this.sliderEl.addClass('x-active') :
+            this.sliderEl.removeClass('x-active');
+        
+        ScrollBar.base.onAdjustmentChange.call(this, adj);
     }
 });

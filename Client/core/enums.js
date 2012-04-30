@@ -28,6 +28,13 @@ Enum.define('Justify', { // TODO: Use align?
     FILL: 'fill'
 });
 
+// Scroll bar policies.
+Enum.define('Policy', {
+    ALWAYS: 'always',
+    AUTOMATIC: 'automatic',
+    NEVER: 'never'
+});
+
 Enum.define('EventModifierMask', {
     // Intentional gap.
     

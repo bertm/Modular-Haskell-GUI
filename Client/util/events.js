@@ -36,20 +36,41 @@ Class.define('Event', {
      */
     
     properties: {
+        /**
+         * The type of the event.
+         *
+         * @type EventType
+         */
         type: {
             read: true,
             defaultValue: null
         },
+        /**
+         * The timestamp of the event in UTC milliseconds since epoch.
+         *
+         * @type int
+         */
         timestamp: {
             read: function()
             {
                 return +this.date - this.date.getTimezoneOffset() * 60000;
             }
         },
+        /**
+         * The source #Widget of the event.
+         *
+         * @type Widget
+         */
         source: {
             read: true,
             defaultValue: null
         },
+        /**
+         * The modifier mask of the event.
+         *
+         * @type int
+         * @see EventModifierMask
+         */
         modifiers: {
             read: true,
             defaultValue: EventModifierMask.NONE
@@ -61,6 +82,12 @@ Class.define('Event', {
      */
     
     actions: {
+        /**
+         * Checks whether a modifier is enabled. Does the same as `event.getModifiers() & modifier`.
+         *
+         * @param EventModifierMask modifier Modifier to check agains.
+         * @return bool Whether the modifier is enabled.
+         */
         hasModifier: function(modifier)
         {
             return (this.modifiers & modifier);
@@ -91,14 +118,29 @@ Class.define('PointerEvent', {
      */
     
     properties: {
-        x: {
+        /**
+         * The x position of the pointer.
+         *
+         * @type int
+         */
+        x: { // TODO: Both, or one of them?
             read: true,
             defaultValue: 0
         },
+        /**
+         * The y position of the pointer.
+         *
+         * @type int
+         */
         y: {
             read: true,
             defaultValue: 0
         },
+        /**
+         * The position of the pointer.
+         *
+         * @type Point
+         */
         position: {
             read: function()
             {
@@ -143,6 +185,11 @@ Class.define('ScrollEvent', {
      */
     
     properties: {
+        /**
+         * The amount of scrolling. Positive if scrolling down, negative if scrolling up.
+         *
+         * @type int
+         */
         delta: {
             read: true,
             defaultValue: 0
@@ -173,6 +220,11 @@ Class.define('CrossingEvent', {
      */
     
     properties: {
+        /**
+         * The #Widget that the pointer came from at a leave event, or went to at an enter event.
+         *
+         * @type Widget
+         */
         related: {
             read: true,
             defaultValue: null
@@ -203,6 +255,11 @@ Class.define('ButtonEvent', {
      */
     
     properties: {
+        /**
+         * The button that was pressed.
+         *
+         * @type Button
+         */
         button: {
             read: true,
             defaultValue: 0
@@ -233,6 +290,11 @@ Class.define('KeyEvent', {
      */
     
     properties: {
+        /**
+         * The key that was pressed.
+         *
+         * @type Key
+         */
         key: {
             read: true,
             defaultValue: 0
@@ -250,10 +312,27 @@ Class.define('FocusChangeEvent', {
      * Public methods.
      */
     
-    construct: function(source, modifiers, focus)
+    construct: function(source, modifiers, focus, related)
     {
-        this.type = focus ? EventType.FOCUS : EventType.BLUR;
+        this.type    = focus ? EventType.FOCUS : EventType.BLUR;
+        this.related = related;
         
         FocusChangeEvent.base.construct.call(this, source, modifiers);
+    },
+    
+    /*
+     * Properties.
+     */
+    
+    properties: {
+        /**
+         * The #Widget that gained focus at a blur event, or lost focus at a focus event.
+         *
+         * @type Widget
+         */
+        related: {
+            read: true,
+            defaultValue: null
+        }
     }
 });

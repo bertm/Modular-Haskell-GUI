@@ -47,7 +47,7 @@ Class.define('MainWindow', {
     getHtml: function()
     {
         var html =
-            '<div class="x-widget x-main-window">' +
+            '<div class="x-widget x-main-window x-inactive">' +
                 '<div class="x-body" />' +
             '</div>';
         

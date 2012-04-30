@@ -37,8 +37,7 @@ Class.define('ScrolledWindow', {
         this.el.append(this.vScrollBar.el);
         
         // Add event handlers.
-        this.setEvents(EventMask.SCROLL);
-        this.connect('scroll-event', this.onScroll, this);
+        EventManager.registerHandler(this.el, EventMask.SCROLL, this.onScroll, this);
     },
     
     getHtml: function()
@@ -55,24 +54,13 @@ Class.define('ScrolledWindow', {
      * Layouting.
      */
     
-    requestSize: function()
-    {
-        // Fetch scrollbars their size.
-        if (!ScrolledWindow.hScrollBarSize)
-        {
-            ScrolledWindow.hScrollBarSize = this.hScrollBar.requestSize();
-            ScrolledWindow.vScrollBarSize = this.vScrollBar.requestSize();
-        }
-        
-        // Fetch size.
-        return ScrolledWindow.base.requestSize.call(this);
-    },
-    
     layout: function()
     {
         // Do not layout when not visible or not in tree.
         if (!this.getIsVisible())
             return;
+        
+        // TODO: Check if our own requesition has changed: shadow, policy.
         
         // Get child requisition.
         var child = this.children[0];
@@ -95,14 +83,28 @@ Class.define('ScrolledWindow', {
         }
     },
     
+    requestSize: function()
+    {
+        // Fetch scrollbars their size.
+        if (!ScrolledWindow.hScrollBarSize)
+        {
+            ScrolledWindow.hScrollBarSize = this.hScrollBar.requestSize();
+            ScrolledWindow.vScrollBarSize = this.vScrollBar.requestSize();
+        }
+        
+        // Fetch size.
+        return ScrolledWindow.base.requestSize.call(this);
+    },
+    
     getMinimumSize: function()
     {
         var hScrollBarSize = ScrolledWindow.hScrollBarSize;
         var vScrollBarSize = ScrolledWindow.vScrollBarSize;
         
-        // TODO: Real minimum size.
-        
-        return {width: vScrollBarSize.width + hScrollBarSize.width, height: vScrollBarSize.height + hScrollBarSize.height};
+        return {
+            width: vScrollBarSize.width + hScrollBarSize.width,
+            height: vScrollBarSize.height + hScrollBarSize.height
+        };
     },
     
     allocateSize: function(allocation)
@@ -227,7 +229,7 @@ Class.define('ScrolledWindow', {
      * Event handlers.
      */
     
-    onScroll: function(sw, e)
+    onScroll: function(e)
     {
         if (!this.getIsSensitive())
             return;
@@ -264,15 +266,63 @@ Class.define('ScrolledWindow', {
      */
     
     properties: {
+        /**
+         * The horizontal #Adjustment of the scrolled window. You may only change the value of this
+         * adjustment, the other values are automatically determined.
+         *
+         * @type Adjustment
+         */
         'h-adjustment': {
             read: true
         },
+        /**
+         * The vertical #Adjustment of the scrolled window. You may only change the value of this
+         * adjustment, the other values are automatically determined.
+         *
+         * @type Adjustment
+         */
         'v-adjustment': {
             read: true
         },
-        
-        // TODO: scrollbar-spacing, scrollbars-within-bevel - style properties?
-        
+        /**
+         * The horizontal scroll bar visibility policy. Determines when to show the horizontal scroll
+         * bar.
+         *
+         * @type Policy
+         */
+        'h-policy': {
+            write: function(hPolicy)
+            {
+                this.hPolicy = hPolicy;
+                
+                // Reallocate.
+                this.allocateSize(Util.cloneShallow(this.allocation));
+            },
+            read: true,
+            defaultValue: Policy.AUTOMATIC
+        },
+        /**
+         * The vertical scroll bar visibility policy. Determines when to show the vertical scroll
+         * bar.
+         *
+         * @type Policy
+         */
+        'v-policy': {
+            write: function(vPolicy)
+            {
+                this.vPolicy = vPolicy;
+                
+                // Reallocate.
+                this.allocateSize(Util.cloneShallow(this.allocation));
+            },
+            read: true,
+            defaultValue: Policy.AUTOMATIC
+        },
+        /**
+         * The shadow of the content of the scrolled window.
+         *
+         * @type ShadowType
+         */
         'shadow-type': {
             write: function(shadowType)
             {
