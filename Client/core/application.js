@@ -19,7 +19,7 @@ Singleton.define('Application', {
         // Add body classes.
         //Element.getBody().addClass('x-ie');
         
-        this.showSomeStuff();
+        //this.showSomeStuff();
     },
     
     /*
