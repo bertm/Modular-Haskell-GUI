@@ -23,8 +23,3 @@ class (GUIObject o pp, Property p pp) => Setter o pp p where
 
 class (GUIObject o pp, Property p pp) => Getter o pp p
 
-{- class (GUIObject o pp a, 
-
-class Action a aa | a -> aa where
-    toAct :: a -> aa
-    perform :: Performable o aa a => o -> (x -> a) -> IO () -}

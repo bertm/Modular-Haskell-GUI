@@ -22,6 +22,10 @@ module Widgets (
         MainWindow,
         mainWindowDefaults,
         
+        -- * Actions
+        add,
+        remove,
+        
         -- * Object manipulation
         newObject,
         obj
@@ -29,6 +33,7 @@ module Widgets (
 
 import Types
 import Properties
+import Actions
 
 -- Constructs a new internal representation of an object
 newObject :: GUIObject b pp => b -> ObjectT a b
@@ -59,6 +64,10 @@ instance GUIObject b Prop => Setter (Widget a b) Prop Sensitive
 instance GUIObject b Prop => Setter (Widget a b) Prop CanFocus
 instance GUIObject b Prop => Setter (Widget a b) Prop Events
 instance GUIObject b Prop => Getter (Widget a b) Prop Active
+instance ActionAdd a b => ActionAdd (Widget x a) (Widget y b) where
+    add (O a) (O b) = add a b
+instance ActionRemove a b => ActionRemove (Widget x a) (Widget y b) where
+    remove (O a) (O b) = remove a b
 widgetDefaults = [VisibleProp (Visible False),
 --                  SizeProp (Size (100, 100)),
 --                  MarginProp (Margin (0, 0, 0, 0)),

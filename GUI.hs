@@ -39,6 +39,7 @@ import qualified Properties as P
 import Types
 import Buffer
 import Tokens
+import Actions
 
 -- | GUI version
 version :: Version
@@ -216,6 +217,12 @@ instance EventObject Object Event where
     on (Object t i g) e f = case e of
                               (Change a) -> putHandlerState (events g) i ((ChangeEvent . toProp . a $ error "For your eyes only"), f)
                               _ -> putHandlerState (events g) i (e, f)
+
+instance ActionAdd Object Object where
+    add a b = return () -- TODO
+
+instance ActionRemove Object Object where
+    remove a b = return () -- TODO
 
 getScreen :: Global -> IO Connection
 getScreen global = do --oCreate global 1000 "MainWindow" -- TODO: should we send this?
