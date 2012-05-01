@@ -45,6 +45,7 @@ instance JSON InputToken where
                                                         (JS.Ok id, JS.Ok name, JS.Ok value) -> JS.Ok $ ISet id name value
                                                         _ -> JS.Ok IUnknown
                                _          -> JS.Ok IUnknown)
+  readJSON other = error $ "Unhandled input token: " ++ show other
   showJSON = error "Input tokens should not be written."
 
 
@@ -60,6 +61,8 @@ instance JSON Value where
   readJSON v@(JS.JSString _) = fmap StringV $ JS.readJSON v
   readJSON (JS.JSRational True v) = JS.Ok $ FloatV $ fromRational v
   readJSON (JS.JSRational False v) = JS.Ok $ IntegerV $ round v
+  readJSON (JS.JSBool v) = JS.Ok $ BoolV v
+  readJSON JS.JSNull = JS.Ok $ ObjectV []
 
 debug = flip const
 --debug = trace

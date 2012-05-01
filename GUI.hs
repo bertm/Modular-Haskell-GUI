@@ -97,7 +97,7 @@ handleServer props events out token =
                             Just prop -> do putPropertyState True props id prop
                                             es <- getHandlerState events id (ChangeEvent prop)
                                             mapM_ (\x -> x undefined) es
-                            Nothing -> serverError out "Client tried to set incorrect property"
+                            Nothing -> putStrLn $ "Client tried to set unknown property '" ++ name ++ "' on object no. " ++ show id ++ " to: " ++ show value
     IUnknown    -> serverError out "Received unrecognized token"
 
 serverError :: Buffer OutputToken -> String -> IO ()
@@ -121,27 +121,29 @@ toEvent "Blur" = BlurEvent
 
 fromTuple :: (String, Value) -> Maybe P.Prop
 fromTuple t = case t of
-                     ("Label", StringV v) -> Just $ P.LabelProp $ Label v
-                     ("Text", StringV v)  -> Just $ P.TextProp $ Text v
+                     ("text", StringV v)  -> Just $ P.TextProp $ Text v
+                     ("active", BoolV v)  -> Just $ P.ActiveProp $ Active v
                      -- TODO: append
                      _ -> Nothing
 
-toTuple :: P.Prop -> (String, Value)
+toTuple :: P.Prop -> Maybe (String, Value)
 toTuple p = case p of
-              P.VisibleProp (Visible v) -> ("visible", BoolV v)
-              P.SizeProp (Size (a, b)) -> ("size", ListV $ map IntegerV [a, b])
-              P.MarginProp (Margin (a, b, c, d)) -> ("margin", ListV $ map IntegerV [a, b, c, d])
-              P.SensitiveProp (Sensitive v) -> ("sensitive", BoolV v)
-              P.CanFocusProp (CanFocus v) -> ("can-focus", BoolV v)
-              P.TitleProp (Title v) -> ("title", StringV v)
-              P.OpacityProp (Opacity v) -> ("opacity", FloatV v)
-              P.LabelProp (Label v) -> ("label", StringV v)
-              P.ParentProp (Parent v) -> error "Setting parent through property is deprecated" -- TODO: remove? ("Parent", IntegerV v)
-              P.TextProp (Text v) -> ("text", StringV v)
-              P.EditableProp (Editable v) -> ("editable", BoolV v)
-              P.VisibilityProp (Visibility v) -> ("visibility", BoolV v)
-              P.MaxLengthProp (MaxLength v) -> ("max-length", IntegerV v)
-              P.EventsProp (Events v) -> ("events", IntegerV $ sum $ map eventBitmask v)
+              P.VisibleProp (Visible v) -> Just ("visible", BoolV v)
+              P.SizeProp (Size (a, b)) -> Just ("size", ListV $ map IntegerV [a, b])
+              P.MarginProp (Margin (a, b, c, d)) -> Just ("margin", ListV $ map IntegerV [a, b, c, d])
+              P.SensitiveProp (Sensitive v) -> Just ("sensitive", BoolV v)
+              P.CanFocusProp (CanFocus v) -> Just ("can-focus", BoolV v)
+              P.TitleProp (Title v) -> Just ("title", StringV v)
+              P.OpacityProp (Opacity v) -> Just ("opacity", FloatV v)
+              P.LabelProp (Label v) -> Just ("label", StringV v)
+              P.TextProp (Text v) -> Just ("text", StringV v)
+              P.EditableProp (Editable v) -> Just ("editable", BoolV v)
+              P.VisibilityProp (Visibility v) -> Just ("visibility", BoolV v)
+              P.MaxLengthProp (MaxLength v) -> Just ("max-length", IntegerV v)
+              P.EventsProp (Events v) -> Just ("events", IntegerV $ sum $ map eventBitmask v)
+              
+              P.ActiveProp (Active v) -> Nothing
+              P.ParentProp (Parent v) -> error "Setting parent through property is deprecated" -- TODO: remove?
               
 eventBitmask :: Event -> Integer
 eventBitmask e =
@@ -161,7 +163,9 @@ oCreate :: Global -> Identifier -> String -> IO ()
 oCreate g i t = bPutIO (out g) $ OCreate i t
 
 oSet :: Global -> Identifier -> P.Prop -> IO ()
-oSet g i prop = let (p, v) = toTuple prop in bPutIO (out g) $ OSet i p v
+oSet g i prop = case toTuple prop of
+                  Just (p, v) -> bPutIO (out g) $ OSet i p v
+                  _           -> return ()
 
 oAction :: Global -> Identifier -> String -> [Value] -> IO ()
 oAction g i n a = bPutIO (out g) $ OAction i n a
@@ -236,6 +240,7 @@ newChild t ds p = let Object _ _ g = W.obj p
                                               P.VisibilityProp v -> setProperty (W.obj o) v
                                               P.MaxLengthProp v -> setProperty (W.obj o) v
                                               P.EventsProp v -> setProperty (W.obj o) v
+                                              P.ActiveProp v -> setProperty (W.obj o) v
                                  ) ds
                                return o
 

@@ -135,6 +135,9 @@ function moveStylesheets()
 
 function colorAndCopyImage($from, $to)
 {
+    if (!function_exists('imagecreatefrompng'))
+        return copy($from, $to);
+    
     global $foregroundColor, $baseForegroundColor;
     
     // Skip .gif for now.

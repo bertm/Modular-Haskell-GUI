@@ -58,12 +58,14 @@ instance GUIObject b Prop => Setter (Widget a b) Prop Margin
 instance GUIObject b Prop => Setter (Widget a b) Prop Sensitive
 instance GUIObject b Prop => Setter (Widget a b) Prop CanFocus
 instance GUIObject b Prop => Setter (Widget a b) Prop Events
+instance GUIObject b Prop => Getter (Widget a b) Prop Active
 widgetDefaults = [VisibleProp (Visible False),
 --                  SizeProp (Size (100, 100)),
 --                  MarginProp (Margin (0, 0, 0, 0)),
                   SensitiveProp (Sensitive True),
                   CanFocusProp (CanFocus False),
-                  EventsProp (Events [])]
+                  EventsProp (Events []),
+                  ActiveProp (Active False)]
 
 type Container a b = Widget (AbstractContainer a) b
 data AbstractContainer a = AbstractContainer

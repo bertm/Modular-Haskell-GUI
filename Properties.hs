@@ -18,6 +18,7 @@ module Properties (
     MaxLength (..),
     Events (..),
     Event (..),
+    Active (..),
     
     Prop (..),
     sameProp,
@@ -95,6 +96,8 @@ data MaxLength = MaxLength Integer
   deriving Show
 data Events = Events [Event]
   deriving Show
+data Active = Active Bool
+  deriving Show
 
 -- Instances for forcing properties in a more generic Prop container
 instance Property Visible Prop
@@ -136,6 +139,9 @@ instance Property MaxLength Prop
 instance Property Events Prop
   where toProp = EventsProp
         get o a = getProperty o Events >>= (\(EventsProp v) -> return v)
+instance Property Active Prop
+  where toProp = ActiveProp
+        get o a = getProperty o Active >>= (\(ActiveProp v) -> return v)
 
 -- A more or less generic property container
 data Prop = VisibleProp Visible
@@ -152,6 +158,7 @@ data Prop = VisibleProp Visible
           | VisibilityProp Visibility
           | MaxLengthProp MaxLength
           | EventsProp Events
+          | ActiveProp Active
   deriving Show
 
 -- | Determines whether the two given Props are of the same type
@@ -170,5 +177,6 @@ sameProp (EditableProp _) (EditableProp _) = True
 sameProp (VisibilityProp _) (VisibilityProp _) = True
 sameProp (MaxLengthProp _) (MaxLengthProp _) = True
 sameProp (EventsProp _) (EventsProp _) = True
+sameProp (ActiveProp _) (ActiveProp _) = True
 sameProp _ _ = False
 

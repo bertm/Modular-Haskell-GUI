@@ -66,10 +66,12 @@ Singleton.define('Transmission', {
             'RadioButtonGroup': true
         };
         
-        console.log('Connecting to ' + window.location.hostname + ':' + 9000 + '.');
+        var host = window.location.hostname || 'localhost';
+        
+        console.log('Connecting to ' + host + ':' + 9000 + '.');
         
         // Create new connection.
-        this.conn = new Connection(window.location.hostname, 9000);
+        this.conn = new Connection(host, 9000);
 
         this.conn.connect('open', this.onConnectionOpen, this);
         this.conn.connect('close', this.onConnectionClose, this);

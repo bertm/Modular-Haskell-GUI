@@ -51,10 +51,10 @@ run screen = do mainWindow <- newMainWindow screen
                 set mainWindow Visible True
                 
                 -- Capture button releases on button
-                set button Events [ButtonReleaseEvent]
-                on button ButtonReleaseEvent $ const (do Text a <- get entry Text
-                                                         set button Label ("You typed: " ++ a)
-                                                         set entry Text "")
+                set button Events [ButtonReleaseEvent, ButtonPressEvent, FocusEvent, BlurEvent]
+                on button (Change Active) $ const (do Text a <- get entry Text
+                                                      set button Label ("You typed: " ++ a)
+                                                      set entry Text "")
                 -- Monitor for changes on entry text
                 on entry (Change Text) $ const (do Text a <- get entry Text
                                                    set entry2 Text a)
