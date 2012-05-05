@@ -23,10 +23,8 @@ Class.define('Menu', {
         EventManager.registerHandler(this.el, EventMask.BUTTON_PRESS, this.onButtonPress, this);
         EventManager.registerHandler(Element.getBody(), EventMask.BUTTON_PRESS, this.onBodyButtonPress, this);
         
-        // TODO: Dom is always in body?
-        
-        // Append element to body.
-        Element.getBody().append(this.el);
+        // Always show element, its visibility is determined by whether it is in the DOM.
+        this.el.show();
     },
     
     destroy: function()
@@ -152,8 +150,8 @@ Class.define('Menu', {
                     // Set z-index.
                     this.el.setStyle('z-index', Element.getMaxZIndex());
                     
-                    // Show us.
-                    this.el.show();
+                    // Append element to body.
+                    Element.getBody().append(this.el);
                     
                     // Set position.
                     if (this.parentMenuItem)
@@ -185,9 +183,8 @@ Class.define('Menu', {
                     // Clear active item.
                     this.setActive(null);
                     
-                    // Hide us.
-                    this.el.hide();
-                    this.layout();
+                    // Remove element from DOM.
+                    this.el.remove();
                 }
             }
         },
@@ -236,7 +233,7 @@ Class.define('Menu', {
             read: true,
             defaultValue: null
         },
-        position: { // TODO: Move to widget? See Window.
+        position: { // TODO: Move to widget? See Window, Tooltip.
             write: function(position)
             {
                 // TODO: Check value.
@@ -261,7 +258,7 @@ Class.define('Menu', {
      */
     
     actions: {
-        // Overrides add(widget, expand, fill).
+        // Overrides 'add(widget, expand, fill)' action.
         add: function(menuItem, expand, fill) // TODO: Remove expand (expand), fill (scale).
         {
             if (!(menuItem instanceof MenuItem))
@@ -273,6 +270,7 @@ Class.define('Menu', {
             Menu.base.add.call(this, menuItem, expand, fill);
             
             // Hook into its enter, leave and button press event handlers.
+            menuItem.enableEvents(EventMask.ENTER | EventMask.LEAVE | EventMask.BUTTON_PRESS);
             menuItem.connect('enter-event', this.onItemEnter, this);
             menuItem.connect('leave-event', this.onItemLeave, this);
             menuItem.connect('button-press-event', this.onItemButtonPress, this);
@@ -280,7 +278,7 @@ Class.define('Menu', {
             this.layout();
         },
         
-        // Overrides remove(widget).
+        // Overrides 'remove(widget)' action.
         remove: function(menuItem)
         {
             var index = Box.base.remove.call(this, menuItem);

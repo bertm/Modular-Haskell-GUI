@@ -123,12 +123,5 @@ Class.define('AspectFrame', {
             read: true,
             defaultValue: true
         }
-    },
-    
-    /*
-     * Actions.
-     */
-    
-    actions: {
     }
 });

@@ -239,11 +239,11 @@ Class.define('Paned', {
     {
         this.dragging = true;
         
-        // Set body class.
+        // Show cursor.
         if (this.orientation === Orientation.HORIZONTAL)
-            Element.getBody().addClass('x-cursor-resize-col');
+            Cursor.push(CursorShape.RESIZE_H, Cursor.getContextId('paned-widget'));
         else
-            Element.getBody().addClass('x-cursor-resize-row');
+            Cursor.push(CursorShape.RESIZE_V, Cursor.getContextId('paned-widget'));
     },
     
     onSplitterMotion: function(e)
@@ -266,8 +266,8 @@ Class.define('Paned', {
     {
         this.dragging = false;
         
-        Element.getBody().removeClass('x-cursor-resize-col');
-        Element.getBody().removeClass('x-cursor-resize-row');
+        // Remove cursor.
+        Cursor.pop(Cursor.getContextId('paned-widget'));
     },
     
     /*
@@ -349,7 +349,7 @@ Class.define('Paned', {
      */
     
     actions: {
-        // Overrides add(widget) action.
+        // Overrides 'add(widget)' action.
         add: function(widget, resize)
         {
             if (this.children.length === 2)
@@ -361,7 +361,7 @@ Class.define('Paned', {
             
             this.layout();
         },
-        // Overrides remove(widget) action.
+        // Overrides 'remove(widget)' action.
         remove: function(widget)
         {
             var index = Paned.base.remove.call(this, widget);

@@ -77,6 +77,8 @@ Class.define('Container', {
     properties: {
         /**
          * Child of this container that has focus.
+         *
+         * @type Widget
          */
         'focus-child': {
             read: true,
@@ -89,7 +91,7 @@ Class.define('Container', {
      */
     
     actions: {
-        // Overrides 'showAll' action.
+        // Overrides 'showAll()' action.
         showAll: function()
         {
             for (var i = this.children.length - 1; i >= 0; --i)
@@ -97,7 +99,7 @@ Class.define('Container', {
             
             this.show();
         },
-        // Overrides 'hideAll' action.
+        // Overrides 'hideAll()' action.
         hideAll: function()
         {
             for (var i = this.children.length - 1; i >= 0; --i)

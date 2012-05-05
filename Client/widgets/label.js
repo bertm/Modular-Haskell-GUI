@@ -5,7 +5,7 @@
  * A widget that displays a small to medium amount of text.
  *
  * The label widget displays a small amount of text. As the name implies, most labels are used to label another
- * widget such as a #Button, a #Frame, or a #OptionMenu. (TODO: Check names.)
+ * widget such as a #Button or #Frame.
  */
 Class.define('Label', {
     extend: 'Misc',
@@ -64,6 +64,11 @@ Class.define('Label', {
             read: true,
             defaultValue: ''
         },
+        /**
+         * Whether the label text wraps around.
+         *
+         * @type bool
+         */
         wrap: {
             write: function(wrap)
             {
@@ -79,6 +84,11 @@ Class.define('Label', {
             read: true,
             defaultValue: false
         },
+        /**
+         * The justification of the label.
+         *
+         * @type Justify
+         */
         justify: {
             write: function(justify)
             {
@@ -89,12 +99,5 @@ Class.define('Label', {
             read: true,
             defaultValue: Justify.LEFT
         }
-    },
-    
-    /*
-     * Actions.
-     */
-    
-    actions: {
     }
 });

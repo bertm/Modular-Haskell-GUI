@@ -122,7 +122,9 @@ Class.define('Button', {
          * The label of the button. If set, will add a #Label to the button if it does not contain one yet.
          * If read, will return `null` if the button does not contain a label child.
          *
-         * @type string / null
+         * Does not signal.
+         *
+         * @type string
          */
         label: {
             write: function(label)
@@ -132,6 +134,8 @@ Class.define('Button', {
                     this.add(new Label({label: label, 'x-align': this.xAlign, 'y-align': this.yAlign, visible: true}));
                 else if (child instanceof Label)
                     child.setLabel(label || '');
+                
+                return false;
             },
             read: function()
             {
@@ -200,7 +204,7 @@ Class.define('Button', {
      */
     
     actions: {
-        // Overrides add(widget) action.
+        // Overrides 'add(widget)' action.
         add: function(widget)
         {
             if (this.useAlignment)

@@ -78,12 +78,5 @@ Class.define('Calendar', {
                 return this.date.getDate();
             }
         }
-    },
-    
-    /*
-     * Actions.
-     */
-    
-    actions: {
     }
 });

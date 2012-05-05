@@ -276,7 +276,7 @@ Class.define('Instance', {
     },
     
     /*
-     * Private methods.
+     * Protected methods.
      */
     
     emitPropertyChangeSignals: function(name)
@@ -306,17 +306,6 @@ Class.define('Instance', {
             obj.construct.apply(obj, Array.prototype.slice.call(arguments, 1));
             
             return obj;
-        },
-
-        // Destroys an object.
-        destroy: function(obj)
-        {
-            if (obj instanceof Array)
-            {
-                ;
-            }
-            
-            // TODO: Implement.
         }
     }
 });

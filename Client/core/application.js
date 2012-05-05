@@ -12,9 +12,9 @@ Singleton.define('Application', {
     initialize: function()
     {
         // Initialize other singletons.
+        Cursor.initialize();
         Screen.initialize();
         EventManager.initialize();
-        WindowManager.getInstance();
         
         // Add body classes.
         //Element.getBody().addClass('x-ie');
@@ -144,6 +144,9 @@ Singleton.define('Application', {
         
         progressBar.setEvents(progressBar.getEvents() | EventMask.ENTER | EventMask.LEAVE);
         
+        progressBar.setShowTooltip(true);
+        progressBar.setTooltipLabel('Hi there.');
+        
         var otherProgressBar = new ProgressBar({
             fraction: 0.5,
             text: '50%',
@@ -245,7 +248,7 @@ Singleton.define('Application', {
             adjustment: scale.getAdjustment()
         });
         
-        var scrolledWindow = new ScrolledWindow({'shadow-type': ShadowType.IN});
+        var scrolledWindow = new ScrolledWindow({'shadow-type': ShadowType.IN, 'h-policy': Policy.ALWAYS, 'v-policy': Policy.NEVER});
         
         var menuBar = new MenuBar();
         var statusBar = new StatusBar();

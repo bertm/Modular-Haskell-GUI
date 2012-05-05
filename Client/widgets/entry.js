@@ -177,12 +177,5 @@ Class.define('Entry', {
             read: true,
             defaultValue: 0
         }
-    },
-    
-    /*
-     * Actions.
-     */
-    
-    actions: {
     }
 });

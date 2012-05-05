@@ -68,9 +68,6 @@ Class.define('Window', {
         em.registerHandler(this.resizeGripEl, EventMask.BUTTON_PRESS, this.onResizerButtonPress, this, 'se');
         em.registerHandler(this.resizeGripEl, EventMask.MOTION, this.onResizerMotion, this, 'se');
         em.registerHandler(this.resizeGripEl, EventMask.BUTTON_RELEASE, this.onResizerButtonRelease, this, 'se');
-        
-        // Set z-index.
-        this.el.setStyle('z-index', Element.getMaxZIndex());
     },
     
     destroy: function()
@@ -376,8 +373,8 @@ Class.define('Window', {
         if (!this.draggable || this.maximized)
             return;
         
-        // Show drag cursor.
-        Element.getBody().addClass('x-cursor-drag');
+        // Show move cursor.
+        Cursor.push(CursorShape.MOVE, Cursor.getContextId('window-widget'));
         
         // Calculate mouse offset to element.
         this.mouseOffset = {
@@ -417,8 +414,8 @@ Class.define('Window', {
         delete this.mouseOffset;
         delete this.maxPosition;
         
-        // Remove drag cursor.
-        Element.getBody().removeClass('x-cursor-drag');
+        // Pop move cursor.
+        Cursor.pop(Cursor.getContextId('window-widget'));
         
         // TODO: Only if doubleclick.
         //this.setMaximized(!this.maximized);
@@ -432,8 +429,8 @@ Class.define('Window', {
         // Set body size.
         this.screenSize = Screen.getSize();
         
-        // Set body class.
-        Element.getBody().addClass('x-cursor-resize-' + dir);
+        // Show resize cursor.
+        Cursor.push(Window.cursorShapeByDir[dir], Cursor.getContextId('window-widget'));
     },
     
     onResizerMotion: function(e, dir)
@@ -470,8 +467,8 @@ Class.define('Window', {
     
     onResizerButtonRelease: function(e, dir)
     {
-        // Remove body class.
-        Element.getBody().removeClass('x-cursor-resize-' + dir);
+        // Remove resize cursor.
+        Cursor.pop(Cursor.getContextId('window-widget'));
         
         delete this.screenSize;
     },
@@ -889,7 +886,7 @@ Class.define('Window', {
     
     actions: {
         /**
-         * Moves the window.
+         * Moves the window. Does the same as setting the #position.
          *
          * @param x int The new left position of the window.
          * @param y int The new top position of the window.
@@ -899,7 +896,7 @@ Class.define('Window', {
             this.setPosition({x: x, y: y});
         },
         /**
-         * Resizes the window.
+         * Resizes the window. Does the same as setting the #size.
          *
          * @param width  int The new width of the window.
          * @param height int The new height of the window.
@@ -914,6 +911,23 @@ Class.define('Window', {
         center: function()
         {
             this.setPosition(this.getCenterPosition());
+        }
+    },
+    
+    /*
+     * Statics.
+     */
+    
+    statics: {
+        cursorShapeByDir: {
+            n:  CursorShape.RESIZE_N,
+            ne: CursorShape.RESIZE_NE,
+            e:  CursorShape.RESIZE_E,
+            se: CursorShape.RESIZE_SE,
+            s:  CursorShape.RESIZE_S,
+            sw: CursorShape.RESIZE_SW,
+            w:  CursorShape.RESIZE_W,
+            nw: CursorShape.RESIZE_NW
         }
     }
 });

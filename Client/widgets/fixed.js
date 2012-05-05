@@ -87,17 +87,11 @@ Class.define('Fixed', {
     },
     
     /*
-     * Properties.
-     */
-    
-    properties: {
-    },
-    
-    /*
      * Actions.
      */
     
     actions: {
+        // Overrides 'add(widget)' action.
         add: function(widget, x, y)
         {
             Fixed.base.add.call(this, widget);
@@ -106,7 +100,7 @@ Class.define('Fixed', {
             
             this.layout();
         },
-        
+        // Overrides 'remove(widget)' action.
         remove: function(widget)
         {
             var index = Fixed.base.remove.call(this, widget);

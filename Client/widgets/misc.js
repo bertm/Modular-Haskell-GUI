@@ -88,12 +88,5 @@ Class.define('Misc', {
             read: true,
             defaultValue: 0
         }
-    },
-    
-    /*
-     * Actions.
-     */
-    
-    actions: {
     }
 });

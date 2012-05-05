@@ -31,7 +31,8 @@ Singleton.define('Transmission', {
         
         this.singletons = {
             1: Application,
-            2: Screen
+            2: Screen,
+            3: Cursor
         };
         
         this.objects = {};
@@ -459,4 +460,4 @@ Singleton.define('Transmission', {
     }
 });
 
-Transmission.initialize();
+//Transmission.initialize();

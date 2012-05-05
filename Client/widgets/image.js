@@ -39,7 +39,7 @@ Class.define('Image', {
      */
     
     properties: {
-        file: {
+        file: { // TODO: Or source?
             write: function(file)
             {
                 this.file = file;
@@ -66,12 +66,7 @@ Class.define('Image', {
             read: true,
             defaultValue: ''
         }
-    },
-    
-    /*
-     * Actions.
-     */
-    
-    actions: {
+        
+        // TODO: Stock images with their size
     }
 });

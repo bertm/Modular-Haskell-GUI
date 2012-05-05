@@ -27,6 +27,11 @@ Class.define('Spinner', {
      */
     
     properties: {
+        /**
+         * Whether the spinner is spinning.
+         *
+         * @type bool
+         */
         active: {
             write: function(active)
             {
@@ -44,10 +49,20 @@ Class.define('Spinner', {
      */
     
     actions: {
+        /**
+         * Starts the spinner. Does the same as `spinner.setActive(true)`.
+         *
+         * @see #active
+         */
         start: function()
         {
             this.setActive(true);
         },
+        /**
+         * Stops the spinner. Does the same as `spinner.setActive(false)`.
+         *
+         * @see #active
+         */
         stop: function()
         {
             this.setActive(false);

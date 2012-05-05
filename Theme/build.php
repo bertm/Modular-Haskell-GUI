@@ -108,7 +108,7 @@ function writeConfigFile()
  */
 
 \$font-family: 'Trebuchet MS', Tahoma, Arial, sans-serif;
-\$font-size: 10.5pt;
+\$font-size: 14px; /* Must be in pixels. */
 
 CONTENT;
     
@@ -135,13 +135,10 @@ function moveStylesheets()
 
 function colorAndCopyImage($from, $to)
 {
-    if (!function_exists('imagecreatefrompng'))
-        return copy($from, $to);
-    
     global $foregroundColor, $baseForegroundColor;
     
-    // Skip .gif for now.
-    if (substr($from, -4) != '.png')
+    // Only color PNGs and skip coloring if not supported.
+    if ((substr($from, -4) != '.png') || !function_exists('imagecreatefrompng'))
         return copy($from, $to);
     
     // Convert color of image.

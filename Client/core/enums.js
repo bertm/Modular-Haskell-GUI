@@ -35,6 +35,48 @@ Enum.define('Policy', {
     NEVER: 'never'
 });
 
+/**
+ * Scroll bar policies.
+ */
+Enum.define('Policy', {
+    ALWAYS: 'always',
+    AUTOMATIC: 'automatic',
+    NEVER: 'never'
+});
+
+/**
+ * Cursor shapes.
+ */
+Enum.define('CursorShape', {
+    ARROW: 'arrow',
+    MOVE: 'move',
+    CROSSHAIR: 'crosshair',
+    WAIT: 'wait',
+    BUSY: 'busy',
+    TEXT: 'text',
+    HELP: 'help',
+    
+    POINTING_HAND: 'pointing-hand',
+    OPEN_HAND: 'open-hand',
+    CLOSED_HAND: 'closed-hand',
+    
+    // TODO: no-drop (forbidden), dragging cursors.
+    
+    RESIZE_N:  'resize-n',
+    RESIZE_NE: 'resize-ne',
+    RESIZE_E:  'resize-e',
+    RESIZE_SE: 'resize-se',
+    RESIZE_S:  'resize-s',
+    RESIZE_SW: 'resize-sw',
+    RESIZE_W:  'resize-w',
+    RESIZE_NW: 'resize-nw',
+    RESIZE_H:  'resize-h',
+    RESIZE_V:  'resize-v'
+});
+
+/**
+ * Event modifier masks.
+ */
 Enum.define('EventModifierMask', {
     // Intentional gap.
     
@@ -55,6 +97,9 @@ Enum.define('EventModifierMask', {
     ALL: ~0
 });
 
+/**
+ * Event types.
+ */
 Enum.define('EventType', {
     MOTION: 'motion',
     SCROLL: 'scroll',
@@ -72,6 +117,9 @@ Enum.define('EventType', {
     BLUR: 'blur'
 });
 
+/**
+ * Event masks.
+ */
 Enum.define('EventMask', {
     // Button, key, motion, scroll, enter, leave, touch
     

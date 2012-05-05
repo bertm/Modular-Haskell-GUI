@@ -78,13 +78,13 @@ Class.define('ScrollBar', {
         
         // Determine adjustment range.
         var pageSize = this.adjustment.getPageSize();
-        var range = this.adjustment.getUpper() - this.adjustment.getLower();// - pageSize;
+        var range = this.adjustment.getUpper() - this.adjustment.getLower();
         
         // Set slider size.
         if (range === 0)
             var size = trackSize;
         else
-            var size = Math.ceil(trackSize / ((pageSize === 0) ? range : range / pageSize));
+            var size = Math.min(trackSize, Math.ceil(trackSize / ((pageSize === 0) ? range : range / pageSize)));
         
         // Hide or show slider, depending on its size.
         if (trackSize < 10) // TODO: Constant.

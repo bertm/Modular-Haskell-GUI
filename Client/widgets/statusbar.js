@@ -32,7 +32,7 @@ Class.define('StatusBar', {
         // Set members.
         this.spacing       = 2;
         this.label         = new Label({visible: true, 'x-align': 0, 'margin-left': 2}); // TODO: Ellipsize, fetch via read-only property?
-        this.contexts      = [{name: 'default'}];
+        this.contexts      = [{description: 'default'}];
         this.messages      = [];
         this.nextMessageId = 1;
         
@@ -80,6 +80,13 @@ Class.define('StatusBar', {
      */
     
     properties: {
+        /**
+         * The shadow type of the bar. Will be applied to the whole bar. If only a part of the
+         * bar needs a shadow, insert a #Frame into the bar.
+         *
+         * @type ShadowType
+         * @see Frame
+         */
         'shadow-type': {
             write: function(shadowType)
             {
@@ -101,7 +108,7 @@ Class.define('StatusBar', {
          * Returns a new context identifier, given a description of the actual context.
          * Note that the description is not shown in the UI.
          *
-         * @param name string Description of the context.
+         * @param string description Description of the context.
          *
          * @return int An identifier of the context, to be used by the other actions.
          */
@@ -115,13 +122,13 @@ Class.define('StatusBar', {
             
             this.contexts.push({description: description});
             
-            return this.contexts.length;
+            return this.contexts.length - 1;
         },
         /**
          * Pushes a new message onto a status bar's stack.
          *
-         * @param text      string Text to be pushed on the stack.
-         * @param contextId int    Context id. See #getContextId().
+         * @param string text      Text to be pushed on the stack.
+         * @param int    contextId Context id. See #getContextId().
          *
          * @return int The id of the message. Can be used as an identifier for #remove().
          */
@@ -140,9 +147,9 @@ Class.define('StatusBar', {
             return this.nextMessageId - 1;
         },
         /**
-         * Removes the first message in the status bar's stack with the given context id.
+         * Removes the first message from the status bar's stack with the given context id.
          *
-         * @param contextId int Context id. See #getContextId().
+         * @param int contextId Context id. See #getContextId().
          */
         pop: function(contextId)
         {
@@ -167,8 +174,8 @@ Class.define('StatusBar', {
          * Forces the removal of a message from a status bar's stack.
          * The exact context id and message id must be specified.
          *
-         * @param contextId int Context id of the message to be removed. See #getContextId().
-         * @param messageId int Message id to be removed. See #push().
+         * @param int contextId Context id of the message to be removed. See #getContextId().
+         * @param int messageId Message id to be removed. See #push().
          */
         remove: function(contextId, messageId)
         {
@@ -194,7 +201,7 @@ Class.define('StatusBar', {
         /**
          * Forces the removal of all messages from a status bar's stack with the exact context id.
          *
-         * @param contextId int Context id to remove messages of. See #getContextId().
+         * @param int contextId Context id to remove messages of. See #getContextId().
          */
         removeAll: function(contextId)
         {

@@ -1,10 +1,9 @@
 // Use strict mode if available.
 "use strict";
 
-/*
- * Check button class.
+/**
+ * A check button.
  */
-
 Class.define('CheckButton', {
     extend: 'ToggleButton',
     

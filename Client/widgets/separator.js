@@ -1,10 +1,9 @@
 // Use strict mode if available.
 "use strict";
 
-/*
- * Separator class.
+/**
+ * A horizontal or vertical line to separate widgets.
  */
-
 Class.define('Separator', {
     extend: 'Widget',
     
@@ -37,6 +36,11 @@ Class.define('Separator', {
      */
     
     properties: {
+        /**
+         * The orientation of the separator.
+         *
+         * @type Orientation
+         */
         orientation: {
             write: function(orientation)
             {
@@ -49,12 +53,5 @@ Class.define('Separator', {
             read: true,
             defaultValue: Orientation.HORIZONTAL
         }
-    },
-    
-    /*
-     * Actions.
-     */
-    
-    actions: {
     }
 });

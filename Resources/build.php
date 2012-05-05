@@ -14,7 +14,11 @@ $outputDir = '../Client/resources/';
 // Build helper methods.
 function createDirs()
 {
+    global $outputDir;
+    
     @mkdir('build', 0777);
+    @mkdir($outputDir, 0755, true);
+    @mkdir($outputDir . '/stylesheets', 0755);
 }
 
 function buildStylesheets()

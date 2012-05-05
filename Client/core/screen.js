@@ -2,9 +2,13 @@
 "use strict";
 
 /**
- * Screen class.
+ * Singleton representing the state of the screen.
  */
 Singleton.define('Screen', {
+    /*
+     * Private methods; initializing.
+     */
+    
     initialize: function()
     {
         // NOTE: Use of browser internals (window.resize).
@@ -31,17 +35,25 @@ Singleton.define('Screen', {
      */
     
     properties: {
+        /**
+         * The size of the screen.
+         *
+         * @type Dimension
+         */
         size: {
             read: function()
             {
                 return this.size;
             }
-        },
+        }
+        /*
+        ,
         orientation: {
             read: function()
             {
                 // TODO: ScreenOrientation.
             }
         }
+        */
     }
 });

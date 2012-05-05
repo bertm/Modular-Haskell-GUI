@@ -35,7 +35,7 @@ Singleton.define('EventManager', {
             //var target = e.target ? e.target : e.srcElement;
             //if (target.nodeName !== 'INPUT')
             //{
-            //    e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+                e.preventDefault ? e.preventDefault() : (e.returnValue = false);
             //}
         }, this);
         

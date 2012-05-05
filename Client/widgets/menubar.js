@@ -148,7 +148,7 @@ Class.define('MenuBar', {
             MenuBar.base.add.call(this, menuItem, expand, fill);
             
             // Hook into its enter and button press event handlers.
-            this.setEvents(EventMask.ENTER | EventMask.BUTTON_PRESS);
+            menuItem.enableEvents(EventMask.ENTER | EventMask.BUTTON_PRESS);
             menuItem.connect('enter-event', this.onItemEnter, this);
             menuItem.connect('button-press-event', this.onItemButtonPress, this);
             

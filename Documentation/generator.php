@@ -1,3 +1,4 @@
+#!/usr/bin/php
 <?php
 /*
  * Documentation generator class.
@@ -134,14 +135,17 @@ class DocumentationGenerator
                     continue 2;
                     
                 case 'C':
+                case 'S':
                     // Check for class name.
                     $next = substr($content, $i, 256);
-                    if (preg_match('/^(Singleton|Class|Enum)\.define\s*\(\s*(\'[^\'\\\\]+\'|"[^"\\\\]+")/', $next, $matches))
+                    if (preg_match('/^(Singleton|Class)\.define\s*\(\s*(\'[^\'\\\\]+\'|"[^"\\\\]+")/', $next, $matches))
                     {
                         $class = str_replace(array('\'', '"'), array('', ''), $matches[2]);
                         
+                        echo $class . "\n";
+                        
                         // Handle class.
-                        $this->handleClass($class, $state);
+                        $this->handleClass($class, ($matches[1] === 'Singleton'), $state);
                         
                         // Skip class.
                         $i += strlen($matches[0]) - 1;
@@ -318,7 +322,7 @@ class DocumentationGenerator
         $state['comment'] = $comment;
     }
 
-    private function handleClass($class, &$state)
+    private function handleClass($class, $singleton, &$state)
     {
         if (!isset($state['classes']))
             $state['classes'] = array($class => array());
@@ -326,7 +330,7 @@ class DocumentationGenerator
             $state['classes'][$class] = array();
         
         $state['class'] = &$state['classes'][$class];
-        $state['class']['extend'] = 'Instance';
+        $state['class']['extend'] = $singleton ? 'Singleton' : 'Instance';
         
         if (isset($state['comment']))
         {
@@ -427,7 +431,7 @@ class DocumentationGenerator
         
         $body .= '</ul></div>';
         
-        $this->writeFile('hierarchy', $body, array(
+        $this->writeFile('index', $body, array(
             'title' => 'Class Hierarchy'
         ));
     }
@@ -661,8 +665,6 @@ class DocumentationGenerator
         return preg_replace_callback('/\#([\w+\-\.]*\w(\(\))?)/',
             function($matches) use ($self, $context)
             {
-                echo $matches[0] . '-' . $context . "<br>\n";
-                
                 return $self->createLink($matches[1], $context);
             },
             $text);

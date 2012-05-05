@@ -68,7 +68,7 @@ Class.define('Frame', {
     
     properties: {
         label: {
-            write: function(label)
+            write: function(label) // TODO: Widget label support.
             {
                 this.labelEl.setText(label);
                 
@@ -77,6 +77,11 @@ Class.define('Frame', {
             read: true,
             defaultValue: ''
         },
+        /**
+         * The shadow type of the frame.
+         *
+         * @type ShadowType
+         */
         'shadow-type': {
             write: function(shadowType)
             {
@@ -89,12 +94,5 @@ Class.define('Frame', {
             read: true,
             defaultValue: ShadowType.ETCHED_IN
         }
-    },
-    
-    /*
-     * Actions.
-     */
-    
-    actions: {
     }
 });

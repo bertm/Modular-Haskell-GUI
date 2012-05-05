@@ -21,10 +21,8 @@ Class.define('AbstractWindow', {
         // Add event handlers.
         EventManager.registerHandler(this.el, EventMask.CAPTURE_BUTTON_PRESS, this.onCaptureButtonPress, this);
         
-        // TODO: Dom is always in body? Or only when visible?
-        
-        // Append element to body.
-        Element.getBody().append(this.el);
+        // Always show element, its visibility is determined by whether it is in the DOM.
+        this.el.show();
     },
     
     setParent: function(parent)
@@ -55,22 +53,24 @@ Class.define('AbstractWindow', {
                 
                 if (visible)
                 {
-                    this.el.show();
+                    // Append element to body.
+                    Element.getBody().append(this.el);
                     
                     if (this.activateOnShow)
                         this.setActive(true);
                     else if (this.modal)
                         Application.setActiveWindow(null);
+                
+                    this.layout();
                 }
                 else
                 {
-                    this.el.hide();
+                    // Remove element from body.
+                    this.el.remove();
                     
                     if (this.active)
                         this.setActive(false);
                 }
-                
-                this.layout();
             }
         },
         // Overrides 'is-visible' property.

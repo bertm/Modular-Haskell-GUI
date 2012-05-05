@@ -36,6 +36,59 @@ body, .x-label, .x-entry.x-disabled input
  * Cursors.
  */
 
+/* Cursor URLs must be relative to page to work in IE7/IE8. */
+.x-cursor-arrow, .x-cursor-arrow *
+{
+    /* cursor: default !important; */
+    
+    /* Allow overriding of cursor by elements. */
+}
+
+.x-cursor-move, .x-cursor-move *
+{
+    cursor: move !important;
+}
+
+.x-cursor-crosshair, .x-cursor-crosshair *
+{
+    cursor: crosshair !important;
+}
+
+.x-cursor-wait, .x-cursor-wait *
+{
+    cursor: wait !important;
+}
+
+.x-cursor-busy, .x-cursor-busy *
+{
+    cursor: progress !important;
+}
+
+.x-cursor-text, .x-cursor-text *
+{
+    cursor: text !important;
+}
+
+.x-cursor-help, .x-cursor-help *
+{
+    cursor: help !important;
+}
+
+.x-cursor-pointing-hand, .x-cursor-pointing-hand *
+{
+    cursor: pointer !important;
+}
+
+.x-cursor-open-hand, .x-cursor-open-hand *
+{
+    cursor: -moz-grab, grab, url(resources/cursors/grab.cur) !important;
+}
+
+.x-cursor-closed-hand, .x-cursor-closed-hand *
+{
+    cursor: -moz-grabbing, grabbing, url(resources/cursors/grabbing.cur) !important;
+}
+
 .x-cursor-resize-n, .x-cursor-resize-n *
 {
     cursor: n-resize !important;
@@ -76,19 +129,14 @@ body, .x-label, .x-entry.x-disabled input
     cursor: se-resize !important;
 }
 
-.x-cursor-resize-col, .x-cursor-resize-col *
+.x-cursor-resize-h, .x-cursor-resize-h *
 {
     cursor: col-resize !important;
 }
 
-.x-cursor-resize-row, .x-cursor-resize-row *
+.x-cursor-resize-v, .x-cursor-resize-v *
 {
     cursor: row-resize !important;
-}
-
-.x-cursor-drag, .x-cursor-drag *
-{
-    cursor: move !important;
 }
 
 /*

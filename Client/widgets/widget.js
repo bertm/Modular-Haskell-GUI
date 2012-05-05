@@ -309,13 +309,26 @@ Class.define('Widget', {
      * Event handlers.
      */
     
-    // Event handler.
     onEvent: function(e, data, capturePhase)
     {
         var prefix = (capturePhase ? 'capture-' : '');
         
         return this.signalDispatcher.emit(prefix + e.type + '-event', this, e) ||
                this.signalDispatcher.emit(prefix + 'event', this, e);
+    },
+    
+    onEnter: function(e)
+    {
+        if (this.showTooltip && this.tooltip)
+        {
+            this.tooltip.show();
+        }
+    },
+    
+    onLeave: function()
+    {
+        if (this.tooltip)
+            this.tooltip.hide();
     },
     
     /*
@@ -346,7 +359,7 @@ Class.define('Widget', {
          * The widget's effective visibility, which means it is #visible itself and also its parent widget
          * is visible.
          *
-         * @return bool The widget's effective visbility.
+         * @type bool
          * @see #visible
          */
         'is-visible': {
@@ -355,11 +368,10 @@ Class.define('Widget', {
                 return (this.visible && this.parent && this.parent.getIsVisible());
             }
         },
-        
         /**
          * The widget's window, or `null` if it has none. Will return itself if widget is a window.
          *
-         * @return Widget Window of this widget.
+         * @type AbstractWindow
          * @see #Window, #MainWindow
          */
         window: {
@@ -367,7 +379,7 @@ Class.define('Widget', {
             {
                 // Fetch top-level window.
                 var widget = this;
-                while (widget && !((widget instanceof Window) || (widget instanceof MainWindow)))
+                while (widget && !(widget instanceof AbstractWindow))
                 {
                     widget = widget.parent;
                 }
@@ -537,43 +549,79 @@ Class.define('Widget', {
             }
         },
         /**
-         * Whether the widget its #tooltip-text should be shown.
+         * Whether the widget its #tooltip should be shown.
          *
          * @type bool
+         * @see #tooltip, #tooltip-label
          */
-        'has-tooltip': {
-            write: function(hasTooltip)
+        'show-tooltip': {
+            write: function(showTooltip)
             {
-                // TODO: Implement.
+                this.showTooltip = showTooltip;
                 
-                this.hasTooltip = hasTooltip;
+                if (showTooltip && !this.tooltip)
+                {
+                    this.setTooltip(new Tooltip());
+                }
                 
-                // Create or destroy tooltip.
-                //if (hasTooltip)
-                //    this.createTooltip();
-                //else
-                //    this.destroyTooltip();
+                if (showTooltip)
+                {
+                    // Attach event handlers.
+                    EventManager.registerHandler(this.el, EventMask.ENTER, this.onEnter, this);
+                    EventManager.registerHandler(this.el, EventMask.LEAVE, this.onLeave, this);
+                }
+                else
+                {
+                    // Detach event handlers.
+                    EventManager.registerHandler(this.el, 0, this.onEnter, this);
+                    EventManager.registerHandler(this.el, 0, this.onLeave, this);
+                }
             },
             read: true,
             defaultValue: false
         },
         /**
-         * The tooltip text which will be shown if #has-tooltip is `true`.
+         * The tooltip label which will be shown if #has-tooltip is `true`. Can be `null` if the tooltip
+         * has no label, or if there is no tooltip.
+         *
+         * Does not signal.
          *
          * @type string
          */
-        'tooltip-text': {
-            write: function(tooltipText)
+        'tooltip-label': {
+            write: function(tooltipLabel)
             {
-                // TODO: Implement.
+                if (this.tooltip)
+                    this.tooltip.setLabel(tooltipLabel);
+                else
+                    this.setTooltip(new Tooltip({label: tooltipLabel}));
                 
-                this.tooltipText = tooltipText;
-                
-                // Create tooltip.
-                //this.createTooltip();
+                return false;
+            },
+            read: function()
+            {
+                if (this.tooltip)
+                    return this.tooltip.getLabel();
+                else
+                    return null;
+            }
+        },
+        /**
+         * The #Tooltip of this widget.
+         *
+         * @type Tooltip
+         * @see #show-tooltip, #tooltip-label
+         */
+        'tooltip': {
+            write: function(tooltip)
+            {
+                if (this.tooltip)
+                    this.tooltip.destroy();
+                this.tooltip = tooltip;
+                this.tooltip.setParentWidget(this);
             },
             read: true,
-            defaultValue: ''
+            defaultValue: null
         },
         /**
          * The sensitivity of the widget.
@@ -652,7 +700,8 @@ Class.define('Widget', {
             defaultValue: false
         },
         /**
-         * Whether the widget has the global input focus.
+         * Whether the widget has the global input focus. This means that #is-focus is `true` and
+         * our #window is active.
          *
          * @type bool
          */
@@ -736,14 +785,14 @@ Class.define('Widget', {
             this.hide();
         },
         /**
-         * Enables certain #events.
+         * Enables certain #events. Does the same as `widget.setEvents(widget.getEvents() | events)`.
          */
         enableEvents: function(events)
         {
             this.setEvents(this.events | events);
         },
         /**
-         * Disables certain #events.
+         * Disables certain #events. Does the same as `widget.setEvents(widget.getEvents() & ~events)`.
          */
         disableEvents: function(events)
         {

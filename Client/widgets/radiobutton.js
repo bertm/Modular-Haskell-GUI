@@ -97,7 +97,7 @@ Class.define('RadioButton', {
          * Joins another radio button to the #group of this widget.
          *
          * Joins another radio button to the #group of this widget. Another way of doing this is to set the group
-         * of the passed radio button to the group of this widget.
+         * of the passed radio button to the group of this widget: `passed.setGroup(radioButton.getGroup())`.
          */
         join: function(radioButton)
         {

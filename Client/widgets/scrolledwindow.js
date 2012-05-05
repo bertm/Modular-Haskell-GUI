@@ -126,7 +126,8 @@ Class.define('ScrolledWindow', {
         allocation = this.correctAndStoreAllocation(allocation);
         
         // Scrollbars are not needed yet.
-        var hScrollBarVisible = false, vScrollBarVisible = false;
+        var hScrollBarVisible = (this.hPolicy === Policy.ALWAYS),
+            vScrollBarVisible = (this.vPolicy === Policy.ALWAYS);
         
         // Get child its minimum size.
         var child = this.children[0];
@@ -152,21 +153,24 @@ Class.define('ScrolledWindow', {
             this.vAdjustment.setUpper(childRequisition.height);
             
             // Check if scrollbars are needed.
-            if (childRequisition.height > allocation.height)
+            if (vScrollBarVisible ||
+                ((childRequisition.height > allocation.height) && (this.vPolicy !== Policy.NEVER)))
             {
                 allocation.width -= ScrolledWindow.vScrollBarSize.width;
                 
                 vScrollBarVisible = true;
             }
             
-            if (childRequisition.width > allocation.width)
+            if (hScrollBarVisible ||
+                ((childRequisition.width > allocation.width) && (this.hPolicy !== Policy.NEVER)))
             {
                 allocation.height -= ScrolledWindow.hScrollBarSize.height;
                 
                 hScrollBarVisible = true;
                 
                 // Check vertical scrollbar again.
-                if (!vScrollBarVisible && (childRequisition.height > allocation.height))
+                if (!vScrollBarVisible &&
+                    (childRequisition.height > allocation.height) && (this.vPolicy !== Policy.NEVER))
                 {
                     allocation.width -= ScrolledWindow.vScrollBarSize.width;
                     
@@ -296,7 +300,8 @@ Class.define('ScrolledWindow', {
                 this.hPolicy = hPolicy;
                 
                 // Reallocate.
-                this.allocateSize(Util.cloneShallow(this.allocation));
+                if (this.getIsVisible())
+                    this.allocateSize(Util.cloneShallow(this.allocation));
             },
             read: true,
             defaultValue: Policy.AUTOMATIC
@@ -313,7 +318,8 @@ Class.define('ScrolledWindow', {
                 this.vPolicy = vPolicy;
                 
                 // Reallocate.
-                this.allocateSize(Util.cloneShallow(this.allocation));
+                if (this.getIsVisible())
+                    this.allocateSize(Util.cloneShallow(this.allocation));
             },
             read: true,
             defaultValue: Policy.AUTOMATIC

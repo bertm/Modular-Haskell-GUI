@@ -49,12 +49,12 @@ Class.define('ProgressBar', {
     
     getMinimumSize: function()
     {
-        var textWidth = this.showText ? Util.measureTextSize(this.text).width : 0;
+        var textSize = this.showText ? Util.measureTextSize(this.text) : {width: 0, height: 0};
         
         if (this.orientation === Orientation.HORIZONTAL)
-            return {width: Math.max(textWidth, 150), height: 20};
+            return {width: Math.max(textSize.width, 150), height: Math.max(20, textSize.height)};
         else
-            return {width: Math.max(textWidth, 20), height: 150};
+            return {width: Math.max(textSize.width, 20), height: Math.max(150, textSize.height)};
         
         // TODO: Constants.
     },
@@ -226,14 +226,7 @@ Class.define('ProgressBar', {
             read: true,
             defaultValue: false
         }
-    },
-    
-    // TODO: mode, ellipsize.
-    
-    /*
-     * Actions.
-     */
-    
-    actions: {
     }
+    
+    // TODO: mode, ellipsize (just do it?).
 });

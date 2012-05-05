@@ -7,26 +7,6 @@
 @import "compass/css3/gradient";
 
 /*
-
-//$foreground-color: hsl(309deg, 54%, 58%); /* Pink. * /
-$foreground-color: #a1c148;
-$background-color: hsl(39deg, 17%, 77%);
-$shadow-color: hsl(0deg, 0%, 46%);
-
-$focus-border-color: #000; /* Black. * /
-$dark-text-color: adjust-color($background-color, $lightness: -70%); /* Almost black. * /
-$bright-text-color: adjust-color($foreground-color, $lightness: 60%); /* White. * /
-
-$normal-background-color: adjust-color($background-color, $saturation: 7%, $lightness: 15%);
-//$foreground-color: hsl(309deg, 54%, 58%); /* Pink. * /
-//$foreground-color: #3b9c2b; /* Green. * /
-//$foreground-color: #d01718; /* Red. * /
-//$background-color: hsl(39deg, 17%, 70%);
-//$shadow-color: hsl(0deg, 0%, 30%);
-
-*/
-
-/*
  * Body.
  */
 
@@ -66,6 +46,8 @@ $selection-background-color: adjust-color($foreground-color, $saturation: 8%, $l
  * Label.
  */
 
+$insensitive-text-color: adjust-color($background-color, $saturation: -3%, $lightness: -5%);
+
 .x-label
 {
     color: $dark-text-color;
@@ -73,7 +55,7 @@ $selection-background-color: adjust-color($foreground-color, $saturation: 8%, $l
 
 .x-label.x-insensitive, .x-insensitive .x-label
 {
-    color: adjust-color($background-color, $saturation: -3%, $lightness: -5%);
+    color: $insensitive-text-color;
     text-shadow: lighten($background-color, 50%) 1px 1px 1px;
 }
 
@@ -333,7 +315,8 @@ $selection-background-color: adjust-color($foreground-color, $saturation: 8%, $l
 /* Header. */
 .x-window>.x-header
 {
-    background: url(../images/window/header.png); /* TODO: Will this be overriden by filter? */
+    background: url(../images/window/header.png) repeat-x
+        adjust-color($foreground-color, $saturation: 8%, $lightness: 1%); /* TODO: Will this be overriden by filter? */
     
     @include filter-gradient(
         adjust-color($foreground-color, $saturation: 8%, $lightness: 16%),
@@ -348,7 +331,7 @@ $selection-background-color: adjust-color($foreground-color, $saturation: 8%, $l
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
     
-    height: 21px;
+    height: $font-size + 2 * 3px;
 }
 
 .x-window>.x-header>.x-label
@@ -783,13 +766,6 @@ $scroll-bar-border-color: adjust-color($background-color, $saturation: -5%, $lig
 }
 
 /* Label. */
-.x-menu-item.x-insensitive.x-pressed>.x-label,
-.x-menu-item.x-insensitive.x-active>.x-label,
-.x-menu-item:hover>.x-label
-{
-    color: $dark-text-color;
-}
-
 .x-menu-item.x-pressed>.x-label,
 .x-menu-item.x-active>.x-label
 {
@@ -797,6 +773,11 @@ $scroll-bar-border-color: adjust-color($background-color, $saturation: -5%, $lig
 }
 
 /* Insensitive. */
+.x-menu-item.x-insensitive>.x-label
+{
+    color: $insensitive-text-color;
+}
+
 .x-menu-item.x-insensitive.x-pressed,
 .x-menu-item.x-insensitive.x-active
 {

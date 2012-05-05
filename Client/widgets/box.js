@@ -316,7 +316,7 @@ Class.define('Box', {
      */
     
     actions: {
-        // Overrides add(widget) action.
+        // Overrides 'add(widget)' action.
         /**
          * Adds a widget to the box.
          *
@@ -331,7 +331,7 @@ Class.define('Box', {
             
             this.layout();
         },
-        // Overrides remove(widget) action.
+        // Overrides 'remove(widget)' action.
         remove: function(widget)
         {
             var index = Box.base.remove.call(this, widget);

@@ -206,7 +206,7 @@ Class.define('Range', {
     
     properties: {
         /**
-         * The #Adjustment that contains the current value and bounds of this scale.
+         * The #Adjustment that contains the current value and bounds of this range.
          *
          * @type Adjustment
          */
@@ -246,7 +246,7 @@ Class.define('Range', {
             defaultValue: false
         },
         /**
-         * The orientation of the scale.
+         * The orientation of the range.
          *
          * @type Orientation
          */
