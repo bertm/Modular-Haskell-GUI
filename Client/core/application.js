@@ -36,6 +36,17 @@ Singleton.define('Application', {
         }
     },
     
+    // Will be called by Widget if focus widget has really changed.
+    setRealFocusWidget: function(widget)
+    {
+        if (this.focusWidget !== widget)
+        {
+            this.focusWidget = widget;
+            
+            this.emitPropertyChangeSignals('focus-widget');
+        }
+    },
+    
     // Called by the event manager when an event happens.
     onEvent: function(e, data, capturePhase)
     {
@@ -70,11 +81,30 @@ Singleton.define('Application', {
             defaultValue: null
         },
         /**
-         * The main window of the application.
+         * The main window of the application. May be `null`.
          *
          * @type MainWindow
          */
         'main-window': {
+            read: true,
+            defaultValue: null
+        },
+        /**
+         * The widget that has the global input focus. May be `null`.
+         *
+         * @type Widget
+         */
+        'focus-widget': {
+            write: function(focusWidget)
+            {
+                if (focusWidget)
+                    focusWidget.setHasFocus(true);
+                else if (this.focusWidget)
+                    this.focusWidget.setHasFocus(false);
+                
+                // setRealFocusWidget() will be called if it really changed.
+                return false;
+            },
             read: true,
             defaultValue: null
         },
@@ -191,8 +221,9 @@ Singleton.define('Application', {
             label: 'Blah'
         });
         
-        var button = new Button({
-            label: 'test'
+        var button = new ToggleButton({
+            label: 'test',
+            'can-focus': true
         });
         
         var firstLabel = new Label({
@@ -380,7 +411,6 @@ Singleton.define('Application', {
         //*
         
         var anotherWindow = new Window({
-            visible: true,
             deletable: false,
             maximizable: false,
             resizable: true,
@@ -410,21 +440,26 @@ Singleton.define('Application', {
         
         var buttonBox = new Box({orientation: Orientation.VERTICAL, spacing: 5});
         
-        buttonBox.add(new Button({label: 'Find Next'}));
-        buttonBox.add(new Button({label: 'Count'}));
-        buttonBox.add(new Button({label: "Find All in All Openend\nDocuments"}));
-        buttonBox.add(new Button({label: 'Close'}));
+        var isFocus;
+        
+        buttonBox.add(new Button({label: 'Find Next', 'can-focus': true}));
+        buttonBox.add(isFocus = new Button({label: 'Count', 'can-focus': true}));
+        buttonBox.add(new Button({label: "Find All in All Openend\nDocuments", 'can-focus': true}));
+        buttonBox.add(new Button({label: 'Close', 'can-focus': true}));
         
         var topBox = new Box({spacing: 5});
         
-        topBox.add(new Entry({'sensitive': false, 'text': 'abc'}));
+        topBox.add(new Entry({'sensitive': true, 'text': 'abc', 'can-focus': true}));
         topBox.add(buttonBox);
         
         wholeBox.add(topBox);
         wholeBox.add(bottomBox);
         
         anotherWindow.add(wholeBox);
+        
         anotherWindow.showAll();
+        isFocus.setIsFocus(true);
+        radioButtonA.setIsFocus(true);
         
         
         //*/

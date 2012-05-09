@@ -44,6 +44,8 @@ Class.define('Widget', {
     {
         throw new Error('Method \'getHtml\' has not been implemented.');
     },
+        
+    // TODO: Destroy: destroy childs? Unset focus chain.
     
     /*
      * Some getters and setters.
@@ -240,27 +242,39 @@ Class.define('Widget', {
     focus: function()
     {
         // Bail out if we can't be focussed, or we are the global focus widget.
-        if (!this.canFocus || !this.getIsSensitive() || this.hasFocus)
-            return;
+        if (!this.canFocus || !this.getIsVisible() || !this.getIsSensitive() || this.hasFocus)
+            return false;
         
         // Get our window, and get active flag.
         var window = this.getWindow();
-        var active = window && window.active;
-        
-        // Get current focus widget within window.
-        var current = window && window.getFocusChild();
+        if (!window)
+            return false;
         
         // Blur current widget.
+        var current = window.getFocusWidget();
         if (current)
-            current.blur();
+        {
+            if (!current.blur(false, false))
+                return false;
+        }
         
         // Set focus widget.
+        var active = window.getActive();
         if (active)
         {
             // Set new focus element.
             var focusEl = this.inputEl || this.el;
             if (!EventManager.setFocus(focusEl))
+            {
+                // Set focus chain.
+                if (this.parent)
+                    this.parent.setFocusChild(null);
+                
+                Application.setRealFocusWidget(null);
+                window.setRealFocusWidget(null);
+                
                 return false;
+            }
             
             // We a now have global focus.
             this.hasFocus = true;
@@ -271,18 +285,27 @@ Class.define('Widget', {
         // We are now the focus widget.
         this.isFocus = true;
         
-        // Set focus chain.
+        // Set application his focus widget.
+        if (active)
+            Application.setRealFocusWidget(this);
+        
+        // Set focus chain and widget.
         if (this.parent)
             this.parent.setFocusChild(this);
+        
+        // Set window his focus widget.
+        window.setRealFocusWidget(this);
+        
+        // TODO: Signal.
         
         return true;
     },
     
-    blur: function()
+    blur: function(keepIsFocus, unsetFocusChain)
     {
-        // Bail out if we do not have focus.
+        // Bail out if we are not the focus widget.
         if (!this.isFocus)
-            return;
+            return false;
         
         // Unset focus widget.
         if (this.hasFocus)
@@ -292,17 +315,37 @@ Class.define('Widget', {
             
             // Remove focus class.
             this.el.removeClass('x-focus');
+            
+            if (unsetFocusChain !== false)
+                Application.setRealFocusWidget(null);
         }
         
         // Unset focus chain.
-        if (this.parent)
-            this.parent.setFocusChild(null);
+        if (!keepIsFocus && (unsetFocusChain !== false))
+        {
+            if (this.parent)
+                this.parent.setFocusChild(null);
+            
+            var window = this.getWindow();
+            if (window)
+                window.setRealFocusWidget(null);
+        }
         
-        // We do not have focus anymore.
-        this.isFocus  = false;
+        // We may still have local focus.
+        this.isFocus = !!keepIsFocus;
+        
+        // We do not have the global focus anymore.
         this.hasFocus = false;
         
+        // TODO: Signal.
+        
         return true;
+    },
+    
+    moveFocus: function(dir, trap)
+    {
+        // Try to grab focus. Stop looking if we want to trap focus, and already had focus.
+        return this.focus() || (trap && this.hasFocus);
     },
     
     /*
@@ -666,19 +709,8 @@ Class.define('Widget', {
             {
                 this.canFocus = canFocus;
                 
-                // TODO: Override this for entries. Widgets with tabindex=-1 can still be focussed by mouse.
-                
-                // Check if this widget supports setting focus.
-                if (this.el.hasAttribute('tabindex'))
-                {
-                    if (canFocus)
-                        this.el.setAttribute('tabindex', 0);
-                    else
-                        this.el.setAttribute('tabindex', -1);
-                    
-                    if (this.hasFocus)
-                        this.blur();
-                }
+                if (!canFocus && this.isFocus)
+                    this.blur();
             },
             read: true,
             defaultValue: false
@@ -689,12 +721,14 @@ Class.define('Widget', {
          * @type bool
          */
         'is-focus': {
-            write: function(hasFocus)
+            write: function(isFocus)
             {
-                if (hasFocus)
+                if (isFocus)
                     this.focus();
                 else
                     this.blur();
+                
+                return false;
             },
             read: true,
             defaultValue: false
@@ -708,16 +742,23 @@ Class.define('Widget', {
         'has-focus': {
             write: function(isFocus)
             {
-                // Set us as focus widget.
                 if (isFocus)
+                {
+                    // Set us as focus widget.
                     this.focus();
+                    
+                    // Set window as active.
+                    var window = this.getWindow();
+                    if (window)
+                        window.setActive(true);
+                }
                 else
-                    this.blur();
+                {
+                    // Remove global focus, but keep local focus.
+                    this.blur(true);
+                }
                 
-                // Set window as active.
-                var window = this.getWindow();
-                if (window)
-                    window.setActive(true);
+                return false;
             },
             read: true,
             defaultValue: false

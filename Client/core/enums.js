@@ -75,6 +75,20 @@ Enum.define('CursorShape', {
 });
 
 /**
+ * Focus direction.
+ */
+Enum.define('FocusDirection', {
+    START: 1,
+    END: 2,
+    FORWARD: 3,
+    BACKWARD: 4/*,
+    UP: 5,
+    DOWN: 6,
+    LEFT: 7,
+    RIGHT: 8*/
+});
+
+/**
  * Event modifier masks.
  */
 Enum.define('EventModifierMask', {

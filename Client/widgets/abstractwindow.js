@@ -15,11 +15,9 @@ Class.define('AbstractWindow', {
     {
         AbstractWindow.base.initialize.call(this);
         
-        // Set members.
-        this.lastFocusChild = null;
-        
         // Add event handlers.
         EventManager.registerHandler(this.el, EventMask.CAPTURE_BUTTON_PRESS, this.onCaptureButtonPress, this);
+        EventManager.registerHandler(this.el, EventMask.KEY_PRESS, this.onKeyPress, this);
         
         // Always show element, its visibility is determined by whether it is in the DOM.
         this.el.show();
@@ -30,6 +28,17 @@ Class.define('AbstractWindow', {
         throw new Error('A window cannot be added to another widget.');
     },
     
+    // Will be called by Widget if focus widget has really changed.
+    setRealFocusWidget: function(widget)
+    {
+        if (this.focusWidget !== widget)
+        {
+            this.focusWidget = widget;
+            
+            this.emitPropertyChangeSignals('focus-widget');
+        }
+    },
+    
     /*
      * Event handlers.
      */
@@ -38,6 +47,48 @@ Class.define('AbstractWindow', {
     {
         // Set us active.
         this.setActive(true);
+    },
+    
+    onKeyPress: function(e)
+    {
+        // Determine focus change direction.
+        var dir;
+        switch (e.getKey())
+        {
+            case Key.TAB:
+                dir = e.hasModifier(EventModifierMask.SHIFT) ?
+                    FocusDirection.BACKWARD : FocusDirection.FORWARD;
+                break;
+                
+                /*
+            case Key.LEFT:
+                dir = FocusDirection.LEFT;
+                break;
+                
+            case Key.RIGHT:
+                dir = FocusDirection.RIGHT;
+                break;
+                
+            case Key.UP:
+                dir = FocusDirection.UP;
+                break;
+                
+            case Key.DOWN:
+                dir = FocusDirection.DOWN;
+                break;
+                */
+                
+            default:
+                return;
+        }
+        
+        // Move focus.
+        if (!this.moveFocus(dir))
+        {
+            // TODO: Ring bell?
+        }
+        
+        return true;
     },
     
     /*
@@ -107,12 +158,12 @@ Class.define('AbstractWindow', {
                 // Check if deactivating.
                 if (!active)
                 {
-                    // Save last focus child.
-                    this.lastFocusChild = this.focusChild;
+                    // Save last focus widget.
+                    //this.lastFocusWidget = this.focusWidget;
                     
-                    // Blur current focus widget.
-                    if (this.focusChild)
-                        this.focusChild.blur();
+                    // Blur current focus widget. Keep local focus.
+                    if (this.focusWidget)
+                        this.focusWidget.blur(true);
                     
                     // Set active flag first, to prevent recursion.
                     this.active = false;
@@ -127,7 +178,7 @@ Class.define('AbstractWindow', {
                 }
                 
                 // Check if we are sensitive.
-                if (!this.getIsSensitive()) // TODO: Make header buttons also not work.
+                if (!this.getIsSensitive()) // TODO: Make header buttons also not work?
                     return false;
                 
                 // Set z-index.
@@ -144,14 +195,14 @@ Class.define('AbstractWindow', {
                 this.el.removeClass('x-inactive');
                 
                 // Give focus to our focus child.
-                if (this.lastFocusChild)
+                if (this.focusWidget)
                 {
-                    this.lastFocusChild.focus();
-                    this.lastFocusChild = null;
+                    this.focusWidget.focus();
                 }
                 else
                 {
-                    // TODO: Pick a suitable widget.
+                    // Or find a good candidate.
+                    this.moveFocus(FocusDirection.START);
                 }
             },
             read: true,
@@ -169,6 +220,44 @@ Class.define('AbstractWindow', {
             },
             read: true,
             defaultValue: true
+        },
+        /**
+         * The widget that has the focus within this window. May be `null`.
+         *
+         * @type Widget
+         */
+        'focus-widget': {
+            write: function(focusWidget)
+            {
+                if (focusWidget)
+                    focusWidget.setIsFocus(true);
+                else if (this.focusWidget)
+                    this.focusWidget.setIsFocus(false);
+                
+                // setRealFocusWidget() will be called if it really changed.
+                return false;
+            },
+            read: true,
+            defaultValue: null
+        }
+    },
+    
+    actions: {
+        /**
+         * Moves focus within window. Window must be #active for this action to have any effect.
+         *
+         * @param FocusDirection dir Direction to move focus in.
+         *
+         * @return bool Whether focus change succeeded.
+         */
+        moveFocus: function(dir)
+        {
+            if (this.active && this.children[0])
+            {
+                return this.children[0].moveFocus(dir, true);
+            }
+            
+            return false;
         }
     }
 });

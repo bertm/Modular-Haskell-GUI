@@ -32,10 +32,118 @@ Class.define('Container', {
     
     setFocusChild: function(widget)
     {
-        this.focusChild = widget;
+        if (this.focusChild !== widget)
+        {
+            // Reset old focus chain.
+            if (this.focusChild && (this.focusChild instanceof Container))
+            {
+                // Make sure that we do not go all the way to the top.
+                var oldFocusChild = this.focusChild;
+                this.focusChild = null;
+                oldFocusChild.setFocusChild(null);
+            }
+            
+            this.focusChild = widget;
+            
+            this.emitPropertyChangeSignals('focus-child');
+            
+            if (this.parent)
+                this.parent.setFocusChild(widget ? this : null);
+        }
+    },
+    
+    /*
+     * Focus and blur management.
+     */
+    
+    moveFocus: function(dir, trap)
+    {
+        if (this.visible && this.sensitive)
+        {
+            // Determine whether to search fowards or backwards.
+            var backward = ((dir === FocusDirection.BACKWARD) || (dir === FocusDirection.END));
+            
+            // Find the index of the first child to try.
+            if (dir === FocusDirection.START)
+            {
+                var index = 0;
+            }
+            else if (dir === FocusDirection.END)
+            {
+                var index = this.children.length - 1;
+            }
+            else if (this.focusChild)
+            {
+                if (this.focusChild.moveFocus(dir))
+                    return true;
+                
+                for (var i = this.children.length - 1; i >= 0; --i)
+                {
+                    if (this.children[i] === this.focusChild)
+                        break;
+                }
+                
+                var index = i;
+            }
+            else
+            {
+                var index = backward ? (this.children.length - 1) : 0;
+            }
+            
+            if (backward)
+            {
+                // Walk backwards.
+                for (var i = index; i >= 0; --i)
+                {
+                    if (this.children[i].moveFocus(dir))
+                        return true;
+                }
+                
+                // Try to focus us. Do not try twice.
+                if (this.focus())
+                    return true;
+                
+                // If focus is trapped, rotate.
+                if (trap)
+                {
+                    for (var i = this.children.length - 1; i >= 0; --i)
+                    {
+                        if (this.children[i].moveFocus(FocusDirection.END))
+                            return true;
+                    }
+                }
+            }
+            else
+            {
+                // Try to focus us first.
+                if (!this.focusChild && this.focus())
+                    return true;
+                
+                // Walk forwards.
+                for (var i = index; i < this.children.length; ++i)
+                {
+                    if (this.children[i].moveFocus(dir))
+                        return true;
+                }
+                
+                // If focus is trapped, rotate.
+                if (trap)
+                {
+                    // Try to focus us. Do not try twice.
+                    if (this.focusChild && this.focus())
+                        return true;
+                    
+                    for (var i = 0; i < this.children.length; ++i)
+                    {
+                        if (this.children[i].moveFocus(FocusDirection.START))
+                            return true;
+                    }
+                }
+            }
+        }
         
-        if (this.parent)
-            this.parent.setFocusChild(widget);
+        // Stop looking we want to trap focus, and we already had focus.
+        return trap && this.focusChild;
     },
     
     /*
@@ -76,7 +184,7 @@ Class.define('Container', {
     
     properties: {
         /**
-         * Child of this container that has focus.
+         * Child of this container that contains or is the focus widget.
          *
          * @type Widget
          */
