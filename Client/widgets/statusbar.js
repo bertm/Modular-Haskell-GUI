@@ -29,8 +29,10 @@ Class.define('StatusBar', {
     {
         StatusBar.base.initialize.call(this);
         
+        // Set spacing.
+        this.setSpacing(2);
+        
         // Set members.
-        this.spacing       = 2;
         this.label         = new Label({visible: true, 'x-align': 0, 'margin-left': 2}); // TODO: Ellipsize, fetch via read-only property?
         this.contexts      = [{description: 'default'}];
         this.messages      = [];
@@ -68,11 +70,11 @@ Class.define('StatusBar', {
         var length = this.messages.length;
         if (!length)
         {
-            this.label.setLabel('');
+            this.label.setText('');
             return;
         }
         
-        this.label.setLabel(this.messages[length - 1].text);
+        this.label.setText(this.messages[length - 1].text);
     },
     
     /*

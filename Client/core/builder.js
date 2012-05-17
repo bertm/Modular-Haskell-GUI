@@ -99,14 +99,12 @@ Class.define('Builder', {
             case 'Button':
             case 'Calendar':
             case 'CheckButton':
-            case 'Entry':
             case 'Frame':
             case 'Fixed':
             case 'Image':
             case 'Label':
             case 'ProgressBar':
             case 'RadioButton':
-            case 'ScrolledWindow':
             case 'ToggleButton':
             case 'Window':
                 className = objectClass;
@@ -136,7 +134,7 @@ Class.define('Builder', {
                 // Fallthrough.
                 
             case 'HScale':
-                className = 'Scale';
+                className = 'Slider';
                 break;
                 
             case 'VSeparator':
@@ -150,6 +148,14 @@ Class.define('Builder', {
                 
             case 'Statusbar':
                 className = 'StatusBar';
+                break;
+                
+            case 'ScrolledWindow':
+                className = 'ScrollArea';
+                break;
+                
+            case 'Entry':
+                className = 'LineEdit';
                 break;
             
             default:

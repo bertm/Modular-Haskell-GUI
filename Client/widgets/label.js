@@ -26,9 +26,9 @@ Class.define('Label', {
     getMinimumSize: function()
     {
         if (this.wrap)
-            return Util.measureTextSize(this.label, Label.getMaxWidth());
+            return Util.measureTextSize(this.text, Label.getMaxWidth());
         else
-            return Util.measureTextSize(this.label);
+            return Util.measureTextSize(this.text);
         
         // TODO: There is also an ellipsize option...
     },
@@ -52,12 +52,17 @@ Class.define('Label', {
      */
     
     properties: {
-        label: {
-            write: function(label)
+        /**
+         * Text of the label.
+         *
+         * @type string
+         */
+        text: {
+            write: function(text)
             {
-                this.label = label;
+                this.text = text;
                 
-                this.el.setText(label);
+                this.el.setText(text);
                 
                 this.layout();
             },

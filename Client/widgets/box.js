@@ -128,11 +128,14 @@ Class.define('Box', {
         if (!nrVisibleChildren)
             return;
         
+        // Create a handy shortcut.
+        var horizontal = (this.orientation === Orientation.HORIZONTAL);
+        
         // Determine size.
         var fullSize, size, rest;
         if (this.homogeneous)
         {
-            if (this.orientation === Orientation.HORIZONTAL)
+            if (horizontal)
                 fullSize = allocation.width - (nrVisibleChildren - 1) * this.spacing;
             else
                 fullSize = allocation.height - (nrVisibleChildren - 1) * this.spacing;
@@ -144,7 +147,7 @@ Class.define('Box', {
         {
             var requisition = this.requestSize();
             
-            if (this.orientation === Orientation.HORIZONTAL)
+            if (horizontal)
                 fullSize = allocation.width - requisition.width;
             else
                 fullSize = allocation.height - requisition.height;
@@ -196,7 +199,7 @@ Class.define('Box', {
             {
                 var childRequisition = child.requestSize();
                 
-                if (this.orientation === Orientation.HORIZONTAL)
+                if (horizontal)
                     childSize = childRequisition.width + margin.left + margin.right;
                 else
                     childSize = childRequisition.height + margin.top + margin.bottom;
@@ -216,7 +219,7 @@ Class.define('Box', {
             // Handle fill.
             if (this.fill[i])
             {
-                if (this.orientation === Orientation.HORIZONTAL)
+                if (horizontal)
                 {
                     childAllocation.width = childSize;
                     childAllocation.x     = x;
@@ -231,7 +234,7 @@ Class.define('Box', {
             {
                 var childRequisition = child.requestSize();
                 
-                if (this.orientation === Orientation.HORIZONTAL)
+                if (horizontal)
                 {
                     childAllocation.width = childRequisition.width;
                     childAllocation.x     = x + Math.floor((childSize - childAllocation.width) / 2);
@@ -252,7 +255,7 @@ Class.define('Box', {
             });
             
             // Increase location.
-            if (this.orientation === Orientation.HORIZONTAL)
+            if (horizontal)
                 x += childSize + this.spacing;
             else
                 y += childSize + this.spacing;

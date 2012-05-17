@@ -45,6 +45,17 @@ Enum.define('Policy', {
 });
 
 /**
+ * Button box layout styles.
+ */
+Enum.define('ButtonBoxStyle', {
+    SPREAD: 'spread',
+    EDGE: 'edge',
+    START: 'start',
+    END: 'end',
+    CENTER: 'center'
+});
+
+/**
  * Cursor shapes.
  */
 Enum.define('CursorShape', {

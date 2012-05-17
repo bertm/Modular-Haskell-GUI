@@ -60,11 +60,11 @@ $insensitive-text-color: adjust-color($background-color, $saturation: -3%, $ligh
 }
 
 /*
- * Entry.
+ * Line edit.
  */
 
-/* Button, entry. */
-.x-button, .x-entry.x-shadow-in
+/* Button, line edit. */
+.x-button, .x-line-edit.x-shadow-in
 {
     border: 2px groove adjust-color($background-color, $saturation: 10%, $lightness: 9%);
     border-right-style: ridge;
@@ -74,32 +74,32 @@ $insensitive-text-color: adjust-color($background-color, $saturation: -3%, $ligh
     margin: 1px;
 }
 
-/* Entry. */
-.x-entry>input
+/* Line edit. */
+.x-line-edit>input
 {
     font-family: $font-family;
     font-size: $font-size;
 }
 
-.x-entry
+.x-line-edit
 {
     padding: 0px 3px 0px 3px;
     background: lighten($shadow-color, 50%);
 }
 
-.x-entry.x-focus
+.x-line-edit.x-focus
 {
     border-color: adjust-color($foreground-color, $saturation: 8%, $lightness: 16%);
 }
 
-.x-insensitive .x-entry, .x-entry.x-insensitive
+.x-insensitive .x-line-edit, .x-line-edit.x-insensitive
 {
     background: lighten($background-color, 16%);
     border: 1px solid adjust-color($background-color, $saturation: -3%, $lightness: -5%);
     padding: 0px 4px 1px 3px;
 }
 
-.x-entry.x-insensitive>input, .x-insensitive .x-entry>input
+.x-line-edit.x-insensitive>input, .x-insensitive .x-line-edit>input
 {
     background: lighten($background-color, 16%);
     color: adjust-color($background-color, $saturation: -3%, $lightness: -16%);
@@ -495,81 +495,84 @@ $progress-bar-border-color: adjust-color($foreground-color, $saturation: 9%, $li
 }
 
 /*
- * Scale.
+ * Slider.
  */
 
-.x-scale
+.x-slider
 {
     padding: 0px 1px;
 }
 
-.x-scale.x-orient-vertical
+.x-slider.x-orient-vertical
 {
     padding: 1px 0px;
 }
 
-.x-scale>.x-inner
+.x-slider>.x-inner
 {
     height: 19px;
     border: 1px dotted transparent;
 }
 
-.x-scale.x-orient-vertical>.x-inner
+.x-slider.x-orient-vertical>.x-inner
 {
     height: auto;
     width: 19px;
 }
 
-.x-scale>.x-inner>.x-track,
-.x-scale>.x-inner>.x-filled
+/* Track, filled. */
+.x-slider>.x-inner>.x-track,
+.x-slider>.x-inner>.x-filled
 {
     top: 7px;
     height: 3px;
     border: solid 1px adjust-color($background-color, $saturation: -3%, $lightness: -16%);
     margin: 0px 2px;
-    background: url(../images/scale/track.png);
+    background: url(../images/slider/track.png);
 }
 
-.x-scale.x-orient-vertical>.x-inner>.x-track,
-.x-scale.x-orient-vertical>.x-inner>.x-filled
+.x-slider.x-orient-vertical>.x-inner>.x-track,
+.x-slider.x-orient-vertical>.x-inner>.x-filled
 {
     top: auto;
     left: 7px;
     height: auto;
     width: 3px;
     margin: 2px 0px;
-    background: url(../images/scale/track-vert.png);
+    background: url(../images/slider/track-vert.png);
 }
 
-.x-scale>.x-inner>.x-filled
+.x-slider>.x-inner>.x-filled
 {
     border: solid 1px adjust-color($foreground-color, $saturation: -32%, $lightness: -23%);
-    background: url(../images/scale/filled.png);
+    background: url(../images/slider/filled.png);
 }
 
-.x-scale.x-orient-vertical>.x-inner>.x-filled
+.x-slider.x-orient-vertical>.x-inner>.x-filled
 {
-    background: url(../images/scale/filled-vert.png);
+    background: url(../images/slider/filled-vert.png);
 }
 
-.x-scale>.x-inner>.x-slider
+/* Thumb. */
+.x-slider>.x-inner>.x-thumb
 {
     top: 3px;
     width: 29px;
     height: 13px;
-    background: url(../images/scale/slider.png);
+    background: url(../images/slider/thumb.png);
 }
 
-.x-scale.x-orient-vertical>.x-inner>.x-slider
+.x-slider.x-orient-vertical>.x-inner>.x-thumb
 {
     top: auto;
     left: 3px;
     width: 13px;
     height: 29px;
-    background: url(../images/scale/slider-vert.png);
+    background: url(../images/slider/thumb-vert.png);
 }
 
-.x-scale.x-focus>.x-inner
+/* Focus. */
+.x-slider.x-focus>.x-inner
 {
     border: 1px dotted $focus-border-color;
 }
@@ -673,24 +676,24 @@ $scroll-bar-border-color: adjust-color($background-color, $saturation: -5%, $lig
     background: url(../images/scrollbar/track-vert.png);
 }
 
-/* Slider. */
-.x-scroll-bar>.x-inner>.x-slider
+/* Thumb. */
+.x-scroll-bar>.x-inner>.x-thumb
 {
     border: 1px solid $scroll-bar-border-color;
     width: 13px;
     height: 13px;
-    background: url(../images/scrollbar/slider.png);
+    background: url(../images/scrollbar/thumb.png);
     visibility: hidden;
 }
 
-.x-scroll-bar>.x-inner>.x-slider.x-active
+.x-scroll-bar>.x-inner>.x-thumb.x-active
 {
     visibility: visible;
 }
 
-.x-scroll-bar.x-orient-vertical>.x-inner>.x-slider
+.x-scroll-bar.x-orient-vertical>.x-inner>.x-thumb
 {
-    background: url(../images/scrollbar/slider-vert.png);
+    background: url(../images/scrollbar/thumb-vert.png);
 }
 
 /*
@@ -829,15 +832,15 @@ $scroll-bar-border-color: adjust-color($background-color, $saturation: -5%, $lig
 }
 
 /*
- * Scrolled window.
+ * Scroll area.
  */
 
-.x-scrolled-window
+.x-scroll-area
 {
     background: $normal-background-color;
 }
 
-.x-scrolled-window>.x-body
+.x-scroll-area>.x-body
 {
     background: $alternate-background-color;
 }

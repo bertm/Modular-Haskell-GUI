@@ -1,11 +1,10 @@
 // Use strict mode if available.
 "use strict";
 
-/*
- * Scrolled window class.
+/**
+ * The scroll area class provides a scrolling view onto another widget.
  */
-
-Class.define('ScrolledWindow', {
+Class.define('ScrollArea', {
     extend: 'Bin',
     
     /*
@@ -14,7 +13,7 @@ Class.define('ScrolledWindow', {
     
     initialize: function()
     {
-        ScrolledWindow.base.initialize.call(this);
+        ScrollArea.base.initialize.call(this);
         
         // Create adjustments.
         this.hAdjustment = new Adjustment({lower: 0, 'step-increment': 10});
@@ -43,7 +42,7 @@ Class.define('ScrolledWindow', {
     getHtml: function()
     {
         var html =
-            '<div class="x-widget x-scrolled-window">' +
+            '<div class="x-widget x-scroll-area">' +
                 '<div class="x-body x-shadow-in" />' +
             '</div>';
         
@@ -86,20 +85,20 @@ Class.define('ScrolledWindow', {
     requestSize: function()
     {
         // Fetch scrollbars their size.
-        if (!ScrolledWindow.hScrollBarSize)
+        if (!ScrollArea.hScrollBarSize)
         {
-            ScrolledWindow.hScrollBarSize = this.hScrollBar.requestSize();
-            ScrolledWindow.vScrollBarSize = this.vScrollBar.requestSize();
+            ScrollArea.hScrollBarSize = this.hScrollBar.requestSize();
+            ScrollArea.vScrollBarSize = this.vScrollBar.requestSize();
         }
         
         // Fetch size.
-        return ScrolledWindow.base.requestSize.call(this);
+        return ScrollArea.base.requestSize.call(this);
     },
     
     getMinimumSize: function()
     {
-        var hScrollBarSize = ScrolledWindow.hScrollBarSize;
-        var vScrollBarSize = ScrolledWindow.vScrollBarSize;
+        var hScrollBarSize = ScrollArea.hScrollBarSize;
+        var vScrollBarSize = ScrollArea.vScrollBarSize;
         
         return {
             width: vScrollBarSize.width + hScrollBarSize.width,
@@ -156,7 +155,7 @@ Class.define('ScrolledWindow', {
             if (vScrollBarVisible ||
                 ((childRequisition.height > allocation.height) && (this.vPolicy !== Policy.NEVER)))
             {
-                allocation.width -= ScrolledWindow.vScrollBarSize.width;
+                allocation.width -= ScrollArea.vScrollBarSize.width;
                 
                 vScrollBarVisible = true;
             }
@@ -164,7 +163,7 @@ Class.define('ScrolledWindow', {
             if (hScrollBarVisible ||
                 ((childRequisition.width > allocation.width) && (this.hPolicy !== Policy.NEVER)))
             {
-                allocation.height -= ScrolledWindow.hScrollBarSize.height;
+                allocation.height -= ScrollArea.hScrollBarSize.height;
                 
                 hScrollBarVisible = true;
                 
@@ -172,7 +171,7 @@ Class.define('ScrolledWindow', {
                 if (!vScrollBarVisible &&
                     (childRequisition.height > allocation.height) && (this.vPolicy !== Policy.NEVER))
                 {
-                    allocation.width -= ScrolledWindow.vScrollBarSize.width;
+                    allocation.width -= ScrollArea.vScrollBarSize.width;
                     
                     vScrollBarVisible = true;
                 }
@@ -196,10 +195,10 @@ Class.define('ScrolledWindow', {
         {
             this.hScrollBar.show();
             this.hScrollBar.allocateSize({
-                width: this.allocation.width - (vScrollBarVisible ? ScrolledWindow.vScrollBarSize.width : 0),
-                height: ScrolledWindow.hScrollBarSize.height,
+                width: this.allocation.width - (vScrollBarVisible ? ScrollArea.vScrollBarSize.width : 0),
+                height: ScrollArea.hScrollBarSize.height,
                 x: 0,
-                y: this.allocation.height - ScrolledWindow.hScrollBarSize.height
+                y: this.allocation.height - ScrollArea.hScrollBarSize.height
             });
         }
         else
@@ -212,9 +211,9 @@ Class.define('ScrolledWindow', {
         {
             this.vScrollBar.show();
             this.vScrollBar.allocateSize({
-                width: ScrolledWindow.vScrollBarSize.width,
-                height: this.allocation.height - (hScrollBarVisible ? ScrolledWindow.hScrollBarSize.height : 0),
-                x: this.allocation.width - ScrolledWindow.vScrollBarSize.width,
+                width: ScrollArea.vScrollBarSize.width,
+                height: this.allocation.height - (hScrollBarVisible ? ScrollArea.hScrollBarSize.height : 0),
+                x: this.allocation.width - ScrollArea.vScrollBarSize.width,
                 y: 0
             });
         }

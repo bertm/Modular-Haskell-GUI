@@ -258,7 +258,7 @@ Class.define('Container', {
             throw new Error('Could not find child.');
         },
         
-        // TODO: Prepend?, insert?
+        // TODO: insert, indexOf.
         
         removeAll: function()
         {
@@ -293,7 +293,12 @@ Class.define('Container', {
             return widget;
         },
         
-        // NOTE: An action or a setter/getter?
+        count: function()
+        {
+            return this.children.length;
+        },
+        
+        // NOTE: An action or a setter/getter? Remove?
         getChildren: function()
         {
             return this.children;

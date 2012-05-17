@@ -4,8 +4,8 @@
 /**
  * A slider widget for selecting a value from a range.
  */
-Class.define('Scale', {
-    extend: 'Range',
+Class.define('Slider', {
+    extend: 'AbstractSlider',
     
     /*
      * Private methods; initialization.
@@ -13,7 +13,7 @@ Class.define('Scale', {
     
     initialize: function()
     {
-        Scale.base.initialize.call(this);
+        Slider.base.initialize.call(this);
         
         // Set members.
         this.label = '';
@@ -28,11 +28,11 @@ Class.define('Scale', {
     getHtml: function()
     {
         var html =
-            '<div tabindex="0" class="x-widget x-scale x-orient-horizontal">' +
+            '<div tabindex="0" class="x-widget x-slider x-orient-horizontal">' +
                 '<div class="x-inner">' +
                     '<div class="x-track" />' +
                     '<div class="x-filled" />' +
-                    '<div class="x-slider" />' +
+                    '<div class="x-thumb" />' +
                 '</div>' +
                 '<div class="x-label" selectable="off"></div>' +
             '</div>';
@@ -56,23 +56,12 @@ Class.define('Scale', {
             return {width: innerSize.width + labelSize.width, height: 150};
         
         // TODO: Constants.
-        
-        /*
-        
-        TODO: Incorporate text in calculation.
-        
-        var textWidth = this.showText ? Util.measureTextSize(this.text).width : 0;
-        
-        if ((this.direction === Direction.EAST) || (this.direction === Direction.WEST))
-            return {width: Math.max(textWidth, 150), height: 20};
-        else
-            return {width: Math.max(textWidth, 20), height: 150};
-        */
+        // TODO: Incorporate text in calculation.
     },
     
-    setSliderOffset: function()
+    setThumbOffset: function()
     {
-        Scale.base.setSliderOffset.call(this);
+        Slider.base.setThumbOffset.call(this);
         
         this.setLabelOffset();
     },
@@ -80,7 +69,7 @@ Class.define('Scale', {
     setLabelOffset: function()
     {
         // Fetch dimensions.
-        var sliderSize = this.sliderEl.getSize();
+        var thumbSize  = this.thumbEl.getSize();
         var innerSize  = this.innerEl.getSize();
         var innerPos   = this.innerEl.getPosition();
         var innerFrame = this.innerEl.getFrame();
@@ -91,7 +80,7 @@ Class.define('Scale', {
         {
             var labelPosition = {
                 x: Math.round(Util.clamp(
-                    innerFrame.left + this.sliderOffset + Math.floor((sliderSize.width - labelSize.width) * 0.5),
+                    innerFrame.left + this.thumbOffset + Math.floor((thumbSize.width - labelSize.width) * 0.5),
                     0,
                     innerSize.width - labelSize.width
                 )),
@@ -103,7 +92,7 @@ Class.define('Scale', {
             var labelPosition = {
                 x: innerPos.x - labelSize.width,
                 y: Math.round(Util.clamp(
-                    innerFrame.top + this.sliderOffset + Math.floor((sliderSize.height - labelSize.height) * 0.5),
+                    innerFrame.top + this.thumbOffset + Math.floor((thumbSize.height - labelSize.height) * 0.5),
                     0,
                     innerSize.height - labelSize.height
                 ))
@@ -141,7 +130,7 @@ Class.define('Scale', {
         }
         
         // Allocate size for inner element.
-        Scale.base.allocateSize.call(this, allocation);
+        Slider.base.allocateSize.call(this, allocation);
     },
     
     /*
@@ -247,7 +236,7 @@ Class.define('Scale', {
         // Size label.
         this.labelEl.setSize(Util.measureTextSize(label));
         
-        Scale.base.onAdjustmentChange.call(this, adj);
+        Slider.base.onAdjustmentChange.call(this, adj);
     },
     
     /*

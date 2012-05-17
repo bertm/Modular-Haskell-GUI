@@ -124,15 +124,15 @@ Class.define('Tooltip', {
             {
                 var child = this.children[0];
                 if (!child)
-                    this.add(new Label({label: label, visible: true}));
+                    this.add(new Label({text: label, visible: true}));
                 else if (child instanceof Label)
-                    child.setLabel(label || '');
+                    child.setText(label || '');
             },
             read: function()
             {
                 var child = this.children[0];
                 if (child && (child instanceof Label))
-                    return child.getLabel();
+                    return child.getText();
                 else
                     return null;
             },

@@ -1,11 +1,10 @@
 // Use strict mode if available.
 "use strict";
 
-/*
- * Entry class.
+/**
+ * The line edit widget is a one-line text editor.
  */
-
-Class.define('Entry', {
+Class.define('LineEdit', {
     extend: 'Widget',
     
     /*
@@ -16,7 +15,7 @@ Class.define('Entry', {
     
     initialize: function()
     {
-        Entry.base.initialize.call(this);
+        LineEdit.base.initialize.call(this);
         
         // Fetch input element.
         this.inputEl = this.el.find('input');
@@ -25,17 +24,14 @@ Class.define('Entry', {
         this.inputEl.connect('change', this.onInputEvent, this);
         this.inputEl.connect('paste', this.onInputEvent, this);
         
-        EventManager.registerHandler(this.inputEl, EventMask.KEY_PRESS, this.onInputEvent, this);
         EventManager.registerHandler(this.inputEl, EventMask.BUTTON_PRESS, this.onButtonPress, this);
-        EventManager.registerHandler(this.inputEl, EventMask.BUTTON_RELEASE, this.onInputEvent, this);
-        
-        // TODO: Button release!? More events?
+        EventManager.registerHandler(this.inputEl, EventMask.KEY_RELEASE | EventMask.BUTTON_RELEASE, this.onInputEvent, this);
     },
     
     getHtml: function()
     {
         var html =
-            '<div class="x-widget x-entry x-shadow-in">' +
+            '<div class="x-widget x-line-edit x-shadow-in">' +
                 '<input autocomplete="off" value="" />' +
             '</div>';
         
@@ -82,7 +78,8 @@ Class.define('Entry', {
         text: {
             write: function(text)
             {
-                this.inputEl.setProperty('value', text);
+                if (this.inputEl.getProperty('value') !== text)
+                    this.inputEl.setProperty('value', text);
                 
                 this.text = text;
             },

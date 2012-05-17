@@ -27,7 +27,7 @@ body
 }
 
 /* Make text unselectable. */
-body, .x-label, .x-entry.x-disabled input
+body, .x-label, .x-line-edit.x-disabled input
 {
     @include user-select(none);
 }
@@ -265,17 +265,17 @@ body, .x-label, .x-entry.x-disabled input
 }
 
 /*
- * Entry.
+ * Line edit.
  */
  
-.x-entry>input
+.x-line-edit>input
 {
     display: block;
     height: 100%;
     width: 100%;
 }
 
-.x-entry.x-no-frame
+.x-line-edit.x-no-frame
 {
     border: none !important;
     @include border-radius(0px !important);
@@ -334,7 +334,7 @@ body, .x-label, .x-entry.x-disabled input
 
 .x-window
 {
-    position: absolute;
+    overflow: visible; /* Solves scrolling bug. */
     top: 0px;
     left: 0px;
 }
@@ -504,35 +504,35 @@ body, .x-label, .x-entry.x-disabled input
 }
 
 /*
- * Scale, scroll bar.
+ * Slider, scroll bar.
  */
 
-.x-scale>.x-inner, .x-scroll-bar>.x-inner
+.x-slider>.x-inner, .x-scroll-bar>.x-inner
 {
     position: relative;
 }
 
-.x-scale>.x-inner>.x-track, .x-scale>.x-inner>.x-filled,
-.x-scale>.x-inner>.x-slider, .x-scale>.x-label,
+.x-slider>.x-inner>.x-track, .x-slider>.x-inner>.x-filled,
+.x-slider>.x-inner>.x-thumb, .x-slider>.x-label,
 .x-scroll-bar>.x-inner>.x-track, .x-scroll-bar>.x-inner>.x-filled,
-.x-scroll-bar>.x-inner>.x-slider
+.x-scroll-bar>.x-inner>.x-thumb
 {
     position: absolute;
 }
 
-.x-scale.x-orient-horizontal.x-inverted>.x-inner>.x-filled,
+.x-slider.x-orient-horizontal.x-inverted>.x-inner>.x-filled,
 .x-scroll-bar.x-orient-horizontal.x-inverted>.x-inner>.x-filled
 {
     right: 0px;
 }
 
-.x-scale.x-orient-vertical>.x-inner>.x-filled,
+.x-slider.x-orient-vertical>.x-inner>.x-filled,
 .x-scroll-bar.x-orient-vertical>.x-inner>.x-filled
 {
     top: 0px;
 }
 
-.x-scale.x-orient-vertical.x-inverted>.x-inner>.x-filled,
+.x-slider.x-orient-vertical.x-inverted>.x-inner>.x-filled,
 .x-scroll-bar.x-orient-vertical.x-inverted>.x-inner>.x-filled
 {
     bottom: 0px;
@@ -549,10 +549,10 @@ body, .x-label, .x-entry.x-disabled input
 }
 
 /*
- * Scrolled window.
+ * Scroll area.
  */
 
-.x-scrolled-window>.x-body
+.x-scroll-area>.x-body
 {
     overflow: hidden;
 }

@@ -5,7 +5,7 @@
  * A scroll bar.
  */
 Class.define('ScrollBar', {
-    extend: 'Range',
+    extend: 'AbstractSlider',
     
     /*
      * Private methods; initialization.
@@ -34,7 +34,7 @@ Class.define('ScrollBar', {
                 '<div class="x-inner">' +
                     '<div class="x-track" />' +
                     '<div class="x-filled" />' +
-                    '<div class="x-slider" />' +
+                    '<div class="x-thumb" />' +
                 '</div>' +
                 '<div class="x-stepper-forward" />' +
             '</div>';
@@ -58,15 +58,15 @@ Class.define('ScrollBar', {
     },
     
     // Overrides.
-    setSliderOffset: function()
+    setThumbOffset: function()
     {
-        // Set slider its size.
-        this.setSliderSize();
+        // Set thumb its size.
+        this.setThumbSize();
         
-        ScrollBar.base.setSliderOffset.call(this);
+        ScrollBar.base.setThumbOffset.call(this);
     },
     
-    setSliderSize: function()
+    setThumbSize: function()
     {
         // Subtract margin from track size: this is our maximum width.
         var trackMargin = this.trackEl.getMargin();
@@ -80,27 +80,27 @@ Class.define('ScrollBar', {
         var pageSize = this.adjustment.getPageSize();
         var range = this.adjustment.getUpper() - this.adjustment.getLower();
         
-        // Set slider size.
+        // Set thumb size.
         if (range === 0)
             var size = trackSize;
         else
             var size = Math.min(trackSize, Math.ceil(trackSize / ((pageSize === 0) ? range : range / pageSize)));
         
-        // Hide or show slider, depending on its size.
+        // Hide or show thumb, depending on its size.
         if (trackSize < 10) // TODO: Constant.
-            this.sliderEl.hide();
+            this.thumbEl.hide();
         else
-            this.sliderEl.show();
+            this.thumbEl.show();
         
         // Set a minimum size.
         if (size < 10) // TODO: Constant.
             size = 10;
         
-        // Set it on the slider.
+        // Set it on the thumb.
         if (this.orientation === Orientation.HORIZONTAL)
-            this.sliderEl.setWidth(size);
+            this.thumbEl.setWidth(size);
         else
-            this.sliderEl.setHeight(size);
+            this.thumbEl.setHeight(size);
     },
     
     allocateSize: function(allocation)
@@ -199,8 +199,8 @@ Class.define('ScrollBar', {
             this.forwardStepperEl.removeClass('x-active');
         
         (backwardStepperActive || forwardStepperActive) ?
-            this.sliderEl.addClass('x-active') :
-            this.sliderEl.removeClass('x-active');
+            this.thumbEl.addClass('x-active') :
+            this.thumbEl.removeClass('x-active');
         
         ScrollBar.base.onAdjustmentChange.call(this, adj);
     }

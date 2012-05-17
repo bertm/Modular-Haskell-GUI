@@ -18,9 +18,9 @@ Class.define('Overlay', {
         
         this.el = new Element(html);
         
+        this.el.show();
         this.el.setOpacity(0.5);
         this.el.setStyle('z-index', Element.getMaxZIndex());
-        
     },
     
     destroy: function()
@@ -31,7 +31,6 @@ Class.define('Overlay', {
     show: function()
     {
         Element.getBody().append(this.el);
-        this.el.show();
     },
     
     hide: function()

@@ -31,12 +31,12 @@ Singleton.define('EventManager', {
             // TODO: Only for selections within input/selectable labels, but not for focus?
 
             
-            // Prevent default focus on mousedown.
-            //var target = e.target ? e.target : e.srcElement;
-            //if (target.nodeName !== 'INPUT')
-            //{
+            // Prevent default focus / selection on mousedown.
+            var target = e.target ? e.target : e.srcElement;
+            if (target.nodeName !== 'INPUT')
+            {
                 e.preventDefault ? e.preventDefault() : (e.returnValue = false);
-            //}
+            }
         }, this);
         
         // Listen for focus events on any node.

@@ -4,7 +4,7 @@
 /**
  * Base class for widgets which visualize an #Adjustment.
  */
-Class.define('Range', {
+Class.define('AbstractSlider', {
     extend: 'Widget',
     
     /*
@@ -13,30 +13,30 @@ Class.define('Range', {
     
     initialize: function()
     {
-        Range.base.initialize.call(this);
+        AbstractSlider.base.initialize.call(this);
         
         // Set members.
         this.adjustment = new Adjustment();
         this.fraction   = 0;
         
-        this.sliderOffset    = 0;
-        this.minSliderOffset = 0;
-        this.maxSliderOffset = 0;
-        this.filledSize      = 0;
-        this.trackSize       = 0;
+        this.thumbOffset    = 0;
+        this.minThumbOffset = 0;
+        this.maxThumbOffset = 0;
+        this.filledSize     = 0;
+        this.trackSize      = 0;
         
         // Get elements.
         this.innerEl  = this.el.find('.x-inner');
         this.trackEl  = this.innerEl.find('.x-track');
-        this.sliderEl = this.innerEl.find('.x-slider');
+        this.thumbEl  = this.innerEl.find('.x-thumb');
         this.filledEl = this.innerEl.find('.x-filled');
         
         // Add event handlers.
         EventManager.registerHandler(this.el, EventMask.SCROLL, this.onScroll, this);
         EventManager.registerHandler(this.el, EventMask.BUTTON_PRESS, this.onButtonPress, this);
-        EventManager.registerHandler(this.sliderEl,
+        EventManager.registerHandler(this.thumbEl,
             EventMask.BUTTON_PRESS | EventMask.BUTTON_RELEASE | EventMask.MOTION,
-            this.onSliderEvent, this);
+            this.onThumbEvent, this);
         
         // Check for changes on adjustment.
         this.adjustment.connect('change', this.onAdjustmentChange, this);
@@ -44,7 +44,7 @@ Class.define('Range', {
     
     destroy: function()
     {
-        Range.base.destroy.call(this);
+        AbstractSlider.base.destroy.call(this);
         
         // TODO: Inverse of the above.
         
@@ -57,49 +57,49 @@ Class.define('Range', {
      * Sizing.
      */
     
-    setSliderOffset: function()
+    setThumbOffset: function()
     {
-        // Calculate minimum and maximum slider offset.
+        // Calculate minimum and maximum thumb offset.
         var trackMargin = this.trackEl.getMargin();
-        var sliderSize  = this.sliderEl.getSize();
+        var thumbSize   = this.thumbEl.getSize();
         
         if (this.orientation === Orientation.HORIZONTAL)
         {
-            this.minSliderOffset = trackMargin.left;
-            this.maxSliderOffset = this.trackSize - trackMargin.right - sliderSize.width;
+            this.minThumbOffset = trackMargin.left;
+            this.maxThumbOffset = this.trackSize - trackMargin.right - thumbSize.width;
         }
         else
         {
-            this.minSliderOffset = trackMargin.top;
-            this.maxSliderOffset = this.trackSize - trackMargin.bottom - sliderSize.height;
+            this.minThumbOffset = trackMargin.top;
+            this.maxThumbOffset = this.trackSize - trackMargin.bottom - thumbSize.height;
         }
         
         // Fetch dimensions.
-        var sliderSize = this.sliderEl.getSize();
+        var thumbSize = this.thumbEl.getSize();
         
         // Calculate offset.
-        var inverted       = this.inverted;
-        var fraction       = inverted ? (1 - this.fraction) : this.fraction;
-        var sliderHalfSize = Math.floor(((this.orientation === Orientation.HORIZONTAL)
-                           ? sliderSize.width
-                           : sliderSize.height) * 0.5);
+        var inverted      = this.inverted;
+        var fraction      = inverted ? (1 - this.fraction) : this.fraction;
+        var thumbHalfSize = Math.floor(((this.orientation === Orientation.HORIZONTAL)
+                          ? thumbSize.width
+                          : thumbSize.height) * 0.5);
         
         // Set some members for use by subclasses.
-        this.sliderOffset  = fraction * (this.maxSliderOffset - this.minSliderOffset) + this.minSliderOffset;
+        this.thumbOffset  = fraction * (this.maxThumbOffset - this.minThumbOffset) + this.minThumbOffset;
         this.filledSize    = (inverted
-                             ? (this.maxSliderOffset + this.minSliderOffset - this.sliderOffset)
-                             : this.sliderOffset)
-                           + sliderHalfSize;
+                             ? (this.maxThumbOffset + this.minThumbOffset - this.thumbOffset)
+                             : this.thumbOffset)
+                           + thumbHalfSize;
         
-        // Set slider offset and filled size.
+        // Set thumb offset and filled size.
         if (this.orientation === Orientation.HORIZONTAL)
         {
-            this.sliderEl.setLeft(Math.round(this.sliderOffset));
+            this.thumbEl.setLeft(Math.round(this.thumbOffset));
             this.filledEl.setWidth(Math.round(this.filledSize));
         }
         else
         {
-            this.sliderEl.setTop(Math.round(this.sliderOffset));
+            this.thumbEl.setTop(Math.round(this.thumbOffset));
             this.filledEl.setHeight(Math.round(this.filledSize));
         }
     },
@@ -126,8 +126,8 @@ Class.define('Range', {
             this.trackEl.setHeight(this.trackSize);
         }
         
-        // Set slider offset.
-        this.setSliderOffset();
+        // Set thumb offset.
+        this.setThumbOffset();
     },
     
     /*
@@ -153,11 +153,11 @@ Class.define('Range', {
         this.focus();
     },
     
-    onSliderEvent: function(e)
+    onThumbEvent: function(e)
     {
         if (e.getType() === EventType.BUTTON_RELEASE)
         {
-            this.sliderEl.removeClass('x-pressed');
+            this.thumbEl.removeClass('x-pressed');
             
             return;
         }
@@ -167,22 +167,22 @@ Class.define('Range', {
         
         if (e.getType() === EventType.BUTTON_PRESS)
         {
-            this.sliderDragOffset = {
-                x: e.getX() - this.sliderEl.getOffset().x,
-                y: e.getY() - this.sliderEl.getOffset().y
+            this.thumbDragOffset = {
+                x: e.getX() - this.thumbEl.getOffset().x,
+                y: e.getY() - this.thumbEl.getOffset().y
             };
             
-            this.sliderEl.addClass('x-pressed');
+            this.thumbEl.addClass('x-pressed');
             
             return;
         }
         
         if (this.orientation === Orientation.HORIZONTAL)
-            var offset = e.getX() - this.sliderEl.getOffset().x + this.sliderEl.getLeft() - this.sliderDragOffset.x;
+            var offset = e.getX() - this.thumbEl.getOffset().x + this.thumbEl.getLeft() - this.thumbDragOffset.x;
         else
-            var offset = e.getY() - this.sliderEl.getOffset().y + this.sliderEl.getTop() - this.sliderDragOffset.y;
+            var offset = e.getY() - this.thumbEl.getOffset().y + this.thumbEl.getTop() - this.thumbDragOffset.y;
         
-        var fraction = (offset - this.minSliderOffset) / this.maxSliderOffset;
+        var fraction = (offset - this.minThumbOffset) / this.maxThumbOffset;
         
         if (this.inverted)
             fraction = 1 - fraction;
@@ -195,9 +195,9 @@ Class.define('Range', {
         // Set new fraction.
         this.fraction = adj.getFraction();
         
-        // Set slider offset.
+        // Set thumb offset.
         if (this.getIsVisible())
-            this.setSliderOffset();
+            this.setThumbOffset();
     },
     
     /*
@@ -206,7 +206,7 @@ Class.define('Range', {
     
     properties: {
         /**
-         * The #Adjustment that contains the current value and bounds of this range.
+         * The #Adjustment that contains the current value and bounds of this slider.
          *
          * @type Adjustment
          */
@@ -229,7 +229,7 @@ Class.define('Range', {
             read: true
         },
         /**
-         * Whether the direction of the slider to increase range value is inverted.
+         * Whether the direction of the slider to increase value is inverted.
          *
          * @type bool
          */
@@ -246,7 +246,7 @@ Class.define('Range', {
             defaultValue: false
         },
         /**
-         * The orientation of the range.
+         * The orientation of the slider.
          *
          * @type Orientation
          */

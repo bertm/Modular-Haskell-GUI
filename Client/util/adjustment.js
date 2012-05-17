@@ -5,13 +5,12 @@
  * A representation of an adjustable bounded value.
  *
  * The adjustment object represents a value which has an associated lower and upper bound, together with step
- * and page increments, and a page size. It is used within several widgets, including #SpinButton, #ScrollBar
- * and #Scale.
+ * and page increments, and a page size. It is used within several widgets, including #ScrollBar and #Slider.
  *
  * An example:
  *
  *     var adj = new Adjustment({#lower: 0, #upper: 100, #value: 75});
- *     var scale = new #Scale({adjustment: adj});
+ *     var slider = new #Slider({adjustment: adj});
  */
 Class.define('Adjustment', {
     /*

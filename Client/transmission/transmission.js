@@ -41,26 +41,30 @@ Singleton.define('Transmission', {
             'AspectFrame': true,
             'Box': true,
             'Button': true,
+            'ButtonBox': true,
             'CheckButton': true,
-            'Entry': true,
+            'Dialog': true,
             'Fixed': true,
             'Frame': true,
             'Image': true,
             'Label': true,
+            'LineEdit': true,
             'MainWindow': true,
             'Menu': true,
             'MenuBar': true,
             'MenuItem': true,
+            'Paned': true,
             'ProgressBar': true,
             'RadioButton': true,
-            'Scale': true,
+            'ScrollArea': true,
             'ScrollBar': true,
-            'ScrolledWindow': true,
             'Separator': true,
             'SeparatorMenuItem': true,
+            'Slider': true,
             'Spinner': true,
             'StatusBar': true,
             'ToggleButton': true,
+            'Tooltip': true,
             'Window': true,
             
             'Adjustment': true,
@@ -68,11 +72,12 @@ Singleton.define('Transmission', {
         };
         
         var host = window.location.hostname || 'localhost';
+        var port = 9000;
         
-        console.log('Connecting to ' + host + ':' + 9000 + '.');
+        console.log('Connecting to ' + host + ':' + port + '.');
         
         // Create new connection.
-        this.conn = new Connection(host, 9000);
+        this.conn = new Connection(host, port);
 
         this.conn.connect('open', this.onConnectionOpen, this);
         this.conn.connect('close', this.onConnectionClose, this);
@@ -416,7 +421,7 @@ Singleton.define('Transmission', {
             modal: true,
             title: "An error occurred"
         });
-        var label = new Label({label: this.closeReason});
+        var label = new Label({text: this.closeReason});
         
         window.add(label);
         window.showAll();
@@ -460,4 +465,4 @@ Singleton.define('Transmission', {
     }
 });
 
-Transmission.initialize();
+//Transmission.initialize();

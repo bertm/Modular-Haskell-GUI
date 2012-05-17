@@ -131,9 +131,15 @@ Class.define('Button', {
             {
                 var child = this.children[0];
                 if (!child)
-                    this.add(new Label({label: label, 'x-align': this.xAlign, 'y-align': this.yAlign, visible: true}));
+                    this.add(new Label({
+                        text: label,
+                        justify: Justify.CENTER,
+                        'x-align': this.xAlign,
+                        'y-align': this.yAlign,
+                        visible: true
+                    }));
                 else if (child instanceof Label)
-                    child.setLabel(label || '');
+                    child.setText(label || '');
                 
                 return false;
             },
@@ -141,7 +147,7 @@ Class.define('Button', {
             {
                 var child = this.children[0];
                 if (child && (child instanceof Label))
-                    return child.getLabel();
+                    return child.getText();
                 else
                     return null;
             }

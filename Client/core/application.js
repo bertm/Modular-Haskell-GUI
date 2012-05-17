@@ -19,7 +19,7 @@ Singleton.define('Application', {
         // Add body classes.
         //Element.getBody().addClass('x-ie');
         
-        //this.showSomeStuff();
+        this.showSomeStuff();
     },
     
     /*
@@ -227,7 +227,7 @@ Singleton.define('Application', {
         });
         
         var firstLabel = new Label({
-            label: 'This is a good enough length for any line to have. ' +
+            text:  'This is a good enough length for any line to have. ' +
                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed blandito dictum massa at varius. ' +
                    'Aenean massa leo, dapibusa et dictum ac, elementum nec elit. Donec turpis massa, cursus ut vol' +
                    'utpat eget, suscipit sit amet massa. Nullam eleifend nulla ut quam fringilla auctor. Suspendis' +
@@ -244,7 +244,7 @@ Singleton.define('Application', {
         });
         
         var secondLabel = new Label({
-            label: 'This is a good enough length for any line to have. ' +
+            text:  'This is a good enough length for any line to have. ' +
                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed blandito dictum massa at varius. ' +
                    'Aenean massa leo, dapibusa et dictum ac, elementum nec elit. Donec turpis massa, cursus ut vol' +
                    'utpat eget, suscipit sit amet massa. Nullam eleifend nulla ut quam fringilla auctor. Suspendis' +
@@ -268,18 +268,18 @@ Singleton.define('Application', {
         
         var spinner = new Spinner({active: true});
         
-        var scale = new Scale({adjustment: new Adjustment({lower: 100, upper: 200, value: 150, 'page-size': 20}), digits: 10, 'can-focus': true});
-        var otherScale = new Scale({adjustment: scale.getAdjustment(), inverted: true, 'can-focus': true});
-        var anotherScale = new Scale({adjustment: scale.getAdjustment(), orientation: Orientation.VERTICAL, 'can-focus': true});
-        var yetAnotherScale = new Scale({adjustment: scale.getAdjustment(), inverted: true, orientation: Orientation.VERTICAL, 'can-focus': true});
+        var slider = new Slider({adjustment: new Adjustment({lower: 100, upper: 200, value: 150, 'page-size': 20}), digits: 10, 'can-focus': true});
+        var otherSlider = new Slider({adjustment: slider.getAdjustment(), inverted: true, 'can-focus': true});
+        var anotherSlider = new Slider({adjustment: slider.getAdjustment(), orientation: Orientation.VERTICAL, 'can-focus': true});
+        var yetAnotherSlider = new Slider({adjustment: slider.getAdjustment(), inverted: true, orientation: Orientation.VERTICAL, 'can-focus': true});
         
         var scrollBar = new ScrollBar({
             orientation: Orientation.HORIZONTAL,
             inverted: false,
-            adjustment: scale.getAdjustment()
+            adjustment: slider.getAdjustment()
         });
         
-        var scrolledWindow = new ScrolledWindow({'shadow-type': ShadowType.IN, 'h-policy': Policy.ALWAYS, 'v-policy': Policy.NEVER});
+        var scrollArea = new ScrollArea({'shadow-type': ShadowType.IN, 'h-policy': Policy.ALWAYS, 'v-policy': Policy.NEVER});
         
         var menuBar = new MenuBar();
         var statusBar = new StatusBar();
@@ -309,10 +309,10 @@ Singleton.define('Application', {
         radioButtonB.join(radioButtonC);
         radioButtonA.join(radioButtonD);
         
-        radioButtonA.add(new Label({label: 'First option'}));
-        radioButtonB.add(new Label({label: 'Second option'}));
-        radioButtonC.add(new Label({label: 'Third option'}));
-        radioButtonD.add(new Label({label: 'Fourth option'}));
+        radioButtonA.add(new Label({text: 'First option'}));
+        radioButtonB.add(new Label({text: 'Second option'}));
+        radioButtonC.add(new Label({text: 'Third option'}));
+        radioButtonD.add(new Label({text: 'Fourth option'}));
         
         
         
@@ -320,14 +320,14 @@ Singleton.define('Application', {
         
         
         yetAnotherBox.add(progressBar);
-        yetAnotherBox.add(anotherScale);
+        yetAnotherBox.add(anotherSlider);
         yetAnotherBox.add(otherProgressBar);
-        yetAnotherBox.add(yetAnotherScale);
+        yetAnotherBox.add(yetAnotherSlider);
         
         anotherBox.add(newProgressBar);
-        anotherBox.add(scale);
+        anotherBox.add(slider);
         anotherBox.add(aNewProgressBar);
-        anotherBox.add(otherScale);
+        anotherBox.add(otherSlider);
         anotherBox.add(yetAnotherBox);
         
         //var frameA = new Frame({'shadow-type': ShadowType.IN});
@@ -336,14 +336,14 @@ Singleton.define('Application', {
         //var frameB = new Frame({'shadow-type': ShadowType.IN});
         //frameB.add(secondLabel);
         
-        var scrolledWindowA = new ScrolledWindow();
-        scrolledWindowA.add(firstLabel);
+        var scrollAreaA = new ScrollArea();
+        scrollAreaA.add(firstLabel);
         
-        var scrolledWindowB = new ScrolledWindow();
-        scrolledWindowB.add(secondLabel);
+        var scrollAreaB = new ScrollArea();
+        scrollAreaB.add(secondLabel);
         
-        paned.add(scrolledWindowA, false);
-        paned.add(scrolledWindowB, true);
+        paned.add(scrollAreaA, false);
+        paned.add(scrollAreaB, true);
         
         
         var foo = new Box({orientation: Orientation.VERTICAL, margin: 10, spacing: 10});
@@ -361,20 +361,20 @@ Singleton.define('Application', {
         foo.add(separator);
         foo.add(image);
         
-        scrolledWindow.add(foo);
+        scrollArea.add(foo);
         
         box.add(menuBar, false);
-        box.add(scrolledWindow);
+        box.add(scrollArea);
         box.add(statusBar, false);
         
         window.add(box);
         
         var hBox = new Box();
         
-        hBox.add(new Label({label: "A\nB\nC\nD\nE\nF\nG\nH"}), false);
+        hBox.add(new Label({text: "A\nB\nC\nD\nE\nF\nG\nH"}), false);
         hBox.add(new Separator({orientation: Orientation.VERTICAL}), false);
-        hBox.add(new Label({label: 'Test'}));
-        hBox.add(new Label({label: 'Test'}));
+        hBox.add(new Label({text: 'Test'}));
+        hBox.add(new Label({text: 'Test'}));
         
         button.add(hBox);
         
@@ -438,7 +438,7 @@ Singleton.define('Application', {
         
         wholeBox.setMargin(5);
         
-        var buttonBox = new Box({orientation: Orientation.VERTICAL, spacing: 5});
+        var buttonBox = new ButtonBox({orientation: Orientation.VERTICAL, spacing: 5, 'layout-style': ButtonBoxStyle.SPREAD});
         
         var isFocus;
         
@@ -449,7 +449,7 @@ Singleton.define('Application', {
         
         var topBox = new Box({spacing: 5});
         
-        topBox.add(new Entry({'sensitive': true, 'text': 'abc', 'can-focus': true}));
+        topBox.add(new LineEdit({'sensitive': true, 'text': 'abc', 'can-focus': true}));
         topBox.add(buttonBox);
         
         wholeBox.add(topBox);

@@ -67,69 +67,6 @@ Class.define('Widget', {
      * Layouting.
      */
     
-    /*
-    
-    setAllocation: function(position, size)
-    {
-        var requisition = this.requestSize();
-        
-        if (size.width < requisition.width)
-            size.width = requisition.width;
-        
-        if (size.height < requisition.height)
-            size.height = requisition.height;
-        
-        this.allocateSize({
-            width: size.width,
-            height: size.height,
-            x: position.x,
-            y: position.y
-        });
-    },
-    
-    getAllocation: function()
-    {
-        return this.allocation;
-    },
-    */
-    
-    /*
-     * Tooltip methods.
-     */
-    
-    /*
-    createTooltip: function()
-    {
-        if (this.hasTooltip && this.tooltipText)
-        {
-            if (!this.tooltip)
-            {
-                this.tooltip = Ext.create('Ext.tip.ToolTip', {
-                    html: Util.escapeText(this.tooltipText),
-                    target: this.view ? this.view.getEl() : undefined
-                });
-            }
-            else if (this.view)
-            {
-                this.tooltip.setTarget(this.view.getEl());
-            }
-        }
-    },
-    
-    destroyTooltip: function()
-    {
-        if (this.tooltip)
-        {
-            this.tooltip.destroy();
-            delete this.tooltip;
-        }
-    },
-    */
-    
-    /*
-     * Layouting.
-     */
-    
     // Requests a layouting of this view.
     // Will also layout parent if requisition is less than allocation.
     layout: function()
