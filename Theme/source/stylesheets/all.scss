@@ -83,8 +83,8 @@ $insensitive-text-color: adjust-color($background-color, $saturation: -3%, $ligh
 
 .x-line-edit
 {
-    padding: 0px 3px 0px 3px;
     background: lighten($shadow-color, 50%);
+    padding: 0px 3px;
 }
 
 .x-line-edit.x-focus

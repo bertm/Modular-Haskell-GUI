@@ -9,15 +9,24 @@ var BrowserImage = Image;
  */
 
 Class.define('Image', {
-    extend: 'Misc',
+    extend: 'Widget',
     
     /*
      * Private methods; initialization.
      */
     
+    initialize: function()
+    {
+        // Make image take its minimum (natural) size.
+        this.setHScale(0);
+        this.setVScale(0);
+        
+        Image.base.initialize.call(this);
+    },
+    
     getHtml: function()
     {
-        return '<img src="" class="x-widget x-image" />';
+        return '<img src="" alt="" class="x-widget x-image" />';
     },
     
     /*

@@ -17,7 +17,7 @@ Class.define('Menu', {
         Menu.base.initialize.call(this);
         
         // Set members.
-        this.orientation = Orientation.VERTICAL;
+        this.setOrientation(Orientation.VERTICAL);
         
         // Attach event handlers.
         EventManager.registerHandler(this.el, EventMask.BUTTON_PRESS, this.onButtonPress, this);
@@ -29,11 +29,6 @@ Class.define('Menu', {
     
     destroy: function()
     {
-        // TODO: ..
-        
-        // Detach event handlers.
-        //Application.disconnect('button-press-event', this.onApplicationButtonPress, this);
-        
         // Remove us from parent menu item.
         if (this.parentMenuItem)
             this.parentMenuItem.setSubmenu(null);

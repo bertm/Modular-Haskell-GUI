@@ -18,6 +18,7 @@ Class.define('Paned', {
         // Set members.
         this.resize       = [];
         this.splitterSize = 6;
+        this.prevSize     = {width: -1, height: -1};
         
         // Get elements.
         this.splitterEl = this.el.find('.x-splitter');
@@ -42,9 +43,14 @@ Class.define('Paned', {
      * Layouting.
      */
     
-    getMinimumSize: function()
+    getPreferredSize: function()
     {
-        var minSize = {width: 0, height: 0};
+        var prefSize = {minimum: {width: 0, height: 0}, natural: {width: 0, height: 0}};
+        
+        var minSize = prefSize.minimum;
+        var natSize = prefSize.natural;
+        
+        var horizontal = (this.orientation === Orientation.HORIZONTAL);
         
         var nrVisibleChildren = 0;
         for (var i = this.children.length - 1; i >= 0; --i)
@@ -54,49 +60,58 @@ Class.define('Paned', {
             {
                 ++nrVisibleChildren;
                 
-                var size   = child.requestSize();
-                var margin = child.margin;
+                var size = child.getSizeRequisition();
                 
-                if (this.orientation === Orientation.HORIZONTAL)
+                if (horizontal)
                 {
-                    minSize.width += size.width + margin.left + margin.right;
-                    minSize.height = Math.max(minSize.height, size.height + margin.top + margin.bottom);
+                    minSize.width += size.minimum.width;
+                    natSize.width += size.natural.width;
+                    
+                    minSize.height = Math.max(minSize.height, size.minimum.height);
+                    natSize.height = Math.max(natSize.height, size.natural.height);
                 }
                 else
                 {
-                    minSize.height += size.height + margin.top + margin.bottom;
-                    minSize.width   = Math.max(minSize.width, size.width + margin.left + margin.right);
+                    minSize.height += size.minimum.height;
+                    natSize.height += size.natural.height;
+                    
+                    minSize.width = Math.max(minSize.width, size.minimum.width);
+                    natSize.width = Math.max(natSize.width, size.natural.width);
                 }
             }
         }
         
         if (nrVisibleChildren === 2)
         {
-            if (this.orientation === Orientation.HORIZONTAL)
+            if (horizontal)
+            {
                 minSize.width += this.splitterSize;
+                natSize.width += this.splitterSize;
+            }
             else
+            {
                 minSize.height += this.splitterSize;
+                natSize.height += this.splitterSize;
+            }
         }
         
-        return minSize;
+        return prefSize;
     },
     
     allocateSize: function(allocation)
     {
-        // Store previous size.
-        var prevSize = ((this.orientation === Orientation.HORIZONTAL) ? this.allocation.width : this.allocation.height)
-                     - this.splitterSize;
-        
-        // Set our size and position.
-        this.el.setSize({width: allocation.width, height: allocation.height});
-        this.el.setPosition({x: allocation.x, y: allocation.y});
-        
         // Correct and store allocation.
-        allocation = this.correctAndStoreAllocation(allocation);
+        this.correctAndStoreAllocation(allocation);
+        
+        // Handly helper.
+        var horizontal = (this.orientation === Orientation.HORIZONTAL);
+        
+        // Get and store previous size.
+        var prevSize = (horizontal ? this.prevSize.width : this.prevSize.height) - this.splitterSize;
+        this.prevSize = {width: allocation.width, height: allocation.height};
         
         // Determine visible children.
-        var nrVisibleChildren = 0;
-        var availableSize = 0;
+        var nrVisibleChildren = 0, availableSize = 0;
         for (var i = this.children.length - 1; i >= 0; --i)
         {
             var child = this.children[i];
@@ -120,15 +135,12 @@ Class.define('Paned', {
             // Determine visible child.
             var child = this.children[0].visible ? this.children[0] : this.children[1];
             
-            // Fetch child margins.
-            var margin = child.margin;
-            
             // Allocate size.
             child.allocateSize({
-                x: margin.left,
-                y: margin.top,
-                width:  allocation.width  - margin.left - margin.right,
-                height: allocation.height - margin.top  - margin.bottom
+                x: 0,
+                y: 0,
+                width:  allocation.width,
+                height: allocation.height
             });
             
             return;
@@ -138,28 +150,23 @@ Class.define('Paned', {
         this.splitterEl.show();
         
         // Get child requests.
-        var firstRequest = this.children[0].requestSize();
-        var firstMargin  = this.children[0].margin;
-        
-        var secondRequest = this.children[1].requestSize();
-        var secondMargin  = this.children[1].margin;
+        var firstRequest  = this.children[0].getSizeRequisition().minimum;
+        var secondRequest = this.children[1].getSizeRequisition().minimum;
         
         var firstRequestSize, secondRequestSize;
         if (this.orientation === Orientation.HORIZONTAL)
         {
-            firstRequestSize  = firstRequest.width  + firstMargin.left  + firstMargin.right;
-            secondRequestSize = secondRequest.width + secondMargin.left + secondMargin.right;
+            firstRequestSize  = firstRequest.width;
+            secondRequestSize = secondRequest.width;
         }
         else
         {
-            firstRequestSize  = firstRequest.height  + firstMargin.top  + firstMargin.bottom;
-            secondRequestSize = secondRequest.height + secondMargin.top + secondMargin.bottom;
+            firstRequestSize  = firstRequest.height;
+            secondRequestSize = secondRequest.height;
         }
         
         // Get available size.
-        var availableSize = (this.orientation === Orientation.HORIZONTAL)
-                          ? allocation.width
-                          : allocation.height;
+        var availableSize = horizontal ? allocation.width : allocation.height;
         
         availableSize -= this.splitterSize;
         
@@ -189,21 +196,20 @@ Class.define('Paned', {
         
         this.setSplitterPosition(position);
         
-        // Set children their sizes.
-        // Set splitter its position and size.
-        if (this.orientation === Orientation.HORIZONTAL)
+        // Set children their sizes. Set splitter its position and size as well.
+        if (horizontal)
         {
             this.children[0].allocateSize({
-                x: firstMargin.left,
-                y: firstMargin.top,
-                width:  position - firstMargin.left - firstMargin.right,
+                x: 0,
+                y: 0,
+                width:  position,
                 height: allocation.height
             });
             
             this.children[1].allocateSize({
-                x: secondMargin.left + position + this.splitterSize,
-                y: secondMargin.top,
-                width:  (availableSize - position) - secondMargin.left - secondMargin.right,
+                x: position + this.splitterSize,
+                y: 0,
+                width:  availableSize - position,
                 height: allocation.height
             });
             
@@ -213,17 +219,17 @@ Class.define('Paned', {
         else
         {
             this.children[0].allocateSize({
-                x: firstMargin.left,
-                y: firstMargin.top,
+                x: 0,
+                y: 0,
                 width: allocation.width,
-                height: position - firstMargin.top - firstMargin.bottom,
+                height: position,
             });
             
             this.children[1].allocateSize({
-                x: secondMargin.left,
-                y: secondMargin.top + position + this.splitterSize,
+                x: 0,
+                y: position + this.splitterSize,
                 width:  allocation.width,
-                height: (availableSize - position) - secondMargin.top - secondMargin.bottom
+                height: availableSize - position
             });
             
             this.splitterEl.setPosition({x: 0, y: position});
@@ -341,7 +347,6 @@ Class.define('Paned', {
             read: true,
             defaultValue: Number.MAX_VALUE
         }
-        
     },
     
     /*

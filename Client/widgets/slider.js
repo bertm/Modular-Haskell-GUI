@@ -104,12 +104,8 @@ Class.define('Slider', {
     
     allocateSize: function(allocation)
     {
-        // Set our size and position.
-        this.el.setSize({width: allocation.width, height: allocation.height});
-        this.el.setPosition({x: allocation.x, y: allocation.y});
-        
         // Correct and store allocation.
-        allocation = this.correctAndStoreAllocation(allocation);
+        this.correctAndStoreAllocation(allocation);
         
         // Vertically center inner element.
         var labelSize = this.labelEl.getSize();

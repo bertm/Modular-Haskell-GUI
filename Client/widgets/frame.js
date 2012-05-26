@@ -38,12 +38,15 @@ Class.define('Frame', {
      * Layouting.
      */
     
-    getMinimumSize: function()
+    getPreferredSize: function()
     {
-        var legendWidth    = (this.label ? this.legendEl.getWidth() : 0) + 40; // TODO: For now, later, allow widget labels.
-        var binMinimumSize = Frame.base.getMinimumSize.call(this);
+        var prefSize = Frame.base.getPreferredSize.call(this);
         
-        return {width: Math.max(binMinimumSize.width, legendWidth), height: binMinimumSize.height};
+        var legendWidth = (this.label ? this.legendEl.getWidth() : 0) + 40; // TODO: For now, later, allow widget labels.
+        
+        prefSize.minimum.width = Math.max(prefSize.minimum.width, legendWidth);
+        
+        return prefSize;
     },
     
     getFrameSize: function()

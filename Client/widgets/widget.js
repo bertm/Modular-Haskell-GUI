@@ -76,9 +76,7 @@ Class.define('Widget', {
             return;
         
         // Create a new requisition.
-        var oldRequisition = this.requisition;
-        this.requisition   = undefined;
-        var newRequisition = this.requestSize();
+        var newRequisition = this.getSizeRequisition(true);
         
         // TODO: Indicate a margin change, check for difference.
         
@@ -91,15 +89,15 @@ Class.define('Widget', {
         }
         
         // Check if requisition is larger than current allocation.
-        if ((newRequisition.width  > this.allocation.width) ||
-            (newRequisition.height > this.allocation.height))
+        if ((newRequisition.natural.width  > this.allocation.width) ||
+            (newRequisition.natural.height > this.allocation.height))
         {
             // Resize top-level widget.
             this.allocateSize({
                 x: this.allocation.x,
                 y: this.allocation.y,
-                width: newRequisition.width,
-                height: newRequisition.height
+                width: newRequisition.natural.width,
+                height: newRequisition.natural.height
             });
         }
         else
@@ -109,48 +107,151 @@ Class.define('Widget', {
         }
     },
     
+    // Gets minimum inner size. Should be overriden.
     getMinimumSize: function()
     {
         return {width: 0, height: 0};
     },
     
+    // Gets natural size. May be overriden. Output may be changed.
+    getNaturalSize: function()
+    {
+        return this.getMinimumSize();
+    },
+    
+    // Gets the frame size of the widget. Output may be changed.
     getFrameSize: function()
     {
         // Get frame size of top level element.
         var frameSize = this.el.getFrame();
-        
-        return {width: frameSize.left + frameSize.right, height: frameSize.top + frameSize.bottom};
-    },
-    
-    requestSize: function(useSizeRequest)
-    {
-        if (!this.visible)
-            return {width: 0, height: 0};
-        
-        if (!this.requisition)
-        {
-            var frameSize   = this.getFrameSize();
-            var minimumSize = this.getMinimumSize();
-            
-            this.requisition = {
-                width:  Math.max(minimumSize.width,  0) + frameSize.width,
-                height: Math.max(minimumSize.height, 0) + frameSize.height
-            };
-        }
-        
-        if (useSizeRequest === false)
-            return this.requisition;
+        var margin    = this.margin;
         
         return {
-            width:  Math.max(this.sizeRequest.width,  this.requisition.width),
-            height: Math.max(this.sizeRequest.height, this.requisition.height)
+            width:  frameSize.left + frameSize.right  + margin.left + margin.right,
+            height: frameSize.top  + frameSize.bottom + margin.top  + margin.bottom
         };
+    },
+    
+    // Combines minimum and natural sizes. Output may be changed.
+    // May be overriden instead of minimum and natural size getters.
+    getPreferredSize: function()
+    {
+        var minSize   = this.getMinimumSize();
+        var natSize   = (this.getNaturalSize === Widget.prototype.getNaturalSize)
+                      ? Util.clone(minSize)
+                      : this.getNaturalSize();
+        
+        return {
+            minimum: minSize,
+            natural: natSize
+        };
+    },
+    
+    // Gets real preferred minimum and natural size.
+    getSizeRequisition: function(recalculate)
+    {
+        if (!this.requisition || (recalculate === true))
+        {
+            if (!this.visible)
+                return {minimum: {width: 0, height: 0}, natural: {width: 0, height: 0}};
+            
+            var frameSize = this.getFrameSize();
+            var prefSize  = this.getPreferredSize();
+            var margin    = this.margin;
+            
+            prefSize.minimum.width  += frameSize.width;
+            prefSize.minimum.height += frameSize.height;
+            
+            prefSize.natural.width = Math.max(
+                prefSize.minimum.width,
+                (this.sizeRequest.width < 0) ?
+                    (prefSize.natural.width + frameSize.width) :
+                    (this.sizeRequest.width  + margin.left + margin.right)
+            );
+            
+            prefSize.natural.height = Math.max(
+                prefSize.minimum.height,
+                (this.sizeRequest.height < 0) ?
+                    (prefSize.natural.height + frameSize.height) :
+                    (this.sizeRequest.height + margin.top  + margin.bottom)
+            );
+            
+            this.requisition = prefSize;
+        }
+        
+        return this.requisition;
     },
     
     correctAndStoreAllocation: function(allocation)
     {
+        this.setAllocation(allocation);
+        return;
+        
+        
+        
         // Store allocation.
         this.allocation = Util.cloneShallow(allocation);
+        
+        // Set our size and position on element.
+        var margin = this.margin;
+        
+        this.el.setSize({
+            width:  allocation.width  - margin.left - margin.right,
+            height: allocation.height - margin.top  - margin.bottom
+        });
+        
+        this.el.setPosition({x: allocation.x + margin.left, y: allocation.y + margin.top});
+        
+        // Subtract frame size.
+        var frameSize = this.getFrameSize();
+        
+        allocation.width  -= frameSize.width;
+        allocation.height -= frameSize.height;
+    },
+    
+    setAllocation: function(allocation, forceAllocate)
+    {
+        // DEBUG: For now.. A lot of properties change other things.
+        /*
+        // Check for difference.
+        forceAllocate = true; 
+        if (!forceAllocate &&
+            (this.allocation.x === allocation.x) &&
+            (this.allocation.y === allocation.y) &&
+            (this.allocation.width === allocation.width) &&
+            (this.allocation.height === allocation.height))
+        {
+            return;
+        }
+        */
+        
+        // Store allocation.
+        this.allocation = Util.cloneShallow(allocation);
+        
+        // Adjust allocation.
+        var prefSize = this.getSizeRequisition();
+        
+        allocation.width = Math.ceil(prefSize.natural.width + (allocation.width - prefSize.natural.width) * this.hScale); 
+        if (allocation.width < prefSize.minimum.width)
+            allocation.width = prefSize.minimum.width;
+        
+        allocation.x += Math.ceil((this.allocation.width - allocation.width) * this.hAlign);
+        
+        allocation.height = Math.ceil(prefSize.natural.height + (allocation.height - prefSize.natural.height) * this.vScale); 
+        if (allocation.height < prefSize.minimum.height)
+            allocation.height = prefSize.minimum.height;
+        
+        allocation.y += Math.ceil((this.allocation.height - allocation.height) * this.vAlign);
+        
+        // Set our size and position on element.
+        var margin = this.margin;
+        
+        this.el.setSize({
+            width:  allocation.width  - margin.left - margin.right,
+            height: allocation.height - margin.top  - margin.bottom
+        });
+        
+        this.el.setPosition({x: allocation.x + margin.left, y: allocation.y + margin.top});
         
         // Subtract frame size.
         var frameSize = this.getFrameSize();
@@ -158,18 +259,14 @@ Class.define('Widget', {
         allocation.width  -= frameSize.width;
         allocation.height -= frameSize.height;
         
-        // Return corrected allocation.
-        return allocation;
+        // Do the actual allocation.
+        //this.allocateSize(allocation);
     },
     
     allocateSize: function(allocation)
     {
-        // Just store allocation.
-        this.allocation = allocation;
-        
-        // Set our size and position.
-        this.el.setSize({width: allocation.width, height: allocation.height});
-        this.el.setPosition({x: allocation.x, y: allocation.y});
+        // Correct and store allocation.
+        this.correctAndStoreAllocation(allocation);
     },
     
     /*
@@ -527,6 +624,72 @@ Class.define('Widget', {
             {
                 return this.margin.left;
             }
+        },
+        /**
+         * The horizontal scale of the widget. It is a fraction of the allocated space that the
+         * widget uses. Must be a value from `0` to `1`.`0` means just its natural size,
+         * `1` means that it will use everything.
+         *
+         * @type float
+         */
+        'h-scale': {
+            write: function(hScale)
+            {
+                this.hScale = hScale;
+                
+                this.layout();
+            },
+            read: true,
+            defaultValue: 1.0
+        },
+        /**
+         * The vertical scale of the widget. It is a fraction of the allocated space that the
+         * widget uses. Must be a value from `0` to `1`. `0` means just its natural size,
+         * `1` means that it will use everything.
+         *
+         * @type float
+         */
+        'v-scale': {
+            write: function(vScale)
+            {
+                this.vScale = vScale;
+                
+                this.layout();
+            },
+            read: true,
+            defaultValue: 1.0
+        },
+        /**
+         * The horizontal alignment of the widget. Must be a value from `0` to `1`.
+         * `0` means to the left, `1` means to the right.
+         *
+         * @type float
+         */
+        'h-align': {
+            write: function(hAlign)
+            {
+                this.hAlign = hAlign;
+                
+                this.layout();
+            },
+            read: true,
+            defaultValue: 0.5
+        },
+        /**
+         * The vertical alignment of the widget. Must be a value from `0` to `1`.
+         * `0` means to the left, `1` means to the right.
+         *
+         * @type float
+         */
+        'v-align': {
+            write: function(vAlign)
+            {
+                this.vAlign = vAlign;
+                
+                this.layout();
+            },
+            read: true,
+            defaultValue: 0.5
         },
         /**
          * Whether the widget its #tooltip should be shown.

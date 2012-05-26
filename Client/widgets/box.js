@@ -18,7 +18,6 @@ Class.define('Box', {
         
         // Set members.
         this.expand = [];
-        this.fill   = [];
     },
     
     getHtml: function()
@@ -30,56 +29,56 @@ Class.define('Box', {
      * Layouting.
      */
     
-    getMinimumSize: function()
+    getPreferredSize: function()
     {
-        var minSize = {width: 0, height: 0};
+        var prefSize = {minimum: {width: 0, height: 0}, natural: {width: 0, height: 0}};
+        
+        var minSize = prefSize.minimum;
+        var natSize = prefSize.natural;
+        
+        var horizontal = (this.orientation === Orientation.HORIZONTAL);
         
         var nrVisibleChildren = 0;
-        if (this.orientation === Orientation.HORIZONTAL)
+        for (var i = this.children.length - 1; i >= 0; --i)
         {
-            // Take maximum minimum height, sum widths.
-            for (var i = this.children.length - 1; i >= 0; --i)
+            var child = this.children[i];
+            if (child.visible)
             {
-                var child = this.children[i];
-                if (child.visible)
+                ++nrVisibleChildren;
+                
+                var size = child.getSizeRequisition();
+                
+                if (horizontal)
                 {
-                    ++nrVisibleChildren;
-                    
-                    var size   = child.requestSize();
-                    var margin = child.margin;
-                    
-                    minSize.height = Math.max(minSize.height, size.height + margin.top + margin.bottom);
-                    
-                    var width = size.width + margin.left + margin.right;
+                    minSize.height = Math.max(minSize.height, size.minimum.height);
+                    natSize.height = Math.max(natSize.height, size.natural.height);
                     
                     if (this.homogeneous)
-                        minSize.width = Math.max(minSize.width, width);
+                    {
+                        minSize.width = Math.max(minSize.width, size.minimum.width);
+                        natSize.width = Math.max(natSize.width, size.natural.width);
+                    }
                     else
-                        minSize.width += width;
+                    {
+                        minSize.width += size.minimum.width;
+                        natSize.width += size.natural.width;
+                    }
                 }
-            }
-        }
-        else
-        {
-            // Take maximum minimum width, sum heights.
-            for (var i = this.children.length - 1; i >= 0; --i)
-            {
-                var child = this.children[i];
-                if (child.visible)
+                else
                 {
-                    ++nrVisibleChildren;
-                    
-                    var size   = child.requestSize();
-                    var margin = child.margin;
-                    
-                    minSize.width = Math.max(minSize.width, size.width + margin.left + margin.right);
-                    
-                    var height = size.height + margin.top + margin.bottom;
+                    minSize.width = Math.max(minSize.width, size.minimum.width);
+                    natSize.width = Math.max(natSize.width, size.natural.width);
                     
                     if (this.homogeneous)
-                        minSize.height = Math.max(minSize.height, height);
+                    {
+                        minSize.height = Math.max(minSize.height, size.minimum.height);
+                        natSize.height = Math.max(natSize.height, size.natural.height);
+                    }
                     else
-                        minSize.height += height;
+                    {
+                        minSize.height += size.minimum.height;
+                        natSize.height += size.natural.height;
+                    }
                 }
             }
         }
@@ -88,106 +87,152 @@ Class.define('Box', {
         {
             if (this.homogeneous)
             {
-                if (this.orientation === Orientation.HORIZONTAL)
+                if (horizontal)
+                {
                     minSize.width *= nrVisibleChildren;
+                    natSize.width *= nrVisibleChildren;
+                }
                 else
+                {
                     minSize.height *= nrVisibleChildren;
+                    natSize.height *= nrVisibleChildren;
+                }
             }
             
-            if (this.orientation === Orientation.HORIZONTAL)
-                minSize.width += (nrVisibleChildren - 1) * this.spacing;
+            var spacing = (nrVisibleChildren - 1) * this.spacing;
+            if (horizontal)
+            {
+                minSize.width += spacing
+                natSize.width += spacing;
+            }
             else
-                minSize.height += (nrVisibleChildren - 1) * this.spacing;
+            {
+                minSize.height += spacing;
+                natSize.height += spacing;
+            }
         }
         
-        return minSize;
+        return prefSize;
     },
     
     allocateSize: function(allocation)
     {
-        // Set our size and position.
-        this.el.setSize({width: allocation.width, height: allocation.height});
-        this.el.setPosition({x: allocation.x, y: allocation.y});
-        
         // Correct and store allocation.
-        allocation = this.correctAndStoreAllocation(allocation);
+        this.correctAndStoreAllocation(allocation);
         
-        // Determine amount of visible and expand children.
-        var nrVisibleChildren = 0, nrExpandChildren = 0;
-        for (var i = this.children.length - 1; i >= 0; --i)
+        // Create a handy shortcut.
+        var horizontal = (this.orientation === Orientation.HORIZONTAL);
+        
+        // Determine amount of visible and expand children. Fetch their sizes as well.
+        var sizes = [], nrVisibleChildren = 0, nrExpandChildren = 0, length = this.children.length;
+        for (var i = 0; i < length; ++i)
         {
-            if (this.children[i].visible)
+            var child = this.children[i];
+            if (child.visible)
             {
                 ++nrVisibleChildren;
                 
                 if (this.expand[i])
                     ++nrExpandChildren;
+                
+                // Fetch size.
+                if (!this.homogeneous)
+                {
+                    var req = child.getSizeRequisition();
+                    if (horizontal)
+                        sizes.push({minimum: req.minimum.width, natural: req.natural.width});
+                    else
+                        sizes.push({minimum: req.minimum.height, natural: req.natural.height});
+                }
             }
         }
         
         if (!nrVisibleChildren)
             return;
         
-        // Create a handy shortcut.
-        var horizontal = (this.orientation === Orientation.HORIZONTAL);
-        
         // Determine size.
-        var fullSize, size, rest;
+        var size, extra, rest;
         if (this.homogeneous)
         {
             if (horizontal)
-                fullSize = allocation.width - (nrVisibleChildren - 1) * this.spacing;
+                size = allocation.width - (nrVisibleChildren - 1) * this.spacing;
             else
-                fullSize = allocation.height - (nrVisibleChildren - 1) * this.spacing;
+                size = allocation.height - (nrVisibleChildren - 1) * this.spacing;
             
-            size = Math.floor(fullSize / nrVisibleChildren);
-            rest = fullSize - size * nrVisibleChildren;
+            extra = Math.floor(size / nrVisibleChildren);
+            rest  = fullSize - extra * nrVisibleChildren;
         }
-        else if (nrExpandChildren > 0)
+        else 
         {
-            var requisition = this.requestSize();
+            // Determine minimum size.
+            var frame   = this.getFrameSize();
+            var reqSize = this.getSizeRequisition().minimum;
+            var minSize = horizontal ? (reqSize.width - frame.width) : (reqSize.height - frame.height);
             
+            // Sort child indices by gap.
+            var indices = [];
+            for (var i = 0; i < nrVisibleChildren; ++i)
+            {
+                indices.push(i);
+            }
+            
+            indices.sort(function(a, b)
+                {
+                    return (sizes[b].natural - sizes[b].minimum) - (sizes[a].natural - sizes[a].minimum);
+                });
+            
+            console.log(indices);
+            console.log(sizes);
+            
+            // Determine leftover space.
             if (horizontal)
-                fullSize = allocation.width - requisition.width;
+                var leftover = allocation.width - minSize;
             else
-                fullSize = allocation.height - requisition.height;
+                var leftover = allocation.height - minSize;
             
-            size = Math.floor(fullSize / nrExpandChildren);
-            rest = fullSize - size * nrExpandChildren;
-        }
-        else
-        {
-            size = 0;
-            rest = 0;
+            // Distribute leftover space. Thanks to Behdad Esfahbod.
+            for (i = nrVisibleChildren - 1; (leftover > 0) && (i >= 0); --i)
+            {
+                var index = indices[i];
+                var glue  = Math.floor((leftover + i) / (i + 1)); // NOTE: Why +i?
+                var gap   = sizes[index].natural - sizes[index].minimum;
+
+                var add = Math.min(glue, gap);
+
+                sizes[index].minimum += add;
+
+                leftover -= add;
+            }
+            
+            // Use the rest for expanding children.
+            if (nrExpandChildren > 0)
+            {
+                extra = Math.floor(leftover / nrExpandChildren);
+                rest  = leftover - extra * nrExpandChildren;
+            }
+            else
+            {
+                extra = rest = 0;
+            }
         }
         
         // Setup child allocation.
         var padding = this.bodyEl.getPadding();
         
         var x = padding.left, y = padding.top;
-        var childAllocation = {x: x, y: y};
-        
-        if (this.orientation === Orientation.HORIZONTAL)
-            childAllocation.height = allocation.height;
-        else
-            childAllocation.width = allocation.width;
         
         // Give each child his size.
-        for (var i = 0; i < this.children.length; ++i)
+        for (var i = 0; i < length; ++i)
         {
             // Get child, and check if it's visible.
             var child = this.children[i];
             if (!child.visible)
                 continue;
             
-            // Fetch child margin.
-            var margin = child.margin;
-            
             // Calculate child its size.
-            var childSize;
             if (this.homogeneous)
             {
-                childSize = size;
+                var childSize = extra;
                 
                 if (rest)
                 {
@@ -197,16 +242,11 @@ Class.define('Box', {
             }
             else
             {
-                var childRequisition = child.requestSize();
-                
-                if (horizontal)
-                    childSize = childRequisition.width + margin.left + margin.right;
-                else
-                    childSize = childRequisition.height + margin.top + margin.bottom;
+                var childSize = sizes[i].minimum;
                 
                 if (this.expand[i])
                 {
-                    childSize += size;
+                    childSize += extra;
                     
                     if (rest)
                     {
@@ -216,43 +256,22 @@ Class.define('Box', {
                 }
             }
             
-            // Handle fill.
-            if (this.fill[i])
+            // Determine child allocation.
+            var childAllocation = {x: x, y: y};
+            
+            if (horizontal)
             {
-                if (horizontal)
-                {
-                    childAllocation.width = childSize;
-                    childAllocation.x     = x;
-                }
-                else
-                {
-                    childAllocation.height = childSize;
-                    childAllocation.y      = y;
-                }
+                childAllocation.height = allocation.height;
+                childAllocation.width  = childSize;
             }
             else
             {
-                var childRequisition = child.requestSize();
-                
-                if (horizontal)
-                {
-                    childAllocation.width = childRequisition.width;
-                    childAllocation.x     = x + Math.floor((childSize - childAllocation.width) / 2);
-                }
-                else
-                {
-                    childAllocation.height = childRequisition.height;
-                    childAllocation.y      = y + Math.floor((childSize - childAllocation.height) / 2);
-                }
+                childAllocation.width  = allocation.width;
+                childAllocation.height = childSize;
             }
             
-            // Apply child margin, and set position and size.
-            child.allocateSize({
-                x: childAllocation.x + margin.left,
-                y: childAllocation.y + margin.top,
-                width: childAllocation.width - margin.left - margin.right,
-                height: childAllocation.height - margin.top - margin.bottom
-            });
+            // Allocate size for child.
+            child.allocateSize(childAllocation);
             
             // Increase location.
             if (horizontal)
@@ -325,12 +344,11 @@ Class.define('Box', {
          *
          * @param widget Widget Widget to add.
          */
-        add: function(widget, expand, fill) // TODO: Remove expand (expand), fill (scale).
+        add: function(widget, expand) // TODO: Remove expand (expand)
         {
             Box.base.add.call(this, widget);
             
             this.expand.push(expand !== false);
-            this.fill.push(fill !== false);
             
             this.layout();
         },
@@ -340,7 +358,6 @@ Class.define('Box', {
             var index = Box.base.remove.call(this, widget);
             
             this.expand.splice(index, 1);
-            this.fill.splice(index, 1);
             
             this.layout();
         }

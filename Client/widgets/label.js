@@ -8,11 +8,20 @@
  * widget such as a #Button or #Frame.
  */
 Class.define('Label', {
-    extend: 'Misc',
+    extend: 'Widget',
     
     /*
      * Private methods; initialization.
      */
+    
+    initialize: function()
+    {
+        Label.base.initialize.call(this);
+        
+        // Set defaults.
+        this.setHScale(0);
+        this.setVScale(0);
+    },
     
     getHtml: function()
     {

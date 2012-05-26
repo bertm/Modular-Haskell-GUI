@@ -158,9 +158,6 @@ Class.define('AbstractWindow', {
                 // Check if deactivating.
                 if (!active)
                 {
-                    // Save last focus widget.
-                    //this.lastFocusWidget = this.focusWidget;
-                    
                     // Blur current focus widget. Keep local focus.
                     if (this.focusWidget)
                         this.focusWidget.blur(true);
@@ -177,13 +174,22 @@ Class.define('AbstractWindow', {
                     return;
                 }
                 
-                // Check if we are sensitive.
-                if (!this.getIsSensitive()) // TODO: Make header buttons also not work?
+                // Check if we are visible.
+                if (!this.visible)
                     return false;
+                
+                
+                // TODO: Move to Window.
                 
                 // Set z-index.
                 if (!(this instanceof MainWindow))
+                {
+                    if (this.modal)
+                        this.overlay.moveToFront();
                     this.el.setStyle('z-index', Element.getMaxZIndex());
+                }
+                
+                
                 
                 // Set active flag first, to prevent recursion.
                 this.active = true;

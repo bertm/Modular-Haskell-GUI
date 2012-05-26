@@ -77,32 +77,8 @@ Class.define('Window', {
         // Destroy overlay.
         this.overlay.destroy();
         
-        // TODO: Unregister them all at once.
-        
         // Remove event handlers.
         Screen.disconnect('size-change', this.onScreenSizeChange, this);
-        /*
-        Screen.disconnect('button-release-event', this.onScreenButtonRelease, this);
-        
-        var em = EventManager;
-        
-        em.unregisterElementEvent(this.headerEl, EventType.BUTTON_PRESS, this.onHeaderButtonPress, this);
-        //em.unregisterElementEvent(this.headerEl, EventType.BUTTON_PRESS, this.onHeaderButtonRelease, this);
-        em.unregisterElementEvent(this.deleteEl, EventType.BUTTON_PRESS, this.onButtonButtonPress, this);
-        em.unregisterElementEvent(this.deleteEl, EventType.BUTTON_RELEASE, this.onDelete, this);
-        em.unregisterElementEvent(this.restoreEl, EventType.BUTTON_PRESS, this.onButtonButtonPress, this);
-        em.unregisterElementEvent(this.restoreEl, EventType.BUTTON_RELEASE, function() { this.setMaximized(false); }, this);
-        em.unregisterElementEvent(this.maximizeEl, EventType.BUTTON_PRESS, this.onButtonButtonPress, this);
-        em.unregisterElementEvent(this.maximizeEl, EventType.BUTTON_RELEASE, function() { this.setMaximized(true); }, this);
-        
-        for (var dir in this.resizers)
-        {
-            em.unregisterElementEvent(this.resizers[dir], EventType.BUTTON_PRESS, this.onResizerButtonPress, this);
-        }
-        
-        em.unregisterElementEvent(this.resizeGripEl, EventType.BUTTON_PRESS, this.onResizerButtonPress, this);
-        
-        */
     },
     
     getHtml: function()
@@ -157,14 +133,20 @@ Class.define('Window', {
         
         this.allocateSize(this.allocation);
     },
+    
+    // TODO: Minimum size of header?
+    getPreferredSize: function()
+    {
+        var prefSize = Window.base.getPreferredSize.call(this);
+        
+        this.headerEl.invalidate();
+        var headerSize = this.headerEl.getSize();
+        prefSize.minimum.width = Math.max(prefSize.minimum.width, headerSize.width);
+        
+        return prefSize;
+    },
+    
     */
-    
-    // TODO: MAX(header width, body width)
-    //getMinimumSize: function()
-    //{
-        //var minimumSize = Window.base.getMinimumSize.call(this);
-    //},
-    
     getFrameSize: function()
     {
         var frameSize = Window.base.getFrameSize.call(this);
@@ -194,7 +176,48 @@ Class.define('Window', {
                 allocation.y = center.y;
         }
         
-        Window.base.allocateSize.call(this, allocation);
+        // Save allocation.
+        this.allocation = Util.cloneShallow(allocation);
+        
+        // Set size and position of element.
+        this.el.setSize({
+            width:  allocation.width,
+            height: allocation.height
+        });
+        
+        this.el.setPosition({x: allocation.x, y: allocation.y});
+        
+        // Set body size.
+        var frame = this.el.getFrame();
+        
+        this.bodyEl.setSize({
+            width: allocation.width   - frame.left - frame.right,
+            height: allocation.height - frame.top  - frame.bottom -
+                (this.decorated ? this.headerEl.getSize().height : 0)
+        });
+        
+        // Allocate size for child.
+        if (this.children.length)
+        {
+            var child = this.children[0];
+            if (child.visible)
+            {
+                // Subtract full frame size (element frame, header height, body frame, margin).
+                var frameSize = this.getFrameSize();
+                
+                allocation.width  -= frameSize.width;
+                allocation.height -= frameSize.height;
+                
+                // Add padding and margin.
+                var padding = this.bodyEl.getPadding();
+                
+                allocation.x = padding.left + this.margin.left;
+                allocation.y = padding.top + this.margin.top;
+                
+                // Do child allocation.
+                child.allocateSize(allocation);
+            }
+        }
     },
     
     constrainPosition: function(position)
@@ -225,7 +248,7 @@ Class.define('Window', {
             allocation.y = 0;
         }
         
-        var requisition = this.requestSize();
+        var requisition = this.getSizeRequisition().minimum;
         
         if ((allocation.x + allocation.width) > this.screenSize.width)
             allocation.width = this.screenSize.width - allocation.x;
@@ -269,7 +292,7 @@ Class.define('Window', {
         this.restoreAllocation = Util.cloneShallow(this.allocation);
         
         var screenSize  = Screen.getSize();
-        var requesition = this.requestSize();
+        var requesition = this.getSizeRequisition().minimum;
         
         var newAllocation = {
             x: 0,
@@ -304,7 +327,7 @@ Class.define('Window', {
             this.maximizeEl.show();
         
         // Constrain size.
-        var requesition = this.requestSize();
+        var requesition = this.getSizeRequisition().minimum;
         
         if (this.restoreAllocation.width < requesition.width)
             this.restoreAllocation.width = requesition.width;
@@ -488,7 +511,7 @@ Class.define('Window', {
                 newAllocation.width += newAllocation.x;
                 newAllocation.x = 0;
                 
-                var requisition = this.requestSize();
+                var requisition = this.getSizeRequisition().minimum;
                 if (newAllocation.width < requisition.width)
                     newAllocation.width = requisition.width;
             }
@@ -510,7 +533,7 @@ Class.define('Window', {
                 newAllocation.height += newAllocation.y;
                 newAllocation.y = 0;
                 
-                var requisition = this.requestSize();
+                var requisition = this.getSizeRequisition().minimum;
                 if (newAllocation.height < requisition.height)
                     newAllocation.height = requisition.height;
             }
@@ -546,83 +569,17 @@ Class.define('Window', {
                     this.overlay.hide();
             }
         },
-        // Overrides 'margin' property.
-        margin: {
-            write: function(margin)
-            {
-                this.margin = {top: margin, right: margin, bottom: margin, left: margin};
-                
-                this.bodyEl.setPadding(Util.cloneShallow(this.margin));
-                this.layout();
-                
-                // TODO: Signal. (4 extra).
-            }
-        },
-        // Overrides 'margin-top' property.
-        'margin-top': {
-            write: function(marginTop)
-            {
-                this.margin = Util.cloneShallow(this.margin);
-                this.margin.top = marginTop;
-                
-                this.bodyEl.setPadding(Util.cloneShallow(this.margin));
-                this.layout();
-                
-                // TODO: Signal. (1 extra).
-            }
-        },
-        // Overrides 'margin-right' property.
-        'margin-right': {
-            write: function(marginRight)
-            {
-                this.margin = Util.cloneShallow(this.margin);
-                this.margin.right = marginRight;
-                
-                this.bodyEl.setPadding(Util.cloneShallow(this.margin));
-                this.layout();
-                
-                // TODO: Signal. (1 extra).
-            }
-        },
-        // Overrides 'margin-bottom' property.
-        'margin-bottom': {
-            write: function(marginBottom)
-            {
-                this.margin = Util.cloneShallow(this.margin);
-                this.margin.bottom = marginBottom;
-                
-                this.bodyEl.setPadding(Util.cloneShallow(this.margin));
-                this.layout();
-                
-                // TODO: Signal. (1 extra).
-            }
-        },
-        // Overrides 'margin-left' property.
-        'margin-left': {
-            write: function(marginLeft)
-            {
-                this.margin = Util.cloneShallow(this.margin);
-                this.margin.left = marginLeft;
-                
-                this.bodyEl.setPadding(Util.cloneShallow(this.margin));
-                this.layout();
-                
-                // TODO: Signal. (1 extra).
-            }
-        },
         // Overrides 'size' property.
         size: {
             write: function(size)
             {
-                this.allocation = {
-                    width: Math.max(size.width, requisition.width),
-                    height: Math.max(size.height, requisition.height),
-                    x: this.allocation.x,
-                    y: this.allocation.y
-                }
-                
                 if (this.getVisible())
-                    this.allocateSize(this.allocation);
+                    this.allocateSize({
+                        width: size.width,
+                        height: size.height,
+                        x: this.allocation.x,
+                        y: this.allocation.y
+                    });
             }
         },
         // Overrides 'title' property.
@@ -632,6 +589,8 @@ Class.define('Window', {
                 this.title = title;
                 
                 this.titleEl.setText(title);
+                
+                this.layout();
             },
             read: true,
             defaultValue: ''
@@ -753,7 +712,10 @@ Class.define('Window', {
                 if (modal)
                 {
                     if (this.visible)
+                    {
                         this.overlay.show();
+                        this.el.setStyle('z-index', Element.getMaxZIndex());
+                    }
                 }
                 else
                 {

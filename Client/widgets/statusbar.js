@@ -33,7 +33,7 @@ Class.define('StatusBar', {
         this.setSpacing(2);
         
         // Set members.
-        this.label         = new Label({visible: true, 'x-align': 0, 'margin-left': 2}); // TODO: Ellipsize, fetch via read-only property?
+        this.label         = new Label({visible: true, 'h-align': 0, 'margin-left': 2}); // TODO: Ellipsize, fetch via read-only property?
         this.contexts      = [{description: 'default'}];
         this.messages      = [];
         this.nextMessageId = 1;
@@ -47,13 +47,13 @@ Class.define('StatusBar', {
         return '<div class="x-widget x-box x-status-bar x-body x-shadow-in" />';
     },
     
-    getMinimumSize: function()
+    getPreferredSize: function()
     {
-        var minSize = StatusBar.base.getMinimumSize.call(this);
+        var prefSize = StatusBar.base.getPreferredSize.call(this);
         
-        minSize.height = Math.max(minSize.height, 17);
+        prefSize.minimum.height = Math.max(prefSize.minimum.height, 17); // TODO: Constant.
         
-        return minSize;
+        return prefSize;
     },
     
     checkContextId: function(contextId)

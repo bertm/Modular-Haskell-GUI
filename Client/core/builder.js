@@ -95,6 +95,9 @@ Class.define('Builder', {
         switch (objectClass)
         {
             case 'Alignment':
+                // TODO: What to do here? Go on with child node?
+                break;
+                
             case 'AspectFrame':
             case 'Button':
             case 'Calendar':

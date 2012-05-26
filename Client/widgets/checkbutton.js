@@ -39,6 +39,7 @@ Class.define('CheckButton', {
         var frameSize = CheckButton.base.getFrameSize.call(this);
         
         // Add control width.
+        frameSize = Util.cloneShallow(frameSize);
         frameSize.width += this.controlEl.getSize().width;
         
         return frameSize;
@@ -46,12 +47,8 @@ Class.define('CheckButton', {
     
     allocateSize: function(allocation)
     {
-        // Set our size and position.
-        this.el.setSize({width: allocation.width, height: allocation.height});
-        this.el.setPosition({x: allocation.x, y: allocation.y});
-        
         // Correct and store allocation.
-        allocation = this.correctAndStoreAllocation(allocation);
+        this.correctAndStoreAllocation(allocation);
         
         // Allocate size for child.
         if (this.children.length)
@@ -61,11 +58,13 @@ Class.define('CheckButton', {
             {
                 // Give us only the requested width, thereby essentially left aligning content.
                 // Also, vertically center child.
-                var requisition = child.requestSize();
+                var requisition = child.getSizeRequisition();
                 
-                allocation.y      = (allocation.height - requisition.height) * 0.5;
-                allocation.width  = requisition.width;
-                allocation.height = requisition.height;
+                var availableHeight = allocation.height;
+                
+                allocation.width  = Math.min(allocation.width,  requisition.natural.width);
+                allocation.height = Math.min(allocation.height, requisition.natural.height);
+                allocation.y      = Math.round((availableHeight - allocation.height) * 0.5);
                 
                 // Set body size.
                 this.bodyEl.setPosition({x: 0, y: allocation.y});
@@ -73,13 +72,9 @@ Class.define('CheckButton', {
                 
                 // Set child allocation.
                 var padding = this.bodyEl.getPadding();
-                var margin  = child.margin;
                 
-                allocation.x = margin.left + padding.left;
-                allocation.y = margin.top  + padding.top;
-                
-                allocation.width  -= margin.left + margin.right;
-                allocation.height -= margin.top  + margin.bottom;
+                allocation.x  = padding.left;
+                allocation.y += padding.top;
                 
                 child.allocateSize(allocation);
                 

@@ -118,6 +118,11 @@ Class.define('ToggleButton', {
      */
     
     properties: {
+        /**
+         * Whether this button is toggled.
+         *
+         * @type bool
+         */
         active: {
             write: function(active)
             {

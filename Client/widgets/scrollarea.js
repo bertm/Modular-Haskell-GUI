@@ -64,13 +64,13 @@ Class.define('ScrollArea', {
         // Get child requisition.
         var child = this.children[0];
         if (child && child.visible)
-            var childRequisition = child.requestSize();
+            var childRequisition = child.getSizeRequisition();
         else
-            var childRequisition = {width: 0, height: 0};
+            var childRequisition = {natWidth: 0, natHeight: 0};
         
         // Only reallocate when child requisition has changed.
-        if ((this.hAdjustment.getUpper() !== childRequisition.width) ||
-            (this.vAdjustment.getUpper() !== childRequisition.height))
+        if ((this.hAdjustment.getUpper() !== childRequisition.minimum.width) ||
+            (this.vAdjustment.getUpper() !== childRequisition.minimum.height))
         {
             this.allocateSize(Util.cloneShallow(this.allocation));
         }
@@ -82,47 +82,40 @@ Class.define('ScrollArea', {
         }
     },
     
-    requestSize: function()
+    getSizeRequisition: function()
     {
         // Fetch scrollbars their size.
         if (!ScrollArea.hScrollBarSize)
         {
-            ScrollArea.hScrollBarSize = this.hScrollBar.requestSize();
-            ScrollArea.vScrollBarSize = this.vScrollBar.requestSize();
+            ScrollArea.hScrollBarSize = this.hScrollBar.getSizeRequisition().natural;
+            ScrollArea.vScrollBarSize = this.vScrollBar.getSizeRequisition().natural;
         }
         
         // Fetch size.
-        return ScrollArea.base.requestSize.call(this);
+        return ScrollArea.base.getSizeRequisition.call(this);
     },
     
-    getMinimumSize: function()
+    getPreferredSize: function()
     {
         var hScrollBarSize = ScrollArea.hScrollBarSize;
         var vScrollBarSize = ScrollArea.vScrollBarSize;
         
         return {
-            width: vScrollBarSize.width + hScrollBarSize.width,
-            height: vScrollBarSize.height + hScrollBarSize.height
+            minimum: {
+                width:  vScrollBarSize.width  + hScrollBarSize.width,
+                height: vScrollBarSize.height + hScrollBarSize.height
+            },
+            natural: {
+                width:  Math.max(200, vScrollBarSize.width  + hScrollBarSize.width),
+                height: Math.max(200, vScrollBarSize.height + hScrollBarSize.height)
+            }
         };
     },
     
     allocateSize: function(allocation)
     {
-        // Check for difference.
-        //if ((this.allocation.x === allocation.x) &&
-        //    (this.allocation.y === allocation.y) &&
-        //    (this.allocation.width === allocation.width) &&
-        //    (this.allocation.height === allocation.height))
-        //{
-        //    return;
-        //}
-        
-        // Set our size and position.
-        this.el.setSize({width: allocation.width, height: allocation.height});
-        this.el.setPosition({x: allocation.x, y: allocation.y});
-        
         // Correct and store allocation.
-        allocation = this.correctAndStoreAllocation(allocation);
+        this.correctAndStoreAllocation(allocation);
         
         // Scrollbars are not needed yet.
         var hScrollBarVisible = (this.hPolicy === Policy.ALWAYS),
@@ -132,28 +125,16 @@ Class.define('ScrollArea', {
         var child = this.children[0];
         if (child && child.visible)
         {
-            // Get child requisition.
-            var childRequisition = Util.cloneShallow(child.requestSize());
-            
-            // Create child allocation.
-            var margin = child.margin;
-            
-            var childAllocation = Util.cloneShallow(childRequisition);
-            
-            childAllocation.x = margin.left - this.hAdjustment.getValue();
-            childAllocation.y = margin.top  - this.vAdjustment.getValue();
-            
-            // Apply child margins.
-            childRequisition.width  += margin.left + margin.right;
-            childRequisition.height += margin.top  + margin.bottom;
+            // Get child minimum size.
+            var minSize = Util.cloneShallow(child.getSizeRequisition()).minimum;
             
             // Set upper bounds.
-            this.hAdjustment.setUpper(childRequisition.width);
-            this.vAdjustment.setUpper(childRequisition.height);
+            this.hAdjustment.setUpper(minSize.width);
+            this.vAdjustment.setUpper(minSize.height);
             
             // Check if scrollbars are needed.
             if (vScrollBarVisible ||
-                ((childRequisition.height > allocation.height) && (this.vPolicy !== Policy.NEVER)))
+                ((minSize.height > allocation.height) && (this.vPolicy !== Policy.NEVER)))
             {
                 allocation.width -= ScrollArea.vScrollBarSize.width;
                 
@@ -161,7 +142,7 @@ Class.define('ScrollArea', {
             }
             
             if (hScrollBarVisible ||
-                ((childRequisition.width > allocation.width) && (this.hPolicy !== Policy.NEVER)))
+                ((minSize.width > allocation.width) && (this.hPolicy !== Policy.NEVER)))
             {
                 allocation.height -= ScrollArea.hScrollBarSize.height;
                 
@@ -169,7 +150,7 @@ Class.define('ScrollArea', {
                 
                 // Check vertical scrollbar again.
                 if (!vScrollBarVisible &&
-                    (childRequisition.height > allocation.height) && (this.vPolicy !== Policy.NEVER))
+                    (minSize.height > allocation.height) && (this.vPolicy !== Policy.NEVER))
                 {
                     allocation.width -= ScrollArea.vScrollBarSize.width;
                     
@@ -177,28 +158,31 @@ Class.define('ScrollArea', {
                 }
             }
             
-            childAllocation.width  = Math.max(childAllocation.width, allocation.width - margin.left - margin.right);
-            childAllocation.height = Math.max(childAllocation.height, allocation.height - margin.top - margin.bottom);
-            
             // Set child its view size.
-            child.allocateSize(childAllocation);
+            child.allocateSize({
+                x: -this.hAdjustment.getValue(),
+                y: -this.vAdjustment.getValue(),
+                width:  Math.max(minSize.width,  allocation.width),
+                height: Math.max(minSize.height, allocation.height)
+            });
         }
         
         // Set body size.
         this.bodyEl.setInnerSize({
-            width: allocation.width,
+            width:  allocation.width,
             height: allocation.height
         });
         
         // Allocate space for scrollbars.
+        var bodyFrame = this.bodyEl.getFrame();
         if (hScrollBarVisible)
         {
             this.hScrollBar.show();
             this.hScrollBar.allocateSize({
-                width: this.allocation.width - (vScrollBarVisible ? ScrollArea.vScrollBarSize.width : 0),
+                width: allocation.width + bodyFrame.left + bodyFrame.right,
                 height: ScrollArea.hScrollBarSize.height,
                 x: 0,
-                y: this.allocation.height - ScrollArea.hScrollBarSize.height
+                y: allocation.height + bodyFrame.top + bodyFrame.bottom
             });
         }
         else
@@ -212,8 +196,8 @@ Class.define('ScrollArea', {
             this.vScrollBar.show();
             this.vScrollBar.allocateSize({
                 width: ScrollArea.vScrollBarSize.width,
-                height: this.allocation.height - (hScrollBarVisible ? ScrollArea.hScrollBarSize.height : 0),
-                x: this.allocation.width - ScrollArea.vScrollBarSize.width,
+                height: allocation.height + bodyFrame.top + bodyFrame.bottom,
+                x: allocation.width + bodyFrame.left + bodyFrame.right,
                 y: 0
             });
         }
@@ -247,20 +231,15 @@ Class.define('ScrollArea', {
         var child = this.children[0];
         if (child && child.visible)
         {
-            // Create child allocation.
-            var margin = child.margin;
+            // Allocate child.
+            var childSize = child.getSize();
             
-            var childAllocation = {};
-            var childSize       = child.getSize();
-            
-            childAllocation.x = margin.left - this.hAdjustment.getValue();
-            childAllocation.y = margin.top  - this.vAdjustment.getValue();
-            
-            childAllocation.width  = childSize.width;
-            childAllocation.height = childSize.height;
-            
-            // Set child its view size.
-            child.allocateSize(childAllocation);
+            child.allocateSize({
+                x: -this.hAdjustment.getValue(),
+                y: -this.vAdjustment.getValue(),
+                width: childSize.width,
+                height: childSize.height
+            });
         }
     },
     

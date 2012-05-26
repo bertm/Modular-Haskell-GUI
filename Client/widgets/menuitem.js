@@ -26,9 +26,6 @@ Class.define('MenuItem', {
     
     destroy: function()
     {
-        // Remove event handler from screen.
-        Screen.disconnect('button-release-event', this.onScreenButtonRelease, this);
-        
         // Break link with submenu.
         if (this.submenu)
             this.submenu.setParentMenuItem(null);
@@ -50,15 +47,24 @@ Class.define('MenuItem', {
     
     setActive: function(active)
     {
-        this.active = active;
-        
-        // Add or remove class.
-        active ? this.el.addClass('x-active') : this.el.removeClass('x-active');
-        
-        // TODO: Have a machanism for this.
-        this.signalDispatcher.emit('active-change', this);
-        this.signalDispatcher.emit('property-change', this, 'active');
-        this.signalDispatcher.emit('change', this);
+        if (active !== this.active)
+        {
+            this.active = active;
+            
+            // Add or remove class.
+            active ? this.el.addClass('x-active') : this.el.removeClass('x-active');
+            
+            this.emitPropertyChangeSignals('active');
+        }
+    },
+    
+    /*
+     * Layouting.
+     */
+    
+    getMinimumSize: function()
+    {
+        return Util.measureTextSize(this.label);
     },
     
     /*
@@ -83,15 +89,6 @@ Class.define('MenuItem', {
         // Emit activate signal, if we do not have a submenu.
         if (!this.submenu)
             this.signalDispatcher.emit('activate', this);
-    },
-    
-    /*
-     * Layouting.
-     */
-    
-    getMinimumSize: function()
-    {
-        return Util.measureTextSize(this.label);
     },
     
     /*
@@ -137,7 +134,7 @@ Class.define('MenuItem', {
                 if (submenu)
                     submenu.setParentMenuItem(this);
                 
-                if (this.menu)
+                if (this.submenu)
                     this.submenu.setParentMenuItem(null);
                 
                 this.submenu = submenu;

@@ -64,6 +64,21 @@ Class.define('Util', { extend: 'Object', statics: {
         return newObj;
     },
     
+    // Creates a clone of the given object.
+    clone: function(obj, deep)
+    {
+        var newObj = {};
+        for (var name in obj)
+        {
+            if (deep && (obj[name] instanceof Object))
+                newObj[name] = Util.clone(obj[name], deep);
+            else
+                newObj[name] = obj[name];
+        }
+        
+        return newObj;
+    },
+    
     // Escapes a string for displaying.
     escapeText: function(str)
     {

@@ -134,8 +134,8 @@ Class.define('Button', {
                     this.add(new Label({
                         text: label,
                         justify: Justify.CENTER,
-                        'x-align': this.xAlign,
-                        'y-align': this.yAlign,
+                        //'x-align': this.xAlign, // TODO: Check this out.
+                        //'y-align': this.yAlign,
                         visible: true
                     }));
                 else if (child instanceof Label)
@@ -164,65 +164,6 @@ Class.define('Button', {
             },
             read: true,
             defaultValue: true
-        },
-        'x-align': { // TODO: label-v-align
-            write: function(xAlign)
-            {
-                this.xAlign       = xAlign;
-                this.useAlignment = true;
-                
-                // Set it on child.
-                var child = this.children[0];
-                if (child && child.hasProperty('x-align'))
-                    child.setXAlign(xAlign);
-                
-                // TODO: What about when the child its x-align changes? What do we do? Do we change ours? Do we emit a signal?
-            },
-            read: true,
-            defaultValue: 0.5
-        },
-        'y-align': { // TODO: label-h-align
-            write: function(yAlign)
-            {
-                this.yAlign       = yAlign;
-                this.useAlignment = true;
-                
-                // Set it on child.
-                var child = this.children[0];
-                if (child && child.hasProperty('y-align'))
-                    child.setYAlign(yAlign);
-            },
-            read: true,
-            defaultValue: 0.5
-        },
-        'use-alignment': {
-            write: function(useAlignment)
-            {
-                this.useAlignment = useAlignment;
-            },
-            read: true,
-            defaultValue: false
-        }
-    },
-    
-    /*
-     * Actions.
-     */
-    
-    actions: {
-        // Overrides 'add(widget)' action.
-        add: function(widget)
-        {
-            if (this.useAlignment)
-            {
-                if (widget.hasProperty('x-align'))
-                    widget.setXAlign(this.xAlign);
-                
-                if (widget.hasProperty('y-align'))
-                    widget.setYAlign(this.yAlign);
-            }
-            
-            Button.base.add.call(this, widget);
         }
     }
 });

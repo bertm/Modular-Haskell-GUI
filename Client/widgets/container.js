@@ -168,9 +168,9 @@ Class.define('Container', {
         };
     },
     
-    getMinimumSize: function()
+    getPreferredSize: function()
     {
-        throw new Error('Method \'getMinimumSize\' has not been implemented.');
+        throw new Error('Method \'getPreferredSize\' has not been implemented.');
     },
     
     allocateSize: function(allocation)

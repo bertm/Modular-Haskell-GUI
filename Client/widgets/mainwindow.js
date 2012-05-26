@@ -61,17 +61,17 @@ Class.define('MainWindow', {
     allocateSize: function(allocation)
     {
         // Get minimum allocation.
-        var minSize    = this.requestSize();
+        var minSize    = this.getSizeRequisition().minimum;
         var screenSize = Screen.getSize();
         
         var allocation = {
-            x: this.margin.left,
-            y: this.margin.top,
-            width: Math.max(screenSize.width - this.margin.left - this.margin.right,  minSize.width),
-            height: Math.max(screenSize.height - this.margin.top - this.margin.bottom, minSize.height)
+            x: 0,
+            y: 0,
+            width: Math.max(screenSize.width,  minSize.width),
+            height: Math.max(screenSize.height, minSize.height)
         };
         
-        Window.base.allocateSize.call(this, allocation);
+        MainWindow.base.allocateSize.call(this, allocation);
     },
     
     /*

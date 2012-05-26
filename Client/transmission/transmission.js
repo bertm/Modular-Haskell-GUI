@@ -465,4 +465,4 @@ Singleton.define('Transmission', {
     }
 });
 
-//Transmission.initialize();
+Transmission.initialize();

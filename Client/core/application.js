@@ -19,7 +19,7 @@ Singleton.define('Application', {
         // Add body classes.
         //Element.getBody().addClass('x-ie');
         
-        this.showSomeStuff();
+        //this.showSomeStuff();
     },
     
     /*
@@ -155,7 +155,7 @@ Singleton.define('Application', {
         
         var window = new MainWindow({
             title: 'Test window',
-            //margin: 10
+            margin: 10
             //sensitive: false
             //modal: true
             //opacity: 0.7
@@ -415,7 +415,8 @@ Singleton.define('Application', {
             maximizable: false,
             resizable: true,
             title: 'Some window',
-            opacity: 1.0
+            opacity: 1.0,
+            margin: 0
         });
         
         var bottomBox = new Box({spacing: 5});
@@ -434,9 +435,12 @@ Singleton.define('Application', {
         bottomBox.add(b);
         bottomBox.add(c);
         
-        var wholeBox = new Box({orientation: Orientation.VERTICAL, spacing: 5});
         
-        wholeBox.setMargin(5);
+        
+        
+        var wholeBox = new Box({orientation: Orientation.VERTICAL, spacing: 0});
+        
+        wholeBox.setMargin(50);
         
         var buttonBox = new ButtonBox({orientation: Orientation.VERTICAL, spacing: 5, 'layout-style': ButtonBoxStyle.SPREAD});
         
@@ -447,19 +451,25 @@ Singleton.define('Application', {
         buttonBox.add(new Button({label: "Find All in All Openend\nDocuments", 'can-focus': true}));
         buttonBox.add(new Button({label: 'Close', 'can-focus': true}));
         
-        var topBox = new Box({spacing: 5});
+        var topBox = new Box({margin: 10});
         
         topBox.add(new LineEdit({'sensitive': true, 'text': 'abc', 'can-focus': true}));
         topBox.add(buttonBox);
         
         wholeBox.add(topBox);
-        wholeBox.add(bottomBox);
+        //wholeBox.add(bottomBox);
         
         anotherWindow.add(wholeBox);
         
+        
+        //anotherWindow.add(new LineEdit({'sensitive': true, 'text': 'abc', 'can-focus': true}));
+        
         anotherWindow.showAll();
-        isFocus.setIsFocus(true);
-        radioButtonA.setIsFocus(true);
+        
+        
+        
+        //isFocus.setIsFocus(true);
+        //radioButtonA.setIsFocus(true);
         
         
         //*/
@@ -474,17 +484,14 @@ Singleton.define('Application', {
         
         /*
         
-        var splashScreen    = new Window({margin: 10, sensitive: false}); // decorated: false, modal: true, 
+        var splashScreen    = new Window({margin: 10, decorated: false, modal: true});
         var splashVBox      = new Box({orientation: Orientation.VERTICAL, spacing: 10});
         var splashProgress  = new ProgressBar({'show-text': true});
-        var splashLoading   = new Label({label: 'Loading...', justify: Justify.LEFT});
-        var splashAlignment = new Alignment({'x-align': 0, 'x-scale': 0});
+        var splashLoading   = new Label({text: 'Loading...', justify: Justify.LEFT, 'h-align': 0});
         var splashImage     = new Image({file: 'libreoffice.png'});
         
-        splashAlignment.add(splashLoading);
-        
         splashVBox.add(splashImage, true);
-        splashVBox.add(splashAlignment, false);
+        splashVBox.add(splashLoading, false);
         splashVBox.add(splashProgress, false);
         
         splashScreen.add(splashVBox);
@@ -497,7 +504,7 @@ Singleton.define('Application', {
                 
                 var interval = setInterval(function()
                 {
-                    percent += Math.random() * 2 * 20;
+                    percent += Math.random() * 2;
                     if (percent >= 110)
                     {
                         clearInterval(interval);
@@ -505,17 +512,17 @@ Singleton.define('Application', {
                     }
                     
                     if (percent < 20)
-                        splashLoading.setLabel('Loading fonts...');
+                        splashLoading.setText('Loading fonts...');
                     else if (percent < 30)
-                        splashLoading.setLabel('Loading images...');
+                        splashLoading.setText('Loading images...');
                     else if (percent < 40)
-                        splashLoading.setLabel('Loading settings...');
+                        splashLoading.setText('Loading settings...');
                     else if (percent < 60)
-                        splashLoading.setLabel('Loading user interface...');
+                        splashLoading.setText('Loading user interface...');
                     else if (percent < 70)
-                        splashLoading.setLabel('Loading menus...');
+                        splashLoading.setText('Loading menus...');
                     else if (percent < 100)
-                        splashLoading.setLabel('Loading document...');
+                        splashLoading.setText('Loading document...');
                     
                     splashProgress.setFraction(percent / 100);
                     splashProgress.setText(Math.round(Math.min(100, percent)) + '%');

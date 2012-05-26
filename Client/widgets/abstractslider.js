@@ -54,7 +54,7 @@ Class.define('AbstractSlider', {
     },
     
     /*
-     * Sizing.
+     * Layouting.
      */
     
     setThumbOffset: function()

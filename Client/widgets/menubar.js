@@ -20,32 +20,9 @@ Class.define('MenuBar', {
         EventManager.registerHandler(Element.getBody(), EventMask.BUTTON_PRESS, this.onBodyButtonPress, this);
     },
     
-    destroy: function()
-    {
-        // TODO: ..
-        
-        // Detach event handlers.
-        //Application.disconnect('button-press-event', this.onApplicationButtonPress, this);
-        
-        MenuBar.base.destroy.call(this);
-    },
-    
     getHtml: function()
     {
         return '<div class="x-widget x-menu-bar x-body" />';
-    },
-    
-    /*
-     * Layouting.
-     */
-    
-    getMinimumSize: function()
-    {
-        var minSize = MenuBar.base.getMinimumSize.call(this);
-        
-        minSize.height = Math.max(minSize.height, 22); // TODO: Constant.
-        
-        return minSize;
     },
     
     /*

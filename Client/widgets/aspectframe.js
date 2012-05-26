@@ -30,6 +30,9 @@ Class.define('AspectFrame', {
             return AspectFrame.base.allocateSize.call(this, allocation);
         }
         
+        // Save allocation.
+        var originalAllocation = Util.cloneShallow(allocation);
+        
         // Get requisition.
         var requisition = this.requestSize(false);
         
@@ -71,6 +74,9 @@ Class.define('AspectFrame', {
         
         // Allocate frame.
         AspectFrame.base.allocateSize.call(this, allocation);
+        
+        // Store original allocation.
+        this.allocation = originalAllocation;
     },
     
     statics: {

@@ -11,35 +11,27 @@ Class.define('Bin', {
      * Private methods; layouting.
      */
     
-    getMinimumSize: function()
+    getPreferredSize: function()
     {
         // Fetch its request size.
         if (this.children.length)
         {
             var child = this.children[0];
             if (child.visible)
-            {
-                var margin = child.margin;
-                var size   = child.requestSize();
-                
-                return {width: size.width + margin.left + margin.right, height: size.height + margin.top + margin.bottom};
-            }
+                return Util.clone(child.getSizeRequisition(), true);
         }
         
-        return {width: 0, height: 0};
+        return {minimum: {width: 0, height: 0}, natural: {width: 0, height: 0}};
     },
     
     allocateSize: function(allocation)
     {
-        // Set our size and position.
-        this.el.setSize({width: allocation.width, height: allocation.height});
-        this.el.setPosition({x: allocation.x, y: allocation.y});
-        
         // Correct and store allocation.
-        allocation = this.correctAndStoreAllocation(allocation);
+        this.correctAndStoreAllocation(allocation);
         
         // Set body size.
-        this.bodyEl.setInnerSize({width: allocation.width, height: allocation.height});
+        if (this.bodyEl !== this.el)
+            this.bodyEl.setInnerSize({width: allocation.width, height: allocation.height});
         
         // Allocate size for child.
         if (this.children.length)
@@ -49,13 +41,9 @@ Class.define('Bin', {
             {
                 // Set child allocation.
                 var padding = this.bodyEl.getPadding();
-                var margin  = child.margin;
                 
-                allocation.x = margin.left + padding.left;
-                allocation.y = margin.top  + padding.top;
-                
-                allocation.width  -= margin.left + margin.right;
-                allocation.height -= margin.top  + margin.bottom;
+                allocation.x = padding.left;
+                allocation.y = padding.top;
                 
                 child.allocateSize(allocation);
             }

@@ -23,9 +23,7 @@ Class.define('Fixed', {
     getHtml: function()
     {
         var html =
-            '<div class="x-widget x-fixed">' +
-                '<div class="x-body" />' +
-            '</div>';
+            '<div class="x-widget x-fixed x-body" />';
         
         return html;
     },
@@ -56,11 +54,11 @@ Class.define('Fixed', {
     
     allocateSize: function(allocation)
     {
-        // Set our size and position.
-        this.el.setSize({width: allocation.width, height: allocation.height});
-        this.el.setPosition({x: allocation.x, y: allocation.y});
+        // Correct and store allocation.
+        this.correctAndStoreAllocation(allocation);
         
         // Give visible children their requested size.
+        var padding = this.bodyEl.getPadding();
         for (var i = this.children.length - 1; i >= 0; --i)
         {
             var child = this.children[i];
@@ -74,13 +72,11 @@ Class.define('Fixed', {
                 var childRequisition = child.requestSize();
                 
                 // Allocate size for child.
-                var margin = child.margin;
-                
                 child.allocateSize({
-                    x: position.x + margin.left,
-                    y: position.y + margin.top,
-                    width: childRequisition.width - margin.left - margin.right,
-                    height: childRequisition.height - margin.top  - margin.bottom
+                    x: position.x + padding.left,
+                    y: position.y + padding.top,
+                    width: childRequisition.width,
+                    height: childRequisition.height
                 });
             }
         }

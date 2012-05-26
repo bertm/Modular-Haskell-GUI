@@ -17,6 +17,9 @@ Class.define('LineEdit', {
     {
         LineEdit.base.initialize.call(this);
         
+        // Set vertical scale.
+        this.setVScale(0);
+        
         // Fetch input element.
         this.inputEl = this.el.find('input');
         
@@ -44,8 +47,12 @@ Class.define('LineEdit', {
     
     getMinimumSize: function()
     {
-        //return {width: 15, height: 22};
-        return {width: 150, height: 20};
+        return {width: 15, height: 22};
+    },
+    
+    getNaturalSize: function()
+    {
+        return {width: 150, height: 22};
     },
     
     /*
