@@ -27,8 +27,8 @@ run conn = do mainWindow <- newMainWindow conn
               window <- newWindow conn
               box <- newBox conn
               button <- newButton conn
-              entry <- newEntry conn
-              entry2 <- newEntry conn
+              entry <- newLineEdit conn
+              entry2 <- newLineEdit conn
               
               add window box
               add box button

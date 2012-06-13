@@ -9,8 +9,8 @@ class Property p pp | p -> pp where
 
 -- | A GUIObject is an object o that has property pp.
 class GUIObject o pp | o -> pp where
-    setProperty :: Property p pp => o -> p -> IO ()
-    getProperty :: Property p pp => o -> (x -> p) -> IO pp
+    unsafeSet :: Property p pp => o -> p -> IO ()
+    unsafeGet :: Property p pp => o -> (x -> p) -> IO pp
 
 -- | An IdObject is an object o that has an integer identifier.
 class IdObject o where
@@ -23,7 +23,7 @@ class EventObject o e | o -> e where
 -- | Indicates setting a certain property on a certain object is a valid action.
 class (GUIObject o pp, Property p pp) => Setter o pp p where
     set :: o -> (x -> p) -> x -> IO ()
-    set o f p = setProperty o (f p)
+    set o f p = unsafeSet o (f p)
 
 -- | Indicates getting a certain property of a certain object is a valid action.
 class (GUIObject o pp, Property p pp) => Getter o pp p

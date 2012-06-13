@@ -23,7 +23,7 @@ module Properties (
     Orientation (..),
     
     Prop (..),
-    sameProp,
+    sameProp
   ) where
 
 import Types
@@ -108,52 +108,52 @@ data Orientation = Orientation String -- TODO: enum
 -- Instances for forcing properties in a more generic Prop container
 instance Property Visible Prop
   where toProp = VisibleProp
-        get o a = getProperty o Visible >>= (\(VisibleProp v) -> return v)
+        get o a = unsafeGet o Visible >>= (\(VisibleProp v) -> return v)
 instance Property Size Prop
   where toProp = SizeProp
-        get o a = getProperty o Size >>= (\(SizeProp v) -> return v)
+        get o a = unsafeGet o Size >>= (\(SizeProp v) -> return v)
 instance Property Margin Prop
   where toProp = MarginProp
-        get o a = getProperty o Margin >>= (\(MarginProp v) -> return v)
+        get o a = unsafeGet o Margin >>= (\(MarginProp v) -> return v)
 instance Property Sensitive Prop
   where toProp = SensitiveProp
-        get o a = getProperty o Sensitive >>= (\(SensitiveProp v) -> return v)
+        get o a = unsafeGet o Sensitive >>= (\(SensitiveProp v) -> return v)
 instance Property CanFocus Prop
   where toProp = CanFocusProp
-        get o a = getProperty o CanFocus >>= (\(CanFocusProp v) -> return v)
+        get o a = unsafeGet o CanFocus >>= (\(CanFocusProp v) -> return v)
 instance Property Title Prop
   where toProp = TitleProp
-        get o a = getProperty o Title >>= (\(TitleProp v) -> return v)
+        get o a = unsafeGet o Title >>= (\(TitleProp v) -> return v)
 instance Property Opacity Prop
   where toProp = OpacityProp
-        get o a = getProperty o Opacity >>= (\(OpacityProp v) -> return v)
+        get o a = unsafeGet o Opacity >>= (\(OpacityProp v) -> return v)
 instance Property Label Prop
   where toProp = LabelProp
-        get o a = getProperty o Label >>= (\(LabelProp v) -> return v)
+        get o a = unsafeGet o Label >>= (\(LabelProp v) -> return v)
 instance Property Text Prop
   where toProp = TextProp
-        get o a = getProperty o Text >>= (\(TextProp v) -> return v)
+        get o a = unsafeGet o Text >>= (\(TextProp v) -> return v)
 instance Property Editable Prop
   where toProp = EditableProp
-        get o a = getProperty o Editable >>= (\(EditableProp v) -> return v)
+        get o a = unsafeGet o Editable >>= (\(EditableProp v) -> return v)
 instance Property Visibility Prop
   where toProp = VisibilityProp
-        get o a = getProperty o Visibility >>= (\(VisibilityProp v) -> return v)
+        get o a = unsafeGet o Visibility >>= (\(VisibilityProp v) -> return v)
 instance Property MaxLength Prop
   where toProp = MaxLengthProp
-        get o a = getProperty o MaxLength >>= (\(MaxLengthProp v) -> return v)
+        get o a = unsafeGet o MaxLength >>= (\(MaxLengthProp v) -> return v)
 instance Property Events Prop
   where toProp = EventsProp
-        get o a = getProperty o Events >>= (\(EventsProp v) -> return v)
+        get o a = unsafeGet o Events >>= (\(EventsProp v) -> return v)
 instance Property Active Prop
   where toProp = ActiveProp
-        get o a = getProperty o Active >>= (\(ActiveProp v) -> return v)
+        get o a = unsafeGet o Active >>= (\(ActiveProp v) -> return v)
 instance Property Homogeneous Prop
   where toProp = HomogeneousProp
-        get o a = getProperty o Homogeneous >>= (\(HomogeneousProp v) -> return v)
+        get o a = unsafeGet o Homogeneous >>= (\(HomogeneousProp v) -> return v)
 instance Property Orientation Prop
   where toProp = OrientationProp
-        get o a = getProperty o Orientation >>= (\(OrientationProp v) -> return v)
+        get o a = unsafeGet o Orientation >>= (\(OrientationProp v) -> return v)
 
 -- A more or less generic property container
 data Prop = VisibleProp Visible

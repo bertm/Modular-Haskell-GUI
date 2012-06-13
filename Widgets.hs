@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XTypeSynonymInstances -XMultiParamTypeClasses -XFlexibleContexts #-}
+{-# OPTIONS_GHC -XTypeSynonymInstances -XMultiParamTypeClasses -XFlexibleContexts -XRankNTypes #-}
 
 -- | Definition of the widgets of the GUI.
 
@@ -15,8 +15,8 @@ module Widgets (
         buttonDefaults,
         Window,
         windowDefaults,
-        Entry,
-        entryDefaults,
+        LineEdit,
+        lineEditDefaults,
         Box,
         boxDefaults,
         MainWindow,
@@ -41,6 +41,8 @@ import Types
 import Properties
 import Actions
 
+type Defaults obj = GUIObject b Prop => obj a b -> [IO ()]
+
 -- Constructs a new internal representation of an object
 newObject :: GUIObject b pp => b -> ObjectT a b
 newObject = O
@@ -49,8 +51,8 @@ newObject = O
 data ObjectT a b = O { obj :: b }
   deriving (Show)
 instance GUIObject b Prop => GUIObject (ObjectT a b) Prop where
-    setProperty (O b) = setProperty b
-    getProperty (O b) = getProperty b
+    unsafeSet (O b) = unsafeSet b
+    unsafeGet (O b) = unsafeGet b
 instance IdObject b => IdObject (ObjectT a b) where
     getIdentifier (O b) = getIdentifier b
 instance EventObject b Event => EventObject (ObjectT a b) Event where
@@ -75,52 +77,67 @@ instance ActionAddRemove a b => ActionAddRemove (Widget x a) (Widget y b) where
 instance ActionEvents a => ActionEvents (Widget x a) where
     enableEvents (O a) = enableEvents a
     disableEvents (O a) = enableEvents a
-
-widgetDefaults = [toProp (Visible False),
---                  toProp (Size (100, 100)),
---                  toProp (Margin (0, 0, 0, 0)),
-                  toProp (Sensitive True),
-                  toProp (CanFocus False),
-                  toProp (Events []),
-                  toProp (Active False)]
+widgetDefaults :: Defaults Widget
+widgetDefaults o = [set o Visible False,
+                    set o Sensitive True,
+                    set o CanFocus False,
+                    set o Events [],
+                    unsafeSet o (Active False)]
 
 type Container a b = Widget (AbstractContainer a) b
 data AbstractContainer a = AbstractContainer
-containerDefaults = widgetDefaults
+containerDefaults :: Defaults Container
+containerDefaults o = widgetDefaults o
 
 type Box a b = Container (AbstractBox a) b
 data AbstractBox a = AbstractBox
 instance GUIObject b Prop => Setter (Box a b) Prop Homogeneous
 instance GUIObject b Prop => Setter (Box a b) Prop Orientation
-boxDefaults = toProp (Homogeneous True) : toProp (Orientation "horizontal") : containerDefaults
+boxDefaults :: Defaults Box
+boxDefaults o = [set o Homogeneous True,
+                 set o Orientation "horizontal"]
+                ++ containerDefaults o
 
 type Bin a b = Container (AbstractBin a) b
 data AbstractBin a = AbstractBin
-binDefaults = containerDefaults
+binDefaults :: Defaults Bin
+binDefaults o = containerDefaults o
 
 type Button a b = Bin (AbstractButton a) b
 data AbstractButton a = AbstractButton
 instance GUIObject b Prop => Setter (Button a b) Prop Label
 instance GUIObject b Prop => Getter (Button a b) Prop Label
-buttonDefaults = toProp (Label "") : binDefaults
+buttonDefaults :: Defaults Button
+buttonDefaults o = [set o Label ""] 
+                   ++ binDefaults o
 
 type Window a b = Bin (AbstractWindow a) b
 data AbstractWindow a = AbstractWindow
 instance GUIObject b Prop => Setter (Window a b) Prop Title
 instance GUIObject b Prop => Setter (Window a b) Prop Opacity
-windowDefaults = toProp (Title "") : toProp (Opacity 1) : binDefaults
+windowDefaults :: Defaults Window
+windowDefaults o = [set o Title "",
+                    set o Opacity 1]
+                   ++ binDefaults o
 
 type MainWindow a b = Bin (AbstractMainWindow a) b
 data AbstractMainWindow a = AbstractMainWindow
 instance GUIObject b Prop => Setter (MainWindow a b) Prop Title
-mainWindowDefaults = toProp (Title "") : binDefaults
+mainWindowDefaults :: Defaults MainWindow
+mainWindowDefaults o = [set o Title ""]
+                       ++ binDefaults o
 
-type Entry a b = Widget (AbstractEntry a) b
-data AbstractEntry a = AbstractEntry
-instance GUIObject b Prop => Setter (Entry a b) Prop Text
-instance GUIObject b Prop => Setter (Entry a b) Prop Editable
-instance GUIObject b Prop => Setter (Entry a b) Prop Visibility
-instance GUIObject b Prop => Setter (Entry a b) Prop MaxLength
-instance GUIObject b Prop => Getter (Entry a b) Prop Text
-entryDefaults = toProp (Text "") : toProp (Editable True) : toProp (Visibility True) : toProp (MaxLength 0) : widgetDefaults
+type LineEdit a b = Widget (AbstractLineEdit a) b
+data AbstractLineEdit a = AbstractLineEdit
+instance GUIObject b Prop => Setter (LineEdit a b) Prop Text
+instance GUIObject b Prop => Setter (LineEdit a b) Prop Editable
+instance GUIObject b Prop => Setter (LineEdit a b) Prop Visibility
+instance GUIObject b Prop => Setter (LineEdit a b) Prop MaxLength
+instance GUIObject b Prop => Getter (LineEdit a b) Prop Text
+lineEditDefaults :: Defaults LineEdit
+lineEditDefaults o = [set o Text "",
+                      set o Editable True,
+                      set o Visibility True,
+                      set o MaxLength 0]
+                     ++ widgetDefaults o
 

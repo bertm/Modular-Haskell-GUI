@@ -18,7 +18,7 @@ module GUI (
         Connection,
         newButton,
         newWindow,
-        newEntry,
+        newLineEdit,
         newBox,
         newMainWindow,
         
@@ -273,9 +273,9 @@ getHandlerState s i e = do mes <- getState s i
                                   Nothing -> return []
 
 instance GUIObject Object P.Prop where
-    setProperty (Object t i g) prop = do putPropertyState False (props g) i (toProp prop)
-                                         oSet g i (toProp prop)
-    getProperty (Object t i g) prop = getPropertyState (props g) i (toProp (prop $ error "Property error: undefined"))
+    unsafeSet (Object t i g) prop = do putPropertyState False (props g) i (toProp prop)
+                                       oSet g i (toProp prop)
+    unsafeGet (Object t i g) prop = getPropertyState (props g) i (toProp (prop $ error "Property error: undefined"))
 
 instance IdObject Object where
     getIdentifier (Object _ i _) = i
@@ -308,24 +308,7 @@ newObject t ds p = let Object _ _ g = W.obj p
                          setState (types g) i (Just t)
                          let o = W.newObject $ Object t i g
                           in do oCreate g i t
-                                mapM_ (\x -> case x of
-                                               P.VisibleProp v -> setProperty (W.obj o) v
-                                               P.SizeProp v -> setProperty (W.obj o) v
-                                               P.MarginProp v -> setProperty (W.obj o) v
-                                               P.SensitiveProp v -> setProperty (W.obj o) v
-                                               P.CanFocusProp v -> setProperty (W.obj o) v
-                                               P.TitleProp v -> setProperty (W.obj o) v
-                                               P.OpacityProp v -> setProperty (W.obj o) v
-                                               P.LabelProp v -> setProperty (W.obj o) v
-                                               P.TextProp v -> setProperty (W.obj o) v
-                                               P.EditableProp v -> setProperty (W.obj o) v
-                                               P.VisibilityProp v -> setProperty (W.obj o) v
-                                               P.MaxLengthProp v -> setProperty (W.obj o) v
-                                               P.EventsProp v -> setProperty (W.obj o) v
-                                               P.ActiveProp v -> setProperty (W.obj o) v
-                                               P.HomogeneousProp v -> setProperty (W.obj o) v
-                                               P.OrientationProp v -> setProperty (W.obj o) v
-                                  ) ds
+                                mapM_ id (ds o) -- Perform all initialization.
                                 return o
 
 -- | Gets the next unique Identifier.
@@ -343,9 +326,9 @@ newWindow = newObject "Window" windowDefaults
 newButton :: Connection -> IO (Button () Object)
 newButton = newObject "Button" buttonDefaults
 
--- | Creates a new Entry widget.
-newEntry :: Connection -> IO (Entry () Object)
-newEntry = newObject "LineEdit" entryDefaults -- TODO: rename all related stuff to LineEdit instead of Entry
+-- | Creates a new LineEdit widget.
+newLineEdit :: Connection -> IO (LineEdit () Object)
+newLineEdit = newObject "LineEdit" lineEditDefaults
 
 -- | Creates a new Box widget.
 newBox :: Connection -> IO (Box () Object)
