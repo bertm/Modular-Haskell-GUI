@@ -19,6 +19,8 @@ module Properties (
     Events (..),
     Event (..),
     Active (..),
+    Homogeneous (..),
+    Orientation (..),
     
     Prop (..),
     sameProp,
@@ -98,6 +100,10 @@ data Events = Events [Event]
   deriving Show
 data Active = Active Bool
   deriving Show
+data Homogeneous = Homogeneous Bool
+  deriving Show
+data Orientation = Orientation String -- TODO: enum
+  deriving Show
 
 -- Instances for forcing properties in a more generic Prop container
 instance Property Visible Prop
@@ -142,6 +148,12 @@ instance Property Events Prop
 instance Property Active Prop
   where toProp = ActiveProp
         get o a = getProperty o Active >>= (\(ActiveProp v) -> return v)
+instance Property Homogeneous Prop
+  where toProp = HomogeneousProp
+        get o a = getProperty o Homogeneous >>= (\(HomogeneousProp v) -> return v)
+instance Property Orientation Prop
+  where toProp = OrientationProp
+        get o a = getProperty o Orientation >>= (\(OrientationProp v) -> return v)
 
 -- A more or less generic property container
 data Prop = VisibleProp Visible
@@ -159,6 +171,8 @@ data Prop = VisibleProp Visible
           | MaxLengthProp MaxLength
           | EventsProp Events
           | ActiveProp Active
+          | HomogeneousProp Homogeneous
+          | OrientationProp Orientation
   deriving Show
 
 -- | Determines whether the two given Props are of the same type
@@ -178,5 +192,7 @@ sameProp (VisibilityProp _) (VisibilityProp _) = True
 sameProp (MaxLengthProp _) (MaxLengthProp _) = True
 sameProp (EventsProp _) (EventsProp _) = True
 sameProp (ActiveProp _) (ActiveProp _) = True
+sameProp (HomogeneousProp _) (HomogeneousProp _) = True
+sameProp (OrientationProp _) (OrientationProp _) = True
 sameProp _ _ = False
 

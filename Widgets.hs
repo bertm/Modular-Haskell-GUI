@@ -25,6 +25,12 @@ module Widgets (
         -- * Actions
         add,
         remove,
+        showSingle,
+        showAll,
+        hideSingle,
+        hideAll,
+        enableEvents,
+        disableEvents,
         
         -- * Object manipulation
         newObject,
@@ -45,7 +51,6 @@ data ObjectT a b = O { obj :: b }
 instance GUIObject b Prop => GUIObject (ObjectT a b) Prop where
     setProperty (O b) = setProperty b
     getProperty (O b) = getProperty b
-    addChildObject (O b) = addChildObject b
 instance IdObject b => IdObject (ObjectT a b) where
     getIdentifier (O b) = getIdentifier b
 instance EventObject b Event => EventObject (ObjectT a b) Event where
@@ -62,19 +67,22 @@ instance GUIObject b Prop => Setter (Widget a b) Prop Size
 instance GUIObject b Prop => Setter (Widget a b) Prop Margin
 instance GUIObject b Prop => Setter (Widget a b) Prop Sensitive
 instance GUIObject b Prop => Setter (Widget a b) Prop CanFocus
-instance GUIObject b Prop => Setter (Widget a b) Prop Events
-instance GUIObject b Prop => Getter (Widget a b) Prop Active
-instance ActionAdd a b => ActionAdd (Widget x a) (Widget y b) where
+instance GUIObject b Prop => Setter (Widget a b) Prop Events -- TODO: remove?
+instance GUIObject b Prop => Getter (Widget a b) Prop Active -- Maybe only for Window? TODO: check
+instance ActionAddRemove a b => ActionAddRemove (Widget x a) (Widget y b) where
     add (O a) (O b) = add a b
-instance ActionRemove a b => ActionRemove (Widget x a) (Widget y b) where
     remove (O a) (O b) = remove a b
-widgetDefaults = [VisibleProp (Visible False),
---                  SizeProp (Size (100, 100)),
---                  MarginProp (Margin (0, 0, 0, 0)),
-                  SensitiveProp (Sensitive True),
-                  CanFocusProp (CanFocus False),
-                  EventsProp (Events []),
-                  ActiveProp (Active False)]
+instance ActionEvents a => ActionEvents (Widget x a) where
+    enableEvents (O a) = enableEvents a
+    disableEvents (O a) = enableEvents a
+
+widgetDefaults = [toProp (Visible False),
+--                  toProp (Size (100, 100)),
+--                  toProp (Margin (0, 0, 0, 0)),
+                  toProp (Sensitive True),
+                  toProp (CanFocus False),
+                  toProp (Events []),
+                  toProp (Active False)]
 
 type Container a b = Widget (AbstractContainer a) b
 data AbstractContainer a = AbstractContainer
@@ -82,7 +90,9 @@ containerDefaults = widgetDefaults
 
 type Box a b = Container (AbstractBox a) b
 data AbstractBox a = AbstractBox
-boxDefaults = containerDefaults
+instance GUIObject b Prop => Setter (Box a b) Prop Homogeneous
+instance GUIObject b Prop => Setter (Box a b) Prop Orientation
+boxDefaults = toProp (Homogeneous True) : toProp (Orientation "horizontal") : containerDefaults
 
 type Bin a b = Container (AbstractBin a) b
 data AbstractBin a = AbstractBin
@@ -92,18 +102,18 @@ type Button a b = Bin (AbstractButton a) b
 data AbstractButton a = AbstractButton
 instance GUIObject b Prop => Setter (Button a b) Prop Label
 instance GUIObject b Prop => Getter (Button a b) Prop Label
-buttonDefaults = LabelProp (Label "") : binDefaults
+buttonDefaults = toProp (Label "") : binDefaults
 
 type Window a b = Bin (AbstractWindow a) b
 data AbstractWindow a = AbstractWindow
 instance GUIObject b Prop => Setter (Window a b) Prop Title
 instance GUIObject b Prop => Setter (Window a b) Prop Opacity
-windowDefaults = TitleProp (Title "") : OpacityProp (Opacity 1) : binDefaults
+windowDefaults = toProp (Title "") : toProp (Opacity 1) : binDefaults
 
 type MainWindow a b = Bin (AbstractMainWindow a) b
 data AbstractMainWindow a = AbstractMainWindow
 instance GUIObject b Prop => Setter (MainWindow a b) Prop Title
-mainWindowDefaults = TitleProp (Title "") : binDefaults
+mainWindowDefaults = toProp (Title "") : binDefaults
 
 type Entry a b = Widget (AbstractEntry a) b
 data AbstractEntry a = AbstractEntry
@@ -112,5 +122,5 @@ instance GUIObject b Prop => Setter (Entry a b) Prop Editable
 instance GUIObject b Prop => Setter (Entry a b) Prop Visibility
 instance GUIObject b Prop => Setter (Entry a b) Prop MaxLength
 instance GUIObject b Prop => Getter (Entry a b) Prop Text
-entryDefaults = TextProp (Text "") : EditableProp (Editable True) : VisibilityProp (Visibility True) : MaxLengthProp (MaxLength 0) : widgetDefaults
+entryDefaults = toProp (Text "") : toProp (Editable True) : toProp (Visibility True) : toProp (MaxLength 0) : widgetDefaults
 

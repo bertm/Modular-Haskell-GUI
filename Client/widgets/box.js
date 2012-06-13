@@ -160,7 +160,7 @@ Class.define('Box', {
                 size = allocation.height - (nrVisibleChildren - 1) * this.spacing;
             
             extra = Math.floor(size / nrVisibleChildren);
-            rest  = fullSize - extra * nrVisibleChildren;
+            rest  = size - extra * nrVisibleChildren;
         }
         else 
         {
