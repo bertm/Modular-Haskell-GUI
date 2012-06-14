@@ -1,6 +1,15 @@
-{-# OPTIONS_GHC -XMultiParamTypeClasses -XFunctionalDependencies #-}
+{-# OPTIONS_GHC -XMultiParamTypeClasses -XFunctionalDependencies -XExistentialQuantification #-}
 
-module Types (GUIObject (..), IdObject (..), Setter (..), Getter (..), Property (..), EventObject (..)) where
+module Types
+  (
+    GUIObject (..),
+    IdObject (..),
+    Setter (..),
+    Getter (..),
+    Property (..),
+    EventObject (..),
+    Setting (..)
+  ) where
 
 -- | Property definitions.
 class Property p pp | p -> pp where
@@ -22,9 +31,12 @@ class EventObject o e | o -> e where
 
 -- | Indicates setting a certain property on a certain object is a valid action.
 class (GUIObject o pp, Property p pp) => Setter o pp p where
-    set :: o -> (x -> p) -> x -> IO ()
-    set o f p = unsafeSet o (f p)
 
 -- | Indicates getting a certain property of a certain object is a valid action.
 class (GUIObject o pp, Property p pp) => Getter o pp p
 
+data Setting o
+  -- A Setter-typesafe property setter. To be used in the application.
+  = forall pp p x. Setter o pp p => (x -> p) := x
+  -- A non-Setter-typesafe property setter. Can be used for internal purposes.
+  | forall p pp x. (GUIObject o pp, Property p pp) => (x -> p) :!= x

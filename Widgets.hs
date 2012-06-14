@@ -34,14 +34,15 @@ module Widgets (
         
         -- * Object manipulation
         newObject,
-        obj
+        obj,
+        set
     ) where
 
 import Types
 import Properties
 import Actions
 
-type Defaults obj = GUIObject b Prop => obj a b -> [IO ()]
+type Defaults obj = GUIObject b Prop => [Setting (obj a b)]-- GUIObject b Prop => obj a b -> [IO ()]
 
 -- Constructs a new internal representation of an object
 newObject :: GUIObject b pp => b -> ObjectT a b
@@ -57,6 +58,12 @@ instance IdObject b => IdObject (ObjectT a b) where
     getIdentifier (O b) = getIdentifier b
 instance EventObject b Event => EventObject (ObjectT a b) Event where
     on (O b) = on b
+
+-- | Sets a series of properties for an object.
+set :: o -> [Setting o] -> IO ()
+set obj = mapM_ (\s -> case s of
+                         (p := v)  -> unsafeSet obj (p v)
+                         (p :!= v) -> unsafeSet obj (p v))
 
 -- Widgets
 type Screen a b = ObjectT (AbstractScreen a) b
@@ -78,54 +85,54 @@ instance ActionEvents a => ActionEvents (Widget x a) where
     enableEvents (O a) = enableEvents a
     disableEvents (O a) = enableEvents a
 widgetDefaults :: Defaults Widget
-widgetDefaults o = [set o Visible False,
-                    set o Sensitive True,
-                    set o CanFocus False,
-                    set o Events [],
-                    unsafeSet o (Active False)]
+widgetDefaults = [Visible := False,
+                  Sensitive := True,
+                  CanFocus := False,
+                  Events := [],
+                  Active :!= False]
 
 type Container a b = Widget (AbstractContainer a) b
 data AbstractContainer a = AbstractContainer
 containerDefaults :: Defaults Container
-containerDefaults o = widgetDefaults o
+containerDefaults = widgetDefaults
 
 type Box a b = Container (AbstractBox a) b
 data AbstractBox a = AbstractBox
 instance GUIObject b Prop => Setter (Box a b) Prop Homogeneous
 instance GUIObject b Prop => Setter (Box a b) Prop Orientation
 boxDefaults :: Defaults Box
-boxDefaults o = [set o Homogeneous True,
-                 set o Orientation "horizontal"]
-                ++ containerDefaults o
+boxDefaults = [Homogeneous := True,
+               Orientation := "horizontal"]
+              ++ containerDefaults
 
 type Bin a b = Container (AbstractBin a) b
 data AbstractBin a = AbstractBin
 binDefaults :: Defaults Bin
-binDefaults o = containerDefaults o
+binDefaults = containerDefaults
 
 type Button a b = Bin (AbstractButton a) b
 data AbstractButton a = AbstractButton
 instance GUIObject b Prop => Setter (Button a b) Prop Label
 instance GUIObject b Prop => Getter (Button a b) Prop Label
 buttonDefaults :: Defaults Button
-buttonDefaults o = [set o Label ""] 
-                   ++ binDefaults o
+buttonDefaults = [Label := ""]
+                 ++ binDefaults
 
 type Window a b = Bin (AbstractWindow a) b
 data AbstractWindow a = AbstractWindow
 instance GUIObject b Prop => Setter (Window a b) Prop Title
 instance GUIObject b Prop => Setter (Window a b) Prop Opacity
 windowDefaults :: Defaults Window
-windowDefaults o = [set o Title "",
-                    set o Opacity 1]
-                   ++ binDefaults o
+windowDefaults = [Title := "",
+                  Opacity := 1]
+                 ++ binDefaults
 
 type MainWindow a b = Bin (AbstractMainWindow a) b
 data AbstractMainWindow a = AbstractMainWindow
 instance GUIObject b Prop => Setter (MainWindow a b) Prop Title
 mainWindowDefaults :: Defaults MainWindow
-mainWindowDefaults o = [set o Title ""]
-                       ++ binDefaults o
+mainWindowDefaults = [Title := ""]
+                     ++ binDefaults
 
 type LineEdit a b = Widget (AbstractLineEdit a) b
 data AbstractLineEdit a = AbstractLineEdit
@@ -135,9 +142,9 @@ instance GUIObject b Prop => Setter (LineEdit a b) Prop Visibility
 instance GUIObject b Prop => Setter (LineEdit a b) Prop MaxLength
 instance GUIObject b Prop => Getter (LineEdit a b) Prop Text
 lineEditDefaults :: Defaults LineEdit
-lineEditDefaults o = [set o Text "",
-                      set o Editable True,
-                      set o Visibility True,
-                      set o MaxLength 0]
-                     ++ widgetDefaults o
+lineEditDefaults = [Text := "",
+                    Editable := True,
+                    Visibility := True,
+                    MaxLength := 0]
+                   ++ widgetDefaults
 

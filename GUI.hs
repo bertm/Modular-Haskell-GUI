@@ -24,8 +24,9 @@ module GUI (
         
         -- * Interaction
         get,
-        set,
-        on
+        on,
+        
+        Setting ((:=))
     ) where
 
 import Control.Concurrent.MVar
@@ -308,7 +309,7 @@ newObject t ds p = let Object _ _ g = W.obj p
                          setState (types g) i (Just t)
                          let o = W.newObject $ Object t i g
                           in do oCreate g i t
-                                mapM_ id (ds o) -- Perform all initialization.
+                                set o ds -- Perform all initialization.
                                 return o
 
 -- | Gets the next unique Identifier.
