@@ -1,0 +1,498 @@
+\documentclass[11pt]{article}
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{parskip}
+
+
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+
+\lstset{
+    basicstyle=\footnotesize,
+    language=PHP,
+    showspaces=false,
+    showtabs=false,
+    % frame=tb,
+    showstringspaces=false ,
+    keywordstyle=\color{blue},          % keyword style
+    commentstyle=\color{dkgreen},       % comment style
+    stringstyle=\color{red},           % string literal style
+    escapeinside={\%*}{*)},            % if you want to add a comment within your code
+    morekeywords={*,...}               % if you want to add more keywords to the set
+}
+
+
+
+\setlength{\parindent}{0in} 
+\setlength{\parskip}{.07in} 
+
+
+
+\usepackage[hmargin=3cm,vmargin=3.5cm]{geometry}
+
+
+
+
+% General parameters, for all pages:
+\renewcommand{\topfraction}{1}     % max fraction of floats at top
+\renewcommand{\bottomfraction}{1} % max fraction of floats at bottom
+
+% Parameters for TEXT pages (not float pages):
+\setcounter{topnumber}{10}
+\setcounter{bottomnumber}{10}
+\setcounter{totalnumber}{10}   % 2 may work better
+\setcounter{dbltopnumber}{10}  % for 2-column pages
+\renewcommand{\dbltopfraction}{0.9} % fit big float above 2-col. text
+\renewcommand{\textfraction}{0.07}  % allow minimal text w. figs
+
+% Parameters for FLOAT pages (not text pages):
+\renewcommand{\floatpagefraction}{0.7} % require fuller float pages
+
+% N.B.: floatpagefraction MUST be less than topfraction !!
+\renewcommand{\dblfloatpagefraction}{0.7} % require fuller float pages
+
+
+
+\title{Modular Asynchronous Haskell Graphical User Interface}
+
+\author{Bert Massop - 3484777\\
+Gerben van Veenendaal - 3470792}
+
+\begin{document}
+
+\maketitle
+
+\newpage
+\tableofcontents
+
+\newpage
+\section{Goal}
+
+Current Haskell libraries are hard to use, because they have a lot of dependencies and are therefore hard to build.
+Therefore updating to a new newer version of a user interface can be painstaking and this makes creating a simple application with a user interface in Haskell a tedious process.
+We want to fix these problems with a new user interface, that should have the following features:
+
+\begin{itemize}
+\item It has to be standalone, not a lot of dependencies should be used.
+\item The API should be easy, preferably it should be like the current user interface APIs.
+\item It has to be cross-platform, preferably usable on mobile devices and tablets as well.
+\item It has to have modern features that other current user interface libraries also have.
+\item It has to be modular, so that we can easily swap a part of the library with another part.
+This also makes the library future proof.
+\end{itemize}
+
+Our goal is to create such a user interface library for Haskell, and use modern technology to do so.
+
+\section{Technology}
+
+\subsection{The browser}
+As the browser is today the most used interface for most people, we wanted to leverage that.
+Everybody has a browser as it provides an easy way to browse the web and use your favorite web applications.
+Most applications move to the SaaS (Software as a Service) software delivery model.
+Browsers are also installed on mobile devices like smart phones and tablets.
+
+When you use the browser, you are bound to using a few web languages:
+
+\begin{itemize}
+\item \textit{HTML} (HyperText Markup Language) -- A markup language used to structure content in a browser.
+Content can be images, text, boxes, vector graphics, etc.
+\item \textit{CSS} (Cascading Style Sheets) -- A styling language to provide the styling for the structured content.
+Provides ways to for example give text a color, give boxes a location, etc.
+\item \textit{Javascript} -- A scripting language that provides means to interact with the user.
+It can add, modify and remove structure (HTML) and styling (CSS). Javascript has an event based model, it can only do something when an event has happened like a mouse movement or a key press.
+There is no main loop.
+You can however install intervals to run code regularly.
+\end{itemize}
+
+So we can build a user interface using these languages.
+We do this by creating widgets (like a button) that have a certain structure and styling.
+We then add interaction to the widget by adding events on which Javascript is run.
+
+\subsection{Haskell}
+
+To create a Haskell user interface we must of course use Haskell.
+We need to make the API of the user interface in Haskell.
+It must be a easy-to-use API, preferably like the ones other Haskell user interface libraries use.
+Other user interface libraries for Haskell include \textit{wxHaskell}, using \textit{wxWidgets} as its backend, and \textit{Gtk2Hs} using \textit{Gtk+} as its backend.
+
+\subsection{Communication}
+
+So we have established that we want to use the browser and Haskell for the user interface library.
+But how do these communicate?
+For the user interface to work we need a two-way communication.
+It seems we have the following options:
+
+\begin{itemize}
+\item \textit{Polling} -- Polling is a technique that does a HTTP request on a regular interval.
+The requests ask the server if they have any pending messages for the client, and if so, they are returned. Messages from the client to the server can be immediately sent.
+Polling is very bandwidth heavy, and the delay between the time the message is ready on the server and the time the request is made can be as large as the interval time.
+\item \textit{Long polling} -- Long polling is a technique that essentially does the same thing as polling, but the server waits to respond until there is a message ready at the server.
+If there is, the message is returned and a new request is made from the client.
+The problem is that when a lot of messages are sent from the server, a lot of requests must be made from the client.
+This can quickly go out of control and results in a lot of bandwidth usage and delay.
+\item \textit{Streaming} -- Streaming is a technique that creates a request to the server and the server keeps this request open.
+When a message is available, it is sent to the client, but the request is not closed.
+Whenever messages are ready, they are sent to the client over the open request.
+This technique works fairly well, but it does not always work.
+Firewalls and intermediate proxies may buffer the response from the server resulting in a significant delay.
+\item \textit{WebSockets} -- A relatively new technique is the new HTML 5 feature WebSockets.
+WebSockets are HTTP requests which are upgraded to a two-way TCP connection over which messages can be sent that use the WebSocket protocol.
+Messages are very lightweight.
+Not all browsers support WebSockets however, but you can use a Flash based alternative if there is no support.
+If you use port 80 there can still be a problem with intermediate proxies that buffer or do not support the WebSocket protocol.
+You can however use a different port.
+In that case the firewall at the client must not block that outgoing port.
+On most machines most outgoing ports are not blocked, so that is almost never a problem.
+\end{itemize}
+
+It is quite clear that the WebSocket solution is the best solution here.
+In time, WebSockets is likely to be implemented by more browsers (currently only Chrome and Firefox support it) and be used by more people.
+
+\newpage
+\section{Layers}
+
+The library has to be modular, and so we chose to use the layered approach.
+With this approach the library is divided into a stack of separate modules or layers, which can only communicate with the layers above and below them.
+Each of the layers is fully replaceable with an equivalent layer which makes the library future proof.
+We will go into more detail about the layers in the next chapters.
+
+\subsection{Application Programming Interface layer}
+
+The \textit{API} (Application Programming Interface) layer is responsible for communication between the application that uses the library and the library itself.
+It has to be easy to use, yet powerful enough to create all kinds of user interfaces.
+This layer uses Haskell.
+
+% TODO: More common info.
+
+\subsection{Server-side communication layer}
+
+The \textit{server-side communication layer} communicates the function calls that the user makes in the API over the transmission layer.
+It uses the transmission protocol for this as described later on.
+The server must also have a simple HTTP server to serve the HTML, CSS and Javascript files to the browser.
+This HTTP server does not need to do very much, except for handling static file requests and handling caching.
+The server-side communication layer is written in Haskell.
+
+\subsection{Transmission layer}
+
+The actual transmission layer is actually split over the client and the server.
+It uses the WebSocket protocol to send data over the line.
+The message over the WebSocket protocol are formatted using \textit{JSON}.
+JSON is a subset of Javscript.
+This allows for easy parsing in Javascript on the client, and it is easy to understand and implement.
+The server part of the transmission layer is written in Haskell, the client part in Javascript.
+Part of the transmission layer on the client lies in the browser itself, Javascript uses an API to create a WebSocket connection.
+
+\subsection{Client-side communication layer}
+
+The \textit{client-side communication layer} is the counterpart of the server-side communication layer.
+It sends events that happen on the client to the server and receives data from the server from which it builds a user interface on the client.
+
+\subsection{Widget layer}
+
+The \textit{widget layer} actually defines what the user interface looks like and what its possibilities are.
+It is very thick, it only receives a high-level description of a user interface and builds a user interface from that.
+It supports many different widgets and it supports theming.
+It also has a very easy to use Javascript API, and can therefore easily be used apart from the rest of the stack as alternative Javascript user interface.
+It has features that are comparable to large application user interface libraries like Qt and Gtk+.
+More about this layer can be found in the client-side chapter.
+
+\newpage
+\section{The client-side}
+
+The client-side consists of a widget layer, a communication layer and a transmission layer.
+In this chapter we will look at them in more detail.
+
+\subsection{Widgets}
+
+Widgets are the entities that are used to build a user interface.
+They are the building blocks of which everything you see on the screen consists.
+Examples of widgets are buttons, windows, menu bars and boxes horizontally lay out other widgets.
+
+Widgets form a tree structure.
+On the top of the tree is either a Window widget or a MainWindow widget.
+The Window widget is a a simple window that you can drag around, maximize, resize, etc.
+The MainWindow widget is the widget that covers the whole browser viewport.
+It cannot be dragged around or maximized or in any interacted with.
+You can of course interact with its child widgets.
+You can separate the available widgets into two groups: those that can have child widgets and those that cannot.
+For example a Window widget can contain a single widget as its content, and a button can contain any widget as well.
+We call such widgets container widgets.
+Examples of widgets that cannot contain other widgets are the Label widget, the ProgressBar widget and the Slider widget.
+These widgets occur at the bottom of the tree.
+
+The container widgets can be separated into two groups as well, those who can only contain a single widget, and those who can contain multiple widgets.
+The first group are the Bin widgets.
+
+..
+
+\subsection{Instances}
+
+All widgets are subclasses of the Instance class.
+This class provides every subclass with the following features:
+
+\begin{itemize}
+\item \textit{Properties} -- ...
+\item \textit{Actions} -- ...
+\item \textit{Signals} -- ...
+\end{itemize}
+
+\subsection{The rest}
+
+Theming, documentation generation, transmission, class system, event system, focus system.
+
+\newpage
+\section{The communication protocol}
+
+We needed an abstract protocol to communicate the user interface over the network.
+This protocol does not describe the means of transmission, in our case WebSockets.
+It just describes a message based protocol that describes how user interfaces are built, how signals are communicated and how properties are sent.
+It does not talk about widgets, but about objects. Objects can be more that just widgets, they can also be helper classes that are needed for the user interface.
+
+\subsection{Some definitions}
+
+First we want to explain some definitions that we are going to use in the protocol:
+
+\begin{itemize}
+\item \textit{Object} -- A user interface entity. Object can be singletons or user created objects. Examples are: a button, window or label.
+\item \textit{Singleton} -- An object that has only one instance which always exists.
+\item \textit{Identifier} -- Every object has an identifier.
+This is unique number that can be used to identify the object.
+Singleton identifiers start from 1000.
+Other object have an identifier less than 1000.
+\item \textit{Property} -- A single piece of state of an object. Some properties can be read-only.
+Examples are the text of a label, the title of a window or the pressed state of a toggle button.
+\item \textit{Action} -- An action is a method of an object that can be run.
+Actions almost always change the state of one or more widgets.
+Actions have some logic around the state.
+Examples are: the add action on a window to add a child widget.
+\item \textit{Signal} -- A named event on the client.
+A signal has an object as origin and can have arguments.
+\item \textit{Server} -- The server actor of the protocol.
+Has the application logic behind the user interface.
+Determines what objects are used and what the state is of the objects.
+Sends actions and properties to the client.
+\item \textit{Client} -- The client actor of the protocol.
+Shows the objects with their properties and runs actions on them.
+Sends the signals of the objects to the server.
+Also sends changed properties to the server.
+\item \textit{Connection} -- Pipeline over which messages are sent from client to server and vice versa.
+Can for example be TCP/IP.
+\item \textit{Message} -- A single piece of information that is exchanged between client and server.
+The connection is bidirectional, so message can come from both the server and the client.
+\end{itemize}
+
+\newpage
+\subsection{Connection states}
+
+The protocol goes over a connection, which can be in different states on the client:
+
+\begin{itemize}
+\item \textit{Connecting state} -- The connection with the server has been made, but no handshake has happened yet.
+\item \textit{Handshake state} -- The establish message has been sent, but nothing has been sent back yet.
+\item \textit{Established state} -- The connection has been fully established.
+\item \textit{Closed state} -- The connection has been closed by either the server or the client.
+This can be caused by a connection time-out, an error or a close message.
+\end{itemize}
+
+The state can only change to a next state or to the closed state.
+
+\subsection{Message formatting}
+
+Single messages are formatted using JSON.
+Messages are always objects.
+Multiple messages can be sent by putting them in an array:
+
+\begin{verbatim}
+[{ message 1 },{ message 2 },{ message 3}]
+\end{verbatim}
+
+A message always has the property \textit{type}, which is used to identity the type of the message.
+
+\subsection{Connection management}
+
+The connection is established by the client.
+In order to do this it first connects with the server.
+Then it sets the connection state to \textit{connecting}.
+Then it sends an \textit{establish} message:
+
+\begin{verbatim}
+{
+    "type": "establish",
+
+    "caps": ["some-capability", "some-other-capability"]
+}
+\end{verbatim}
+
+As you can see the only property that this message has besides the type property is the \textit{caps}.
+This is an array with a list of strings that are the capabilities of the client.
+These capabilities can be used to extend the protocol and therefore make it future proof.
+After sending this message the connection state should be set to \textit{handshake}.
+
+The server should in case of a success send the \textit{acknowledge} message back:
+
+\begin{verbatim}
+{
+    "type": "acknowledge",
+
+    "exts": ["some-extension", "some-other-extension"]
+}
+\end{verbatim}
+
+The \textit{exts} property here indicates which extensions should be actually used of the list the client sent.
+This can be implemented to be the intersection between the the client its extensions and the server its extensions.
+After receiving this message the connection state should be set to \textit{established}.
+
+In case of any error, the \textit{error} message should be sent:
+
+\begin{verbatim}
+{
+    "type": "error",
+
+    "msg": "Something went horribly wrong."
+}
+\end{verbatim}
+
+The \textit{msg} property must be a string message describing the error.
+Only one of these message can be sent back by the server.
+
+To close the connection the client or server can always sent a \textit{close} message:
+
+\begin{verbatim}
+{
+    "type": "close"
+}
+\end{verbatim}
+
+This message has the same effect as just closing the connection, but is more graceful.
+The error message should be handled just like a close message and just like a connection loss on the client: the connection should be closed and the connection state should be set to \textit{closed}.
+
+There is a connection time-out of 60 seconds on the connection.
+If no messages are sent within that time, the connection should be closed.
+
+A \textit{keep-alive} message should be sent to the server every 10 seconds, if no other message has been sent meanwhile.
+This message prevents closing the connection. It looks like:
+
+\begin{verbatim}
+{
+    "type": "keep-alive"
+}
+\end{verbatim}
+
+\subsection{Object creation}
+
+The server can sent a \textit{create} message to create a new object on the client.
+Create messages look like:
+
+\begin{verbatim}
+{
+    "type": "create",
+    
+    "class": "SomeClassName",
+    "id": 12
+}
+\end{verbatim}
+
+The \textit{class} property determines the class of the object to be created.
+The \textit{id} property gives the new object an identifier.
+This identifier must be a unique positive integer, less than 1000.
+The identifier can be used by other message to refer to the newly created object.
+Nothing should be sent back to the server, except for an error message if an error occurred while creating the new object on the client.
+
+\subsection{Property setting}
+
+After creation of an object, object properties can be set with the \textit{set} message:
+
+\begin{verbatim}
+{
+    "type": "set",
+    
+    "id": 12,
+    "name": "some-property-name",
+    "value": "some value"
+}
+\end{verbatim}
+
+The \textit{id} property indicates the unique id of the object to set the property of.
+This id must be of a newly created object or of an existing singleton.
+The \textit{name} property is a string indicating the name of the property to change.
+The \textit{value} property is the new value of the property.
+It can have any type the property support.
+If an error occurs on the client, it should send an error message.
+
+This message should also be used when some property changes on the client.
+The client should then send a set message to the server with the new property value.
+
+\subsection{Running actions}
+
+The server can also run actions on objects.
+This can be done by sending an \textit{action} message:
+
+\begin{verbatim}
+{
+    "type": "action",
+
+    "name": "someActionName",
+    "id": 12,
+    "args": [
+        10, "foobar", true
+    ]
+}
+\end{verbatim}
+
+The \textit{name} property is the name of the action to be called.
+The \textit{id} property indicates the target object identifier to call the action on.
+The \textit{args} property is an array containing the arguments of the action to call.
+
+\subsection{Event signalling}
+
+When something happens on the client that the server should know about the client should send a \textit{signal} message:
+
+\begin{verbatim}
+{
+    "type": "signal",
+
+    "name": "some-weird-signal",
+    "id": 12,
+    "time": 8192381290381,
+    "args": [
+        10, "foobar", true
+    ]
+}
+\end{verbatim}
+
+The \textit{name} property is the name of the signal that has happened.
+The \textit{id} property indicates the source object from which the signal came.
+The \textit{time} property contains the time at which the signal happened.
+It must be the amount of milliseconds since epoch in UTC.
+The \textit{args} property is an array containing the arguments of the signal.
+
+\subsection{Value format}
+
+Whenever values are transmitted, so the \textit{args} and \textit{value} properties, references to objects must be converted to the following representation:
+
+\begin{verbatim}
+{
+    "id": 12
+}
+\end{verbatim}
+
+Where the \textit{id} property is the identifier of the object referenced.
+Other than these object references, there must be no object in a value.
+So the only values allowed are integers, doubles, booleans, strings, nulls, object references and arrays of allowed values.
+
+\newpage
+\section{The server-side}
+
+..
+
+\end{document}
