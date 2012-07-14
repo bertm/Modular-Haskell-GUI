@@ -79,12 +79,12 @@ Gerben van Veenendaal - 3470792}
 \section{Goal}
 
 Current Haskell libraries are hard to use, because they have a lot of dependencies and are therefore hard to build.
-Therefore updating to a new newer version of a user interface can be painstaking and this makes creating a simple application with a user interface in Haskell a tedious process.
-We want to fix these problems with a new user interface, that should have the following features:
+Because of this updating to a new newer version of a user interface can be painstaking and this makes creating a simple application with a user interface in Haskell a tedious process.
+We want to fix these problems by creating a new user interface library, that should have the following features:
 
 \begin{itemize}
 \item It has to be standalone, not a lot of dependencies should be used.
-\item The API should be easy, preferably it should be like the current user interface APIs.
+\item The API should be easy, preferably it should be like the current user interface API's.
 \item It has to be cross-platform, preferably usable on mobile devices and tablets as well.
 \item It has to have modern features that other current user interface libraries also have.
 \item It has to be modular, so that we can easily swap a part of the library with another part.
@@ -92,14 +92,19 @@ This also makes the library future proof.
 \end{itemize}
 
 Our goal is to create such a user interface library for Haskell, and use modern technology to do so.
+The question we asked ourselves was: can this goal be achieved, and what technical difficulties should be solved in order to do this.
 
 \section{Technology}
 
+In order to create a brand new user interface library that meets our requirements, we first need to look at the possibilities that are currently available to do so.
+This chapter walks through the choices of what existing technology to use to create the library.
+
 \subsection{The browser}
+
 As the browser is today the most used interface for most people, we wanted to leverage that.
 Everybody has a browser as it provides an easy way to browse the web and use your favorite web applications.
 Most applications move to the SaaS (Software as a Service) software delivery model.
-Browsers are also installed on mobile devices like smart phones and tablets.
+Browsers are also installed on mobile devices like smart phones and tablets, so by targeting the browser, we target almost all existing platforms.
 
 When you use the browser, you are bound to using a few web languages:
 
@@ -114,22 +119,25 @@ There is no main loop.
 You can however install intervals to run code regularly.
 \end{itemize}
 
-So we can build a user interface using these languages.
-We do this by creating widgets (like a button) that have a certain structure and styling.
-We then add interaction to the widget by adding events on which Javascript is run.
+Basic knowledge about these languages is assumed in this paper, so we won't explain them in detail.
+As we can see the browser is powerful enough to build a user interface.
+We can do this by creating widgets (eg: a button) that have a certain structure (HTML) and styling (CSS).
+We can then add interaction to the widget by adding events on which Javascript is run.
+Therefore, we decided to use the browser for our new user interface library.
+This also implicates that we use HTTP to serve the required HTML, CSS and Javascript to the browser.
+As HTTP is a stateless protocol, we had to make the user interface work asynchronously.
 
 \subsection{Haskell}
 
-To create a Haskell user interface we must of course use Haskell.
-We need to make the API of the user interface in Haskell.
+To create a Haskell user interface we must of course use Haskell because the API of the library needs to be written in Haskell.
 It must be a easy-to-use API, preferably like the ones other Haskell user interface libraries use.
 Other user interface libraries for Haskell include \textit{wxHaskell}, using \textit{wxWidgets} as its backend, and \textit{Gtk2Hs} using \textit{Gtk+} as its backend.
 
 \subsection{Communication}
 
 So we have established that we want to use the browser and Haskell for the user interface library.
-But how do these communicate?
-For the user interface to work we need a two-way communication.
+But how do these two communicate?
+For the user interface to work we need a two-way communication because user events must be sent to Haskell and visual changes must be sent back to the browser.
 It seems we have the following options:
 
 \begin{itemize}
@@ -155,8 +163,10 @@ In that case the firewall at the client must not block that outgoing port.
 On most machines most outgoing ports are not blocked, so that is almost never a problem.
 \end{itemize}
 
-It is quite clear that the WebSocket solution is the best solution here.
+It is quite clear that the WebSocket solution is the best solution there is.
 In time, WebSockets is likely to be implemented by more browsers (currently only Chrome and Firefox support it) and be used by more people.
+Also, because this is a cutting edge library, we want to use the newest technology.
+For the browsers that do not support WebSockets we use the Flash alternative.
 
 \newpage
 \section{Layers}
@@ -168,7 +178,7 @@ We will go into more detail about the layers in the next chapters.
 
 \subsection{Application Programming Interface layer}
 
-The \textit{API} (Application Programming Interface) layer is responsible for communication between the application that uses the library and the library itself.
+The \textit{API (Application Programming Interface) layer} is responsible for communication between the application that uses the library and the library itself.
 It has to be easy to use, yet powerful enough to create all kinds of user interfaces.
 This layer uses Haskell.
 
@@ -212,11 +222,49 @@ More about this layer can be found in the client-side chapter.
 The client-side consists of a widget layer, a communication layer and a transmission layer.
 In this chapter we will look at them in more detail.
 
+\subsection{High level description}
+
+When creating a user interface, you have to decide how much the client does, and how much the server does.
+The choice made is reflected in how much is done at the client, and how much is sent over the network.
+We chose to put quite a bit of logic on the client.
+We created a high level description of a user interface, which is sent to the client.
+The client then creates a user interface from that.
+That way, because it is a high level description, not much is sent over the network, and consequently, not much bandwidth is used.
+We could have also chosen to send a low level description of the user interface (eg: bitmaps) to the client.
+This would have resulting in the client being thin, and a massive usage of bandwidth.
+The problem with a high level description is that you have to duplicate logic: the client and the server both need to know about the details of the description.
+
 \subsection{Widgets}
 
+We choose the high level description to be widgets.
 Widgets are the entities that are used to build a user interface.
 They are the building blocks of which everything you see on the screen consists.
-Examples of widgets are buttons, windows, menu bars and boxes horizontally lay out other widgets.
+Examples of widgets are buttons, windows, menu bars and boxes that horizontally lay out other widgets.
+Each widget has a place in an object hierarchy, for example a CheckButton is a Button, and a CheckMenuItem is a MenuItem.
+Widgets have the following features:
+
+\begin{itemize}
+\item \textit{Properties} -- A property is a piece of state of the widget.
+A window for example has a title property, which is a string, and label has a text property.
+Properties can be read-only.
+Properties are inherited, so that subclasses automatically have the properties of their superclasses.
+
+\item \textit{Actions} -- An action is like a method of the widget.
+It does some calculation and changes multiple properties at once.
+Actions are available to reduce the amount of repetitive code that the user of the library has to use.
+
+\item \textit{Signals} -- Signals are named events that the user can hook into.
+Examples of signals are: a key press on a focussed widget, a mouse click on a button, a change of the text of an input field, etc.
+It implements the observer pattern.
+This pattern allows the user of the library to hook into signals that he would like to act upon.
+Property changes generate a signal as well.
+This is very powerful and is used to sent new properties to the server if they are changed.
+\end{itemize}
+
+\subsection{TODO: Tree structure}
+
+% TODO: ...
+
 
 Widgets form a tree structure.
 On the top of the tree is either a Window widget or a MainWindow widget.
@@ -230,25 +278,57 @@ We call such widgets container widgets.
 Examples of widgets that cannot contain other widgets are the Label widget, the ProgressBar widget and the Slider widget.
 These widgets occur at the bottom of the tree.
 
+
+% TODO: ...
+
+
+\subsection{TODO: Size management}
+
+
+% TODO: ...
+
+
 The container widgets can be separated into two groups as well, those who can only contain a single widget, and those who can contain multiple widgets.
 The first group are the Bin widgets.
+The other group are the layouting widgets.
+They lay out their child widgets on the screen in a certain way.
+Currently the only implemented layouting widgets are Box, ButtonBox and Fixed.
 
-..
+Size management determines how much size every widget gets.
+It starts at the top level widget which is a Window or MainWindow.
+It then traverses the tree of widgets and gives each widget a size, keeping in mind their minimum and preferred sizes.
+Every widget has 
 
-\subsection{Instances}
+Box lays it children out horizontally or vertically.
+
+
+A ButtonBox is a subclass of Box and is meant to lay out buttons, for example in a dialog window.
+It gives each button the same width or height depending on its orientation.
+
+
+
+% TODO: ...
+
+
+
+
+
+\subsection{TODO: Instances}
 
 All widgets are subclasses of the Instance class.
 This class provides every subclass with the following features:
 
-\begin{itemize}
-\item \textit{Properties} -- ...
-\item \textit{Actions} -- ...
-\item \textit{Signals} -- ...
-\end{itemize}
 
-\subsection{The rest}
+\subsection{TODO: The rest}
 
-Theming, documentation generation, transmission, class system, event system, focus system.
+Theming, size management, documentation generation, transmission, class system, event system, focus system.
+
+
+% TODO: ...
+
+
+
+
 
 \newpage
 \section{The communication protocol}
@@ -494,5 +574,9 @@ So the only values allowed are integers, doubles, booleans, strings, nulls, obje
 \section{The server-side}
 
 ..
+
+
+% TODO: ...
+
 
 \end{document}
