@@ -23,10 +23,7 @@ module GUI (
         newMainWindow,
         
         -- * Interaction
-        get,
-        on,
-        
-        Setting ((:=))
+        on
     ) where
 
 import Control.Concurrent.MVar
@@ -41,8 +38,8 @@ import Data.Maybe
 
 import Widgets hiding (Screen, obj, newObject)
 import qualified Widgets as W
-import Properties hiding (Prop (..), sameProp)
-import qualified Properties as P
+import Properties
+import qualified Properties.Internal as P
 import Types
 import Buffer
 import Tokens
@@ -245,7 +242,7 @@ putPropertyState safe s i p = do mps <- getState s i
                                                (a, []) -> if safe
                                                            then return ()
                                                            else setState s i $ Just (p:a)
-                                               (a, (_:b)) -> setState s i $ Just (p:a ++ b)
+                                               (a, (old:b)) -> setState s i $ Just ((P.mergeProp old p) : a ++ b)
                                    Nothing -> if safe
                                                then return ()
                                                else setState s i $ Just [p]
@@ -273,17 +270,14 @@ getHandlerState s i e = do mes <- getState s i
                                   Just es -> return $ map snd . filter (\x -> fst x == e) $ es
                                   Nothing -> return []
 
-instance GUIObject Object P.Prop where
-    unsafeSet (Object t i g) prop = do putPropertyState False (props g) i (toProp prop)
-                                       oSet g i (toProp prop)
-    unsafeGet (Object t i g) prop = getPropertyState (props g) i (toProp (prop $ error "Property error: undefined"))
-
-instance IdObject Object where
-    getIdentifier (Object _ i _) = i
+instance P.PropertyObject Object where
+    unsafeSet (Object t i g) prop = do putPropertyState False (props g) i (P.toProp prop)
+                                       oSet g i (P.toProp prop)
+    unsafeGet (Object t i g) prop = getPropertyState (props g) i (P.toProp (prop $ error "Property error: undefined"))
 
 instance EventObject Object Event where
     on (Object t i g) e f = case e of
-                              (Change a) -> putHandlerState (events g) i ((ChangeEvent . toProp . a $ error "For your eyes only"), f)
+                              (Change a) -> putHandlerState (events g) i ((ChangeEvent . P.toProp . a $ error "For your eyes only"), f)
                               _ -> putHandlerState (events g) i (e, f)
 
 instance ActionAddRemove Object Object where

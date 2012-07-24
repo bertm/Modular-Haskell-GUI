@@ -34,36 +34,30 @@ module Widgets (
         
         -- * Object manipulation
         newObject,
-        obj,
-        set
+        obj
     ) where
 
 import Types
-import Properties
+import Properties.Internal
 import Actions
 
-type Defaults obj = GUIObject b Prop => [Setting (obj a b)]-- GUIObject b Prop => obj a b -> [IO ()]
+type Defaults obj = PropertyObject b => [Setting (obj a b)]
 
 -- Constructs a new internal representation of an object
-newObject :: GUIObject b pp => b -> ObjectT a b
+newObject :: PropertyObject b => b -> ObjectT a b
 newObject = O
 
 -- Internal abstract representation of widgets
 data ObjectT a b = O { obj :: b }
   deriving (Show)
-instance GUIObject b Prop => GUIObject (ObjectT a b) Prop where
+
+instance PropertyObject b => PropertyObject (ObjectT a b) where
     unsafeSet (O b) = unsafeSet b
     unsafeGet (O b) = unsafeGet b
-instance IdObject b => IdObject (ObjectT a b) where
-    getIdentifier (O b) = getIdentifier b
+
 instance EventObject b Event => EventObject (ObjectT a b) Event where
     on (O b) = on b
 
--- | Sets a series of properties for an object.
-set :: o -> [Setting o] -> IO ()
-set obj = mapM_ (\s -> case s of
-                         (p := v)  -> unsafeSet obj (p v)
-                         (p :!= v) -> unsafeSet obj (p v))
 
 -- Widgets
 type Screen a b = ObjectT (AbstractScreen a) b
@@ -71,13 +65,13 @@ data AbstractScreen a = AbstractScreen
 
 type Widget a b = ObjectT (AbstractWidget a) b
 data AbstractWidget a = AbstractWidget
-instance GUIObject b Prop => Setter (Widget a b) Prop Visible
-instance GUIObject b Prop => Setter (Widget a b) Prop Size
-instance GUIObject b Prop => Setter (Widget a b) Prop Margin
-instance GUIObject b Prop => Setter (Widget a b) Prop Sensitive
-instance GUIObject b Prop => Setter (Widget a b) Prop CanFocus
-instance GUIObject b Prop => Setter (Widget a b) Prop Events -- TODO: remove?
-instance GUIObject b Prop => Getter (Widget a b) Prop Active -- Maybe only for Window? TODO: check
+instance PropertyObject b => Setter (Widget a b) Visible
+instance PropertyObject b => Setter (Widget a b) Size
+instance PropertyObject b => Setter (Widget a b) Margin
+instance PropertyObject b => Setter (Widget a b) Sensitive
+instance PropertyObject b => Setter (Widget a b) CanFocus
+instance PropertyObject b => Setter (Widget a b) Events -- TODO: remove?
+instance PropertyObject b => Getter (Widget a b) Active -- Maybe only for Window? TODO: check
 instance ActionAddRemove a b => ActionAddRemove (Widget x a) (Widget y b) where
     add (O a) (O b) = add a b
     remove (O a) (O b) = remove a b
@@ -98,8 +92,8 @@ containerDefaults = widgetDefaults
 
 type Box a b = Container (AbstractBox a) b
 data AbstractBox a = AbstractBox
-instance GUIObject b Prop => Setter (Box a b) Prop Homogeneous
-instance GUIObject b Prop => Setter (Box a b) Prop Orientation
+instance PropertyObject b => Setter (Box a b) Homogeneous
+instance PropertyObject b => Setter (Box a b) Orientation
 boxDefaults :: Defaults Box
 boxDefaults = [Homogeneous := True,
                Orientation := "horizontal"]
@@ -112,16 +106,16 @@ binDefaults = containerDefaults
 
 type Button a b = Bin (AbstractButton a) b
 data AbstractButton a = AbstractButton
-instance GUIObject b Prop => Setter (Button a b) Prop Label
-instance GUIObject b Prop => Getter (Button a b) Prop Label
+instance PropertyObject b => Setter (Button a b) Label
+instance PropertyObject b => Getter (Button a b) Label
 buttonDefaults :: Defaults Button
 buttonDefaults = [Label := ""]
                  ++ binDefaults
 
 type Window a b = Bin (AbstractWindow a) b
 data AbstractWindow a = AbstractWindow
-instance GUIObject b Prop => Setter (Window a b) Prop Title
-instance GUIObject b Prop => Setter (Window a b) Prop Opacity
+instance PropertyObject b => Setter (Window a b) Title
+instance PropertyObject b => Setter (Window a b) Opacity
 windowDefaults :: Defaults Window
 windowDefaults = [Title := "",
                   Opacity := 1]
@@ -129,18 +123,18 @@ windowDefaults = [Title := "",
 
 type MainWindow a b = Bin (AbstractMainWindow a) b
 data AbstractMainWindow a = AbstractMainWindow
-instance GUIObject b Prop => Setter (MainWindow a b) Prop Title
+instance PropertyObject b => Setter (MainWindow a b) Title
 mainWindowDefaults :: Defaults MainWindow
 mainWindowDefaults = [Title := ""]
                      ++ binDefaults
 
 type LineEdit a b = Widget (AbstractLineEdit a) b
 data AbstractLineEdit a = AbstractLineEdit
-instance GUIObject b Prop => Setter (LineEdit a b) Prop Text
-instance GUIObject b Prop => Setter (LineEdit a b) Prop Editable
-instance GUIObject b Prop => Setter (LineEdit a b) Prop Visibility
-instance GUIObject b Prop => Setter (LineEdit a b) Prop MaxLength
-instance GUIObject b Prop => Getter (LineEdit a b) Prop Text
+instance PropertyObject b => Setter (LineEdit a b) Text
+instance PropertyObject b => Setter (LineEdit a b) Editable
+instance PropertyObject b => Setter (LineEdit a b) Visibility
+instance PropertyObject b => Setter (LineEdit a b) MaxLength
+instance PropertyObject b => Getter (LineEdit a b) Text
 lineEditDefaults :: Defaults LineEdit
 lineEditDefaults = [Text := "",
                     Editable := True,
