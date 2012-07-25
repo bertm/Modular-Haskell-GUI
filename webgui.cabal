@@ -1,0 +1,41 @@
+Name:           webgui
+Version:        0.1
+Cabal-Version:  >= 1.10
+Build-Type:     Simple
+Author:         Bert Massop & Gerben van Veenendaal
+Stability:      experimental
+Homepage:       https://github.com/bertm/Modular-Haskell-GUI
+Synopsis:       A modular web-based GUI framework.
+Category:       GUI
+
+Library
+    Build-Depends:
+        timers-updatable >= 0.2.0.2
+        websockets >= 0.5.2.1,
+        json >= 0.5
+    Exposed-Modules:
+        Graphics.UI.WebGUI.JSON
+        Graphics.UI.WebGUI.Events
+        Graphics.UI.WebGUI.Properties
+        Graphics.UI.WebGUI.Widgets
+        Graphics.UI.WebGUI.Widgets.Properties
+        Graphics.UI.WebGUI.Widgets.Protocol
+        Graphics.UI.WebGUI.Widgets.Widgets
+        Graphics.UI.WebGUI.Widgets.New
+        Graphics.UI.WebGUI.Widgets.Internal
+        Graphics.UI.WebGUI.Actions
+        Graphics.UI.WebGUI.Types
+        Graphics.UI.WebGUI.Server.Websocket
+        Graphics.UI.WebGUI.Server.Raw
+        Graphics.UI.WebGUI.Server.Internal
+        Graphics.UI.WebGUI.Server
+        Graphics.UI.WebGUI.Properties.Properties
+        Graphics.UI.WebGUI.Properties.Protocol
+        Graphics.UI.WebGUI.Properties.Internal
+        Graphics.UI.WebGUI.Properties.Props
+        Graphics.UI.WebGUI.Tokens
+        Graphics.UI.WebGUI.ExampleGUI
+        Graphics.UI.WebGUI.Events.Protocol
+        Graphics.UI.WebGUI.GUI
+        Graphics.UI.WebGUI.Buffer
+    Hs-Source-Dirs: src
