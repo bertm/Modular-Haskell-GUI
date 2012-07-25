@@ -8,7 +8,7 @@ module Actions (
     ActionDestroy (..)
   ) where
 
-import Properties
+import Events
 
 -- | Allows to add a Widget to another Widget, or remove it.
 class ActionAddRemove a b where

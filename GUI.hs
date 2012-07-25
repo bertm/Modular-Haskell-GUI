@@ -1,13 +1,10 @@
-{-# OPTIONS_GHC -XMultiParamTypeClasses -XFlexibleContexts #-}
+{-# OPTIONS_GHC -XMultiParamTypeClasses -XFlexibleContexts -XFlexibleInstances #-}
 
 -- | The actual GUI implementation, without the server part.
 -- This module defines the way the GUI is presented to the programmer, as well as some
 -- GUI logic to keep track of the state.
 
 module GUI (
-        module Widgets,
-        module Properties,
-        
         -- * Server binding
         processor,
         connections,
@@ -15,12 +12,10 @@ module GUI (
         OutputToken,
         
         -- * Widgets
+        module Widgets,
+        module Properties,
+        module Events,
         Connection,
-        newButton,
-        newWindow,
-        newLineEdit,
-        newBox,
-        newMainWindow,
         
         -- * Interaction
         on
@@ -36,10 +31,20 @@ import Control.Exception
 import Control.Monad
 import Data.Maybe
 
-import Widgets hiding (Screen, obj, newObject)
-import qualified Widgets as W
+import Widgets hiding (Screen)
+import Widgets.Internal
+import Widgets.Widgets
+import Widgets.Properties
+import Widgets.Protocol
+import Widgets.New
+
 import Properties
-import qualified Properties.Internal as P
+import Properties.Internal
+import Properties.Protocol
+import Properties.Props
+
+import Events
+import Events.Protocol
 import Types
 import Buffer
 import Tokens
@@ -50,14 +55,14 @@ version :: Version
 version = "1.0"
 
 type Parent = Maybe Identifier
-type Connection = W.Screen () Object
+type Connection = Screen () Object
 type Type = String
 type EventHandler = Event -> IO ()
 
 -- | Holds information on the state of a GUI.
 data Global = Global { out :: Buffer OutputToken
                      , nextId :: MVar Identifier
-                     , props :: State [P.Prop]
+                     , props :: State [Prop]
                      , events :: State [(Event, EventHandler)]
                      , children :: State [Identifier]
                      , types :: State String
@@ -145,7 +150,7 @@ handleServer global out token =
     IClose -> quit
     IError msg -> do serverError out ("Client error: " ++ msg) -- TODO: Shouldn't we just close the connection, without OError?
                      quit
-    ISet id name value -> case fromTuple (name, value) of
+    ISet id name value -> case protoToProp (name, value) of
                             Just prop -> do putPropertyState True (props global) id prop
                                             es <- getHandlerState (events global) id (ChangeEvent prop)
                                             mapM_ (\x -> x undefined) es
@@ -161,73 +166,13 @@ serverError out s = do putStrLn ("ERROR: " ++ s)
 quit :: IO ()
 quit = undefined -- TODO: close more gracefully
 
--- | Converts an event name to the corresponding Event.
-toEvent :: String -> Event
-toEvent "Motion" = MotionEvent
-toEvent "Scroll" = ScrollEvent
-toEvent "Enter" = EnterEvent
-toEvent "Leave" = LeaveEvent
-toEvent "KeyPress" = KeyPressEvent
-toEvent "KeyRelease" = KeyReleaseEvent
-toEvent "ButtonPress" = ButtonPressEvent
-toEvent "ButtonRelease" = ButtonReleaseEvent
-toEvent "Focus" = FocusEvent
-toEvent "Blur" = BlurEvent
-
--- | Converts a property name and value to the corresponding Prop, or Nothing if the
--- property was not intended to be received.
-fromTuple :: (String, Value) -> Maybe P.Prop
-fromTuple t = case t of
-                     ("text", StringV v)  -> Just $ P.TextProp $ Text v
-                     ("active", BoolV v)  -> Just $ P.ActiveProp $ Active v
-                     -- TODO: append other valid cases
-                     _ -> Nothing
-
--- | Converts a Prop to its corresponding name and value pair for transmission, or Nothing
--- if the property was not intended to be transmitted.
-toTuple :: P.Prop -> Maybe (String, Value)
-toTuple p = case p of
-              P.VisibleProp (Visible v) -> Just ("visible", BoolV v)
-              P.SizeProp (Size (a, b)) -> Just ("size", ListV $ map IntegerV [a, b])
-              P.MarginProp (Margin (a, b, c, d)) -> Just ("margin", ListV $ map IntegerV [a, b, c, d])
-              P.SensitiveProp (Sensitive v) -> Just ("sensitive", BoolV v)
-              P.CanFocusProp (CanFocus v) -> Just ("can-focus", BoolV v)
-              P.TitleProp (Title v) -> Just ("title", StringV v)
-              P.OpacityProp (Opacity v) -> Just ("opacity", FloatV v)
-              P.LabelProp (Label v) -> Just ("label", StringV v)
-              P.TextProp (Text v) -> Just ("text", StringV v)
-              P.EditableProp (Editable v) -> Just ("editable", BoolV v)
-              P.VisibilityProp (Visibility v) -> Just ("visibility", BoolV v)
-              P.MaxLengthProp (MaxLength v) -> Just ("max-length", IntegerV v)
-              P.EventsProp (Events v) -> Just ("events", IntegerV $ sum $ map eventBitmask v)
-              P.HomogeneousProp (Homogeneous v) -> Just ("homogeneous", BoolV v)
-              P.OrientationProp (Orientation v) -> Just ("orientation", StringV v)
-              
-              P.ActiveProp (Active v) -> Nothing
-              P.ParentProp (Parent v) -> error "Setting parent through property is deprecated" -- TODO: remove?
-
--- | Returns the bitmask for a given Event.
-eventBitmask :: Event -> Integer
-eventBitmask e =
-  case e of
-    MotionEvent         -> 1
-    ScrollEvent         -> 4
-    EnterEvent          -> 16
-    LeaveEvent          -> 64
-    KeyPressEvent       -> 256
-    KeyReleaseEvent     -> 1024
-    ButtonPressEvent    -> 4096
-    ButtonReleaseEvent  -> 16384
-    FocusEvent          -> 65536
-    BlurEvent           -> 262144
-
 -- | Convenience function for outputting a Create token.
 oCreate :: Global -> Identifier -> String -> IO ()
 oCreate g i t = bPutIO (out g) $ OCreate i t
 
 -- | Convenience function for outputting a Set token.
-oSet :: Global -> Identifier -> P.Prop -> IO ()
-oSet g i prop = case toTuple prop of
+oSet :: Global -> Identifier -> Prop -> IO ()
+oSet g i prop = case propToProto prop of
                   Just (p, v) -> bPutIO (out g) $ OSet i p v
                   _           -> return ()
 
@@ -237,23 +182,23 @@ oAction g i n a = bPutIO (out g) $ OAction i n a
 
 -- | Adds or renews a property to the state of the given Identifier.
 -- The first argument defines whether only renewal is allowed.
-putPropertyState :: Bool -> State [P.Prop] -> Identifier -> P.Prop -> IO ()
+putPropertyState :: Bool -> State [Prop] -> Identifier -> Prop -> IO ()
 putPropertyState safe s i p = do mps <- getState s i
                                  case mps of
-                                   Just ps -> case span (not . P.sameProp p) ps of
+                                   Just ps -> case span (not . sameProp p) ps of
                                                (a, []) -> if safe
                                                            then return ()
                                                            else setState s i $ Just (p:a)
-                                               (a, (old:b)) -> setState s i $ Just ((P.mergeProp old p) : a ++ b)
+                                               (a, (old:b)) -> setState s i $ Just ((mergeProp old p) : a ++ b)
                                    Nothing -> if safe
                                                then return ()
                                                else setState s i $ Just [p]
 
 -- | Returns the current value of the Prop in the state of the given Identifier.
-getPropertyState :: State [P.Prop] -> Identifier -> P.Prop -> IO P.Prop
+getPropertyState :: State [Prop] -> Identifier -> Prop -> IO Prop
 getPropertyState s i p = do mps <- getState s i
                             case mps of
-                                   Just ps -> case span (not . P.sameProp p) ps of
+                                   Just ps -> case span (not . sameProp p) ps of
                                                (a, []) -> error "Property error: no such property"
                                                (a, (x:b)) -> return x
                                    Nothing -> error "Property error: no such object"
@@ -272,14 +217,14 @@ getHandlerState s i e = do mes <- getState s i
                                   Just es -> return $ map snd . filter (\x -> fst x == e) $ es
                                   Nothing -> return []
 
-instance P.PropertyObject Object where
-    unsafeSet (Object t i g) prop = do putPropertyState False (props g) i (P.toProp prop)
-                                       oSet g i (P.toProp prop)
-    unsafeGet (Object t i g) prop = getPropertyState (props g) i (P.toProp (prop $ error "Property error: undefined"))
+instance PropertyObject Object where
+    unsafeSet (Object t i g) prop = do putPropertyState False (props g) i (toProp prop)
+                                       oSet g i (toProp prop)
+    unsafeGet (Object t i g) prop = getPropertyState (props g) i (toProp (prop $ error "Property error: undefined"))
 
 instance EventObject Object Event where
     on (Object t i g) e f = case e of
-                              (Change a) -> putHandlerState (events g) i ((ChangeEvent . P.toProp . a $ error "For your eyes only"), f)
+                              (Change a) -> putHandlerState (events g) i ((ChangeEvent . toProp . a $ error "For your eyes only"), f)
                               _ -> putHandlerState (events g) i (e, f)
 
 instance ActionAddRemove Object Object where
@@ -297,16 +242,18 @@ instance ActionEvents Object where
     disableEvents (Object t p g) e = oAction g p "disableEvents" [IntegerV $ sum $ map eventBitmask e]
 
 getScreen :: Global -> IO Connection
-getScreen global = do --oCreate global 1000 "MainWindow" -- TODO: should we send this?
-                      return $ W.newObject (Object "Screen" 2 global)
+getScreen global = return $ widgetObject (Object "Screen" 2 global)
 
-newObject t ds p = let Object _ _ g = W.obj p
-                   in do i <- getNextId g
-                         setState (types g) i (Just t)
-                         let o = W.newObject $ Object t i g
-                          in do oCreate g i t
-                                set o ds -- Perform all initialization.
-                                return o
+instance NewWidget Object (ObjectT a Object) where
+--  new :: [Setting t] -> o -> IO t
+  new ds p = let Object _ _ g = p
+             in do i <- getNextId g
+                   let o = widgetObject $ Object t i g
+                       t = widgetClass o
+                    in do setState (types g) i (Just t)
+                          oCreate g i t
+                          set o ds -- Perform all initialization.
+                          return o
 
 -- | Gets the next unique Identifier.
 getNextId :: Global -> IO Identifier
@@ -315,23 +262,4 @@ getNextId global = let m = nextId global
                          putMVar m (i + 1)
                          return i
 
--- | Creates a new Window widget.
-newWindow :: Connection -> IO (Window () Object)
-newWindow = newObject "Window" windowDefaults
-
--- | Creates a new Button widget.
-newButton :: Connection -> IO (Button () Object)
-newButton = newObject "Button" buttonDefaults
-
--- | Creates a new LineEdit widget.
-newLineEdit :: Connection -> IO (LineEdit () Object)
-newLineEdit = newObject "LineEdit" lineEditDefaults
-
--- | Creates a new Box widget.
-newBox :: Connection -> IO (Box () Object)
-newBox = newObject "Box" boxDefaults
-
--- | Creates a new MainWindow Widget.
-newMainWindow :: Connection -> IO (MainWindow () Object)
-newMainWindow = newObject "MainWindow" mainWindowDefaults
 
