@@ -1,5 +1,6 @@
-\documentclass[11pt]{article}
+\documentclass[11pt,a4paper]{article}
 
+\usepackage[a4paper]{geometry}
 \usepackage{listings}
 \usepackage{color}
 \usepackage{amsmath}
@@ -11,6 +12,7 @@
 \usepackage{graphicx}
 \usepackage{subfig}
 \usepackage{parskip}
+\usepackage[breaklinks,pdfborder={0 0 0 0}]{hyperref}
 
 
 
@@ -31,6 +33,43 @@
     morekeywords={*,...}               % if you want to add more keywords to the set
 }
 
+\makeatletter
+\newcommand*\idstyle{\expandafter\id@style\the\lst@token\relax}
+\def\id@style#1#2\relax{%
+  \ifcat#1\relax\else
+    \ifnum`#1=\uccode`#1%
+      \relax
+    \else
+      \it
+    \fi
+  \fi
+}
+\makeatother
+
+\lstloadlanguages{Haskell}
+\lstnewenvironment{haskell}
+{
+\lstset{
+  language=Haskell,
+  keywordstyle=\bfseries,
+  basicstyle=\relax,
+  stringstyle=\ttfamily,
+  flexiblecolumns=false,
+  commentstyle=\bfseries,
+  basewidth=0.55em,
+  keywords={forall,case,of,instance,class,data,type},
+  identifierstyle=\idstyle,
+  literate={+}{{$+$}}1 {/}{{$/$}}1 {*}{{$*$}}1 {=}{{$=$}}1
+           {>}{{$>$}}1 {<}{{$<$}}1 {\\}{{$\lambda$}}1
+           {\\\\}{{\char`\\\char`\\}}1
+           {->}{{$\rightarrow$}}2 {>=}{{$\geq$}}2 {<-}{{$\leftarrow$}}2
+           {<=}{{$\leq$}}2 {=>}{{$\Rightarrow$}}2 
+           {\ .}{{$\circ$}}2 {\ .\ }{{$\circ$}}2
+           {>>}{{>>}}2 {>>=}{{$\gg\!\!=$}}3
+           {|}{{$\mid$}}1
+           {_}{{\underline{ }}}1
+}
+}{}
 
 
 \setlength{\parindent}{0in} 
@@ -65,8 +104,8 @@
 
 \title{Modular Asynchronous Haskell Graphical User Interface}
 
-\author{Bert Massop - 3484777\\
-Gerben van Veenendaal - 3470792}
+\author{Bert Massop \texttt{<B.Massop@uu.nl>}\\
+Gerben van Veenendaal \texttt{<G.vanVeenendaal@students.uu.nl>}}
 
 \begin{document}
 
@@ -78,21 +117,53 @@ Gerben van Veenendaal - 3470792}
 \newpage
 \section{Goal}
 
-Current Haskell libraries are hard to use, because they have a lot of dependencies and are therefore hard to build.
-Because of this updating to a new newer version of a user interface can be painstaking and this makes creating a simple application with a user interface in Haskell a tedious process.
-We want to fix these problems by creating a new user interface library, that should have the following features:
+While there are already quite some Haskell graphical user interface libraries, they can be hard to use or maintain.
+Some libraries have a lot of dependencies and are therefore hard to build, some feature a monolithic design making it hard to replace functionality as needed.
+Because of this updating to a new version of a user interface can be painstaking and this makes creating a simple application with a user interface in Haskell a tedious process.
+We want to overcome these problems by creating a new user interface library, that should have the following features:
 
 \begin{itemize}
-\item It has to be standalone, not a lot of dependencies should be used.
-\item The API should be easy, preferably it should be like the current user interface API's.
+\item It has to be standalone, no external non-Haskell dependencies should be used.
+\item The API should be easy, preferably it should be similary to a currently widely used user interface API's.
 \item It has to be cross-platform, preferably usable on mobile devices and tablets as well.
 \item It has to have modern features that other current user interface libraries also have.
 \item It has to be modular, so that we can easily swap a part of the library with another part.
 This also makes the library future proof.
 \end{itemize}
 
-Our goal is to create such a user interface library for Haskell, and use modern technology to do so.
+Our goal is to create such a user interface library for Haskell using modern technology.
 The question we asked ourselves was: can this goal be achieved, and what technical difficulties should be solved in order to do this.
+
+\section{Related work}
+\subsection{wxHaskell}
+wxHaskell is a widely used Haskell GUI framework based on wxWidgets, a portable C++ GUI library.
+It features a complete implementation of the wxWidgets interface using phantom types to model the hierarchical inheritance, while existential quantified types allow for a usable approach to setting attributes.\cite{leijen2004wxhaskell}
+This approach to attributes makes wxHaskell both powerful and easy to use.
+
+wxHaskell is not modular in any sense, and can therefore only be used with the wxWidgets library.
+Sadly, this combination has proven to be hard to compile, depending on the target system, making the framework less portable than intended.
+Also, since wxHaskell ties the GUI to the same machine as the running application, it cannot genuinely be used on most mobile devices.
+
+\subsection{Gtk2Hs}
+Gtk2Hs is a Haskell GUI framework based on GTK+, another portable C++ GUI library.
+It is quite similar to wxHaskell, though it is a little less refined.\cite{vanbuilding}
+Gtk2Hs is more or less an exact representation of the GTK+ API in Haskell, adding some functions for casting values.
+Still, Gtk2Hs is interesting as it allows interfaces to be designed graphically through Glade, a drag-and-drop design tool.
+
+\subsection{iData/iTasks}
+iData is an experimental web-based user interface framework written in Clean.
+iData takes an entirely different approach to user interface interaction than wxHaskell and similar frameworks, by providing a thin client architecture.
+This architecture separates the GUI from the application logic.
+In iData, a regular web browser rendering HTML objects performs the GUI role, while the application creates these HTML objects by means of a combinator language.
+
+iTasks is an extension to the iData system.
+Instead of focusing on the layout specification, the focus is on the information chain of interaction with (or choices by) the user(s): the \textit{work flow} of \textit{tasks}.\cite{plasmeijer2007itasks}
+A combinator language lazily specifies the task tree for the application.
+After a connection loss or page refresh, the task tree can be restored and the work flow can be resumed.
+Another unique capability of iTasks in Clean is the possibility to offload computations to the client on demand, utilizing serialization based on dynamic language elements in Clean.\cite{jansen2010embedding}
+
+Both iData and iTasks are specifically designed to be used with HTML rendering intents, an application explicitly generates HTML through the combinator language.
+While HTML allows mobile devices to use the system, a complete rewrite of both library and application are needed to, for instance, support a true native rendering solution.
 
 \section{Technology}
 
@@ -126,12 +197,6 @@ We can then add interaction to the widget by adding events on which Javascript i
 Therefore, we decided to use the browser for our new user interface library.
 This also implicates that we use HTTP to serve the required HTML, CSS and Javascript to the browser.
 As HTTP is a stateless protocol, we had to make the user interface work asynchronously.
-
-\subsection{Haskell}
-
-To create a Haskell user interface we must of course use Haskell because the API of the library needs to be written in Haskell.
-It must be a easy-to-use API, preferably like the ones other Haskell user interface libraries use.
-Other user interface libraries for Haskell include \textit{wxHaskell}, using \textit{wxWidgets} as its backend, and \textit{Gtk2Hs} using \textit{Gtk+} as its backend.
 
 \subsection{Communication}
 
@@ -171,49 +236,60 @@ For the browsers that do not support WebSockets we use the Flash alternative.
 \newpage
 \section{Layers}
 
-The library has to be modular, and so we chose to use the layered approach.
+To model the modularity of the entire library, we chose a layered approach.
 With this approach the library is divided into a stack of separate modules or layers, which can only communicate with the layers above and below them.
 Each of the layers is fully replaceable with an equivalent layer which makes the library future proof.
 We will go into more detail about the layers in the next chapters.
+
+\subsection{Application layer}
+The \textit{application layer} is the layer in which the application logic utilizing this framework resides.
+The application can use the API layer, as described below, to access GUI functionality.
 
 \subsection{Application Programming Interface layer}
 
 The \textit{API (Application Programming Interface) layer} is responsible for communication between the application that uses the library and the library itself.
 It has to be easy to use, yet powerful enough to create all kinds of user interfaces.
-This layer uses Haskell.
+This layer is written as a Haskell module, providing the necessary functions and types to create and operate a GUI.
 
-% TODO: More common info.
+The API layer also contains a widget abstraction, defining which widgets exist and how they operate.
+This abstraction has to match the client-side widget abstraction layer, ensuring that the client-side abstraction provides at least the widgets as promised by the server-side widget abstraction.
+The API layer does however not know anything about the actual rendering of the widgets.
+
+More about this layer can be found in the chapter on the server-side implementation.
 
 \subsection{Server-side communication layer}
-
 The \textit{server-side communication layer} communicates the function calls that the user makes in the API over the transmission layer.
 It uses the transmission protocol for this as described later on.
-The server must also have a simple HTTP server to serve the HTML, CSS and Javascript files to the browser.
-This HTTP server does not need to do very much, except for handling static file requests and handling caching.
+All transmitted messages are formatted using \textit{JSON}
+JSON is a subset of Javscript.
+This allows for easy parsing in Javascript on the client, and it is easy to understand and implement.
 The server-side communication layer is written in Haskell.
 
 \subsection{Transmission layer}
 
-The actual transmission layer is actually split over the client and the server.
+The \textit{transmission layer} handles the actual data transfer between client and server.
 It uses the WebSocket protocol to send data over the line.
-The message over the WebSocket protocol are formatted using \textit{JSON}.
-JSON is a subset of Javscript.
-This allows for easy parsing in Javascript on the client, and it is easy to understand and implement.
+This layer is actually split over the client and the server.
 The server part of the transmission layer is written in Haskell, the client part in Javascript.
 Part of the transmission layer on the client lies in the browser itself, Javascript uses an API to create a WebSocket connection.
+
+%TODO: the transmission layer does not really speak HTTP. That's all static stuff.
+%The server must also have a simple HTTP server to serve the HTML, CSS and Javascript files to the browser.
+%This HTTP server does not need to do very much, except for handling static file requests and handling caching.
 
 \subsection{Client-side communication layer}
 
 The \textit{client-side communication layer} is the counterpart of the server-side communication layer.
 It sends events that happen on the client to the server and receives data from the server from which it builds a user interface on the client.
 
-\subsection{Widget layer}
+\subsection{Client-side widget abstraction layer}
 
 The \textit{widget layer} actually defines what the user interface looks like and what its possibilities are.
 It is very thick, it only receives a high-level description of a user interface and builds a user interface from that.
 It supports many different widgets and it supports theming.
 It also has a very easy to use Javascript API, and can therefore easily be used apart from the rest of the stack as alternative Javascript user interface.
 It has features that are comparable to large application user interface libraries like Qt and Gtk+.
+
 More about this layer can be found in the client-side chapter.
 
 \newpage
@@ -232,7 +308,7 @@ The client then creates a user interface from that.
 That way, because it is a high level description, not much is sent over the network, and consequently, not much bandwidth is used.
 We could have also chosen to send a low level description of the user interface (eg: bitmaps) to the client.
 This would have resulting in the client being thin, and a massive usage of bandwidth.
-The problem with a high level description is that you have to duplicate logic: the client and the server both need to know about the details of the description.
+A high level description comes with one trade-off of having duplicate logic: the client and the server both need to know the details of the description.
 
 \subsection{Widgets}
 
@@ -258,7 +334,7 @@ Examples of signals are: a key press on a focussed widget, a mouse click on a bu
 It implements the observer pattern.
 This pattern allows the user of the library to hook into signals that he would like to act upon.
 Property changes generate a signal as well.
-This is very powerful and is used to sent new properties to the server if they are changed.
+This is very powerful and is used to send new properties to the server if they are changed.
 \end{itemize}
 
 \subsection{TODO: Tree structure}
@@ -573,10 +649,317 @@ So the only values allowed are integers, doubles, booleans, strings, nulls, obje
 \newpage
 \section{The server-side}
 
-..
+Since the goal is to make a modular design, the server-side code has been designed to be as modular as possible.
+Therefore, apart from the separation between API and communication layer, the code has been split into several modules.
+
+\subsection{Transmission layer}
+The transmission layer starts some kind of service devoted to actually receiving data from the client and transmitting it vice-versa.
+It is responsible for accepting new WebSocket connections, after which it should spawn the other layers.
+The \textit{Server} module defines an interface for the transmission layer.
+\textit{Server.Websocket} is a functional Websocket transmission layer, utilizing the \texttt{websockets} package.
+
+\subsection{Communication layer}
+The communication layer translates the raw JSON strings received from the client to proper datastructures or \textit{Tokens}, and vice-versa.
+Its sole purpose is to make sure the other layers do not have to speak JSON.
+This layer, implemented as module \textit{JSON}, utilizes the \texttt{json} package for JSON manipulation and parsing.
+
+Due to the static typing of the Haskell application and the lack of types in JSON, translation involves knowledge about the inner datastructures.
+Still, this layer does not know anything about the semantics of the received values.
+It only knows about which fields are required for which kind of message, and of which type they are: for each kind of message, there exists a token to represent it.
+The communication layer is thereby only the first step in transforming non-typesafe data received into typesafe data.
+
+The generated tokens are transfered by means of \textit{Buffer}s, implemented as STM \textit{TBChan}s, between the communication layer and the API layer.
+This allows the transmission to be performed asynchronously.
+
+\subsection{API layer}
+The API layer bridges the gap between the communication layer and the application layer.
+This layer is composed of several different modules, each modeling different knowledge about the system.
+
+\subsubsection{Widgets}
+In a GUI, widgets form a strict hierarchical tree of inheritance, where imperatively speaking, the child is a subclass of the parent.
+In Haskell though, there is no straightforward way to express inheritance like we know from imperative languages.
+Gtk2Hs solves this problem by providing explicity casting functions, while wxHaskell solves this problem in a more elegant fashion by leveraging phantom types.
+We will adopt the latter approach.
+The following example shows the \textit{ObjectT} at the top of the hierarchy, with \textit{Widget} immediately below, followed by \textit{Container} and \textit{Box} (the \textit{b} type argument can be ignored for now):
+\begin{haskell}
+type Widget a b = ObjectT (AbstractWidget a) b
+data AbstractWidget a = AbstractWidget
+
+type Container a b = Widget (AbstractContainer a) b
+data AbstractContainer a = AbstractContainer
+
+type Box a b = Container (AbstractBox a) b
+data AbstractBox a = AbstractBox
+\end{haskell}
+
+The \textit{a} type argument captures the exact inheritance tree of each type.
+This means that as long as a function taking a \textit{Widget a} does not care about the \textit{a} type argument, it can as well accept Containers and Boxes.
+This can be illustrated by the type-checker equivalence of the following definitions:
+\begin{haskell}
+box :: Box a
+box :: Container (AbstractBox a)
+box :: Widget (AbstractContainer (AbstractBox a))
+box :: ObjectT (AbstractWidget (AbstractContainer (AbstractBox a)))
+\end{haskell}
+
+The \textit{Widgets} module specifies all widgets the GUI system knows about, and models the properties and actions that can be performed on the respective widgets.
+Therefore, the \textit{Widgets} module depends on the \textit{Properties} and \textit{Actions} module that define available properties and actions.
+
+\subsubsection{Type abstractions}
+To comply with the strict typing rules of Haskell while not loosing too much modularity, we often pass the type of the implementation as a type argument to the abstract object.
+We have, for example, the \texttt{Object} datatype.
+This type is used to carry several state variables in the implementation of the internal GUI logic, and is therefore highly implementation specific.
+To maintain separatable modularity, we do for instance not want the widget abstraction module to depend on the internal GUI logic module.
+Therefore, we represent widgets with an additional type and constructor argument, containing the internal object representation.
+We can then make the abstract object a transitive instance of a type class, if we demand the type argument to be an instance of the same type class.
+
+In module \textit{GUI}, the internal implementation:
+\begin{haskell}
+data Object = Object Type Identifier Global
+instance EventObject Object Event where
+    on (Object t i g) e f = [Implementation Omitted]
+\end{haskell}
+
+In module \textit{Widgets}, the abstract widget object:
+\begin{haskell}
+data ObjectT a b = O { obj :: b }
+instance EventObject b Event => EventObject (ObjectT a b) Event where
+    on (O b) = on b
+\end{haskell}
+
+\subsubsection{Properties}
+As described in the section on the client-side widget abstraction, widgets can be altered through a property system.
+The API allows to get or set several kinds of properties.
+This interface is, of course, typesafe: we make it impossible to get or set properties that do not exist for a given widget.
+
+For all properties, we arrange a datatype.
+It is possible for properties to have multiple constructors: take for instance a margin property, one could specify a left margin, a right margin, and so on.
+We would like to be able capture all properties in a single list, while still having access to the type information.
+To accomplich this, we introduce the \textit{Prop} datatype.
+It has a constructor for every property, taking exactly one argument of the corresponding property type.
+The \textit{Prop} datatype thereby generalizes over the different kinds of properties.
+
+\begin{haskell}
+data Editable = Editable Bool
+data Visibility = Visibility Bool
+
+data Prop = EditableProp Editable
+          | VisibilityProp Visible
+\end{haskell}
+
+It should be noted that the \textit{Prop} datatype is thus no longer semantically typesafe, and is therefore not exposed to the application.
+Therefore, we need some way of converting a property to a \textit{Prop}.
+The typeclass \textit{Property} and more specific the function \textit{toProp} handles this behaviour.
+Converting the \textit{Prop} back to its property is handled by \textit{fromProp}.
+
+\begin{haskell}
+class Property p where
+    toProp :: p -> Prop
+    fromProp :: Prop -> p
+
+class (PropertyObject o, Property p) => Setter o p
+class (PropertyObject o, Property p) => Getter o p
+
+class PropertyObject o where
+    unsafeSet :: Property p => o -> p -> IO ()
+    unsafeGet :: Property p => o -> (x -> p) -> IO Prop
+\end{haskell}
+
+We cross the semantic typesafe border with the PropertyObject typeclass: \textit{unsafeSet} and \textit{unsafeGet} allow all properties to be manipulated on any \textit{PropertyObject}, regardless of whether the property is valid for the given object.
+We may now declare widgets to have certain properties (as done in the \textit{Widgets} module).
+
+\begin{haskell}
+instance PropertyObject b => Setter (Widget a b) Visible
+instance PropertyObject b => Setter (LineEdit a b) Editable
+instance PropertyObject b => Getter (LineEdit a b) Text
+instance PropertyObject b => Setter (LineEdit a b) Text
+\end{haskell}
+
+Now we have to introduce the safe function \textit{get} to get a property, as long as the object/property combination is instance of \textit{Getter}.
+The \textit{fromProp} function allows for an elegant implementation of \textit{get}.
+The safe \textit{set} function is defined in a slightly other way than the \textit{get} function: it would be painful to set every property through individual expressions.
+Just like wxHaskell does, we allow lists of semantically typesafe properties to be set at once.
+This is implemented through lists of \textit{Setting}s.
+
+\begin{haskell}
+get :: Getter o p => o -> (x -> p) -> IO p
+get o a = unsafeGet o a >>= (\v -> return (fromProp v))
+
+data Setting o
+  = forall p x. Setter o p => (x -> p) := x
+  | forall p x. (PropertyObject o, Property p) => (x -> p) :!= x
+
+set :: o -> [Setting o] -> IO ()
+set obj = mapM_ (\s -> case s of
+                         (p := v)  -> unsafeSet obj (p v)
+                         (p :!= v) -> unsafeSet obj (p v))
+\end{haskell}
+
+We have the \texttt{:=} infix constructor for setting a property in a semantically typesafe way.
+For internal purposes however, we also feature the \texttt{:!=} infix constructor, that behaves just like \textit{unsafeSet}.
+
+Having the ability to set properties, we can also specify default properties in the \textit{Widgets} module.
+The inheritance we modeled is of great help here, allowing to inherit default properties of the superclass by simple concatenation.
+\begin{haskell}
+type Defaults obj = PropertyObject b => [Setting (obj a b)]
+
+lineEditDefaults :: Defaults LineEdit
+lineEditDefaults = [Text       := ""  ,
+                    Editable   := True,
+                    Visibility := True,
+                    MaxLength  := 0   ]
+                   ++ widgetDefaults
+\end{haskell}
+
+\subsubsection{Actions}
+Sadly, a few operations on widgets do not map well to a property structure.
+Take for example destroying a widget, or adding a widget as child of another widget.
+To be able to perform these rather crucial operations, we implemented a small action infrastructure.
+These operations directly map to action messages in the communication layer, while allowing the internal state to be modified accordingly.
+This leads to the following, rather simplistic type class in the module \textit{Actions}.
+
+\begin{haskell}
+class ActionAddRemove a b where
+    add :: a -> b -> IO ()
+    remove :: a -> b -> IO ()
+\end{haskell}
+
+It is then the responsibility of the implementing module to provide a sensible implementation of these operations.
+The module \textit{Widgets} provides a transitive implementation of this functionality, allowing all widgets to be added to and removed from eachother.
+
+\begin{haskell}
+instance ActionAddRemove a b =>
+  ActionAddRemove (Widget x a) (Widget y b) where
+    add (O a) (O b) = add a b
+    remove (O a) (O b) = remove a b
+\end{haskell}
+
+\subsubsection{GUI}
+The \textit{GUI} module provides the actual implementation of the functionality described above.
+Since all above functionality used a type abstraction of some kind of datatype providing all functionality by means of type class instances, we are left with providing such a datatype.
+
+\begin{haskell}
+data Object = Object Type Identifier Global
+type Type = String
+type Identifier = Int
+data Global = Global { out      :: Buffer OutputToken
+                     , nextId   :: MVar Identifier
+                     , props    :: State [P.Prop]
+                     , events   :: State [(Event, EventHandler)]
+                     , children :: State [Identifier]
+                     , types    :: State String
+                     }
+\end{haskell}
+
+The \textit{Global} datatype is only constructed once for each GUI, and explicitely maintains the system state.
+It contains several \textit{State}s, mapping \textit{Identifier}s to values of the given type.
+For each \textit{Object}, identified by a number, we keep track of its type (such as \texttt{"Button"}), current property values, event handlers and its direct children.
+We also maintain a reference to the output buffer that is used to write abstract messages to the communication layer for transmission.
+All states live in the IO monad, allowing for monadic modification.
+
+It should of course also be possible to construct a new Widget or similar object using the API.
+The GUI therefore implements several \textit{new}XXX functions.
+\begin{haskell}
+newWindow :: Connection -> IO (Window () Object)
+newWindow = newObject "Window" windowDefaults
+\end{haskell}
+
+Note that the first argument of \textit{newWindow} is not the parent-to-be, but the \textit{Connection}, some representation of the current user connection.
+This allows running multiple instances of the same application at once, all started on demand by an incoming connection.
+Note however that it is the responsibility of the application author to let these instances cooperate if that behaviour is intended, this framework does not provide an abstraction layer for multi-user interaction.
+
+\subsubsection{High-level connection management}
+The \textit{GUI} module is also responsible for high-level connection management, on level of input and output tokens.
+This module is the only module to know the semantics of all tokens.
+It therefore plays a role in establishing the connection with the client side by means of capabilities exchange, keeping track of keep-alive messages and so on.
+It also acts upon the input tokens received from the client, such as incoming events and property changes.
+
+In the usual GUI implementations, one would expect the application to terminate when the user closes the application by any means.
+Since our system uses a web-based connection, it might very well be possible that a connection loss occurs, which can be detected through means of a closed socket or failure to receive keep-alive messages.
+Another such point of failure would be the user refreshing the page.
+Just terminating the application when such an unexpected application close occurs is unwanted behaviour.
+
+There are several approaches to this problem.
+iTasks uses serialization for this purpose, storing the entire state of the application on disk until the user returns.
+This is however very hard to accomplish in Haskell, not to mention having to imply various restrictions on IO usage in the application.
+We therefore take another approach.
+Our solution to this problem is to make it transparent to the application layer whether the connection is active or closed.
+While this might seem counter-intuitive at first, it does make sense.
+Consider a normal stand-alone GUI application, e.g. MS Paint.
+A user may stop painting at any given moment in time, turn off the monitor and have a cup of coffee.
+When the user returns, she turns the monitor back on and continues painting.
+MS Paint did not notice the user was away for several minutes, it just did not receive any input during that time.
+Therefore the coffee break was transparent to the application.
+
+Now consider a real connection loss as some kind of unsolicited coffee break.
+As long as we can continue the user experience after the connection is re-established (analogous to turning the monitor back on), there is no need for the application to know whether the connection was lost.
+When a connection is lost, we just leave the application layer running, allowing it to update the GUI as wanted.
+When the connection is re-established, we promptly recreate the GUI the user was seeing.
+This is made easy by our extensive use of properties: we only have to send create messages for all existing widgets, set all their properties, and add them to their respective parents.
+When a configurable amount of time expires after a connection is lost, we do terminate the application to free resources.
+
+\subsection{Application layer}
+% TODO: small and concise application example.
+\begin{haskell}
+run :: Connection -> IO ()
+run conn = do mainWindow <- newMainWindow conn
+              set mainWindow [Title := "A GUI application"]
+
+              window <- newWindow conn
+              box <- newBox conn
+              button <- newButton conn
+              entry <- newLineEdit conn
+              entry2 <- newLineEdit conn
+              
+              add window box
+              add box button
+              add box entry
+              add box entry2
+              
+              -- Set some properties
+              set window [Title := "Test Window"]
+              set button [Label := "Click me",
+                          CanFocus := True,
+                          Visible := True]
+              set entry [Text := "Type here",
+                         CanFocus := True,
+                         Visible := True]
+              set entry2 [CanFocus := True,
+                          Visible := True]
+              set box [Visible := True,
+                       Orientation := "vertical"]
+               
+              -- Finally show window, to correctly center it
+              set window [Visible := True]
+              
+              -- Add a button to the main window
+              button2 <- newButton conn
+              set button2 [Visible := True,
+                           Label := "Main button label",
+                           CanFocus := True]
+
+              set mainWindow [Visible := True]
+              
+              add mainWindow button2
+              
+              -- Capture button releases on button
+              enableEvents button [ButtonReleaseEvent,
+                                   ButtonPressEvent  ,
+                                   FocusEvent        ,
+                                   BlurEvent         ]
+              on button (Change Active)
+                $ const (do Text a <- get entry Text
+                            set button [Label := ("You typed: " ++ a)]
+                            set entry [Text := ""])
+              -- Monitor for changes on entry text
+              on entry (Change Text)
+                $ const (do Text a <- get entry Text
+                            set entry2 [Text := a])
+
+\end{haskell}
 
 
-% TODO: ...
-
+\bibliography{paper}{}
+\bibliographystyle{amsplain}
 
 \end{document}
