@@ -20,8 +20,8 @@ module Properties (
     Homogeneous (..),
     Orientation (..),
     
-    Property (get),
     Setting ((:=)),
+    get,
     set
   ) where
 

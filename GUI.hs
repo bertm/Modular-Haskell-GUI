@@ -174,7 +174,8 @@ toEvent "ButtonRelease" = ButtonReleaseEvent
 toEvent "Focus" = FocusEvent
 toEvent "Blur" = BlurEvent
 
--- | Converts a property name and value to the corresponding Prop
+-- | Converts a property name and value to the corresponding Prop, or Nothing if the
+-- property was not intended to be received.
 fromTuple :: (String, Value) -> Maybe P.Prop
 fromTuple t = case t of
                      ("text", StringV v)  -> Just $ P.TextProp $ Text v
@@ -182,7 +183,8 @@ fromTuple t = case t of
                      -- TODO: append other valid cases
                      _ -> Nothing
 
--- | Converts a Prop to its corresponding name and value pair.
+-- | Converts a Prop to its corresponding name and value pair for transmission, or Nothing
+-- if the property was not intended to be transmitted.
 toTuple :: P.Prop -> Maybe (String, Value)
 toTuple p = case p of
               P.VisibleProp (Visible v) -> Just ("visible", BoolV v)
