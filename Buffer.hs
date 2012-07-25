@@ -7,6 +7,7 @@ module Buffer
     bind,
     bPut,
     bGet,
+    bTryGet,
     bUnGet,
     bGet2,
     bindIO,
@@ -42,6 +43,11 @@ bPut buffer item = do buf <- readTVar buffer
 bGet :: Buffer a -> STM a
 bGet buffer = do buf <- readTVar buffer
                  readTBChan buf
+
+-- | Gets the first item in the buffer, or Nothing when empty.
+bTryGet :: Buffer a -> STM (Maybe a)
+bTryGet buffer = do buf <- readTVar buffer
+                    tryReadTBChan buf
 
 -- | Prepends the given buffer with the given value.
 bUnGet :: Buffer a -> a -> STM ()

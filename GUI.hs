@@ -15,28 +15,30 @@ module GUI (
         module Widgets,
         module Properties,
         module Events,
-        Connection,
+        Screen,
         
         -- * Interaction
-        on
+        on,
+        quit
     ) where
 
 import Control.Concurrent.MVar
 import Control.Concurrent
 import Data.HashTable (HashTable)
 import qualified Data.HashTable as HT
-import Control.Concurrent.MVar
+import Control.Concurrent.STM
+import Control.Concurrent.STM.TVar
 import Control.Concurrent
 import Control.Exception
 import Control.Monad
 import Data.Maybe
+import System.Timer.Updatable
 
 import Widgets hiding (Screen)
 import Widgets.Internal
-import Widgets.Widgets
 import Widgets.Properties
 import Widgets.Protocol
-import Widgets.New
+import qualified Widgets as W
 
 import Properties
 import Properties.Internal
@@ -55,7 +57,7 @@ version :: Version
 version = "1.0"
 
 type Parent = Maybe Identifier
-type Connection = Screen () Object
+type Screen = W.Screen () Object
 type Type = String
 type EventHandler = Event -> IO ()
 
@@ -66,6 +68,8 @@ data Global = Global { out :: Buffer OutputToken
                      , events :: State [(Event, EventHandler)]
                      , children :: State [Identifier]
                      , types :: State String
+                     , closed :: TVar Bool
+                     , resetTimeout :: IO ()
                      }
 
 -- | A wrapper that allows passing Widgets freely.
@@ -94,22 +98,22 @@ connections :: IO Connections
 connections = newState
 
 -- | Handles the incoming connection and starts the GUI.
-processor :: (Connection -> IO ()) -> Connections -> Buffer InputToken -> Buffer OutputToken -> IO ()
-processor main cons inp out = do -- Check if first token is Establish with the correct version.
-                                 first <- bGetIO inp
-                                 case first of
-                                   IEstablish v -> if v == version
-                                                    then -- We're good, (re)start the GUI.
-                                                         maybeRestart first
-                                                    else serverError out "Wrong client version"
-                                   _            -> serverError out "Handshake failed"
-  where maybeRestart f = do connId <- return 1 -- TODO: make unique connection ID using persistent client storage.
-                            b <- getState cons connId
-                            case b of
-                              Just (i, o) -> do bUnGetIO inp f
-                                                bindIO i inp
-                                                bindIO o out
-                                                putStrLn "Restarting.."
+processor :: (Screen -> IO ()) -> Connections -> Delay -> Buffer InputToken -> Buffer OutputToken -> IO ()
+processor main cons timeout inp out =
+  do -- Check if first token is Establish with the correct version.
+     first <- bGetIO inp
+     case first of
+       IEstablish v -> if v == version
+                         then -- We're good, (re)start the GUI.
+                              maybeRestart first
+                         else serverError out "Wrong client version"
+       _            -> serverError out "Handshake failed"
+  where maybeRestart f = do connId <- return 1            -- TODO: make unique connection ID using
+                            b <- getState cons connId     -- persistent client storage,
+                            case Nothing of {-case b of-} -- and then restore this.
+                              Just (i, o) -> atomically $ do bUnGet inp f
+                                                             bind i inp
+                                                             bind o out
                               Nothing -> do setState cons connId $ Just (inp, out)
                                             bPutIO out $ OAcknowledge version
                                             run
@@ -120,16 +124,29 @@ processor main cons inp out = do -- Check if first token is Establish with the c
                  children <- newState
                  setState children 0 $ Just []
                  types <- newState
-                 global <- return $ Global out nextId props events children types
-                 conn <- getScreen $ global
+                 closed <- newTVarIO False
+                 let delay = (timeout + 60) * 10^6
+                 keepalive <- replacer (atomically $ writeTVar closed True) delay
+                 let resetTimeout = renewIO keepalive delay
+                 global <- return $ Global out nextId props events children types closed resetTimeout
+                 conn <- getScreen global
                  -- Fire the GUI thread with the application logic.
                  actionThread <- forkIO $ main conn
                  -- Process incoming tokens.
                  processor' global `finally` killThread actionThread
         processor' :: Global -> IO ()
-        processor' global = do serverInp <- bGetIO inp
-                               handleServer global out serverInp
-                               processor' global
+        processor' global = do serverInp <- atomically
+                                $ do i <- bTryGet inp
+                                     s <- readTVar $ closed global
+                                     case (i, s) of
+                                       (_, True) -> return Nothing
+                                       (Just r, False) -> return (Just r)
+                                       _ -> retry
+                               case serverInp of
+                                 Just i  -> do handleServer global out i
+                                               processor' global
+                                 Nothing -> do bPutIO out OClose
+                                               return ()
 
 -- | Handles an incoming token.
 handleServer :: Global -> Buffer OutputToken -> InputToken -> IO ()
@@ -146,10 +163,10 @@ handleServer global out token =
     ISignal id name time args -> do -- TODO: implement properly
                                     es <- getHandlerState (events global) id (toEvent name)
                                     mapM_ (\x -> x (toEvent name)) es
-    IKeepalive -> return () -- Do nothing at all.
-    IClose -> quit
+    IKeepalive -> resetTimeout global
+    IClose -> getScreen global >>= quit
     IError msg -> do serverError out ("Client error: " ++ msg) -- TODO: Shouldn't we just close the connection, without OError?
-                     quit
+                     getScreen global >>= quit
     ISet id name value -> case protoToProp (name, value) of
                             Just prop -> do putPropertyState True (props global) id prop
                                             es <- getHandlerState (events global) id (ChangeEvent prop)
@@ -162,9 +179,9 @@ serverError :: Buffer OutputToken -> String -> IO ()
 serverError out s = do putStrLn ("ERROR: " ++ s)
                        bPutIO out $ OError s
 
--- | Closes the connection immediately.
-quit :: IO ()
-quit = undefined -- TODO: close more gracefully
+-- | Closes the connection, thereby stopping this application.
+quit :: Screen -> IO ()
+quit s = let (Object _ _ g) = guiObject s in atomically $ writeTVar (closed g) True
 
 -- | Convenience function for outputting a Create token.
 oCreate :: Global -> Identifier -> String -> IO ()
@@ -241,9 +258,6 @@ instance ActionEvents Object where
     enableEvents (Object t p g) e = oAction g p "enableEvents" [IntegerV $ sum $ map eventBitmask e]
     disableEvents (Object t p g) e = oAction g p "disableEvents" [IntegerV $ sum $ map eventBitmask e]
 
-getScreen :: Global -> IO Connection
-getScreen global = return $ widgetObject (Object "Screen" 2 global)
-
 instance NewWidget Object (ObjectT a Object) where
 --  new :: [Setting t] -> o -> IO t
   new ds p = let Object _ _ g = p
@@ -262,4 +276,7 @@ getNextId global = let m = nextId global
                          putMVar m (i + 1)
                          return i
 
+-- | Returns the screen that represents the given Global.
+getScreen :: Global -> IO Screen
+getScreen global = return $ widgetObject (Object "Screen" 2 global)
 

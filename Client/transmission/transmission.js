@@ -376,6 +376,13 @@ Singleton.define('Transmission', {
             type: MessageType.ESTABLISH,
             version: this.version
         });
+        
+        conn.keepalive = setInterval(function()
+        {
+            conn.send({
+                type: MessageType.KEEPALIVE
+            });
+        }, 10000);
     },
     
     onConnectionData: function(conn, data)
@@ -388,6 +395,8 @@ Singleton.define('Transmission', {
     
     onConnectionClose: function(conn)
     {
+        clearInterval(conn.keepalive);
+        
         // Set reason if there is none.
         if (!this.closeReason)
         {

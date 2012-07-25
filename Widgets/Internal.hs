@@ -4,7 +4,6 @@
 module Widgets.Internal (
     ObjectT (..),
     widgetObject,
-    guiObject,
     
     ProtoWidget (..),
     NewWidget (..)

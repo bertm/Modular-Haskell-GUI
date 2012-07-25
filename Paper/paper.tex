@@ -423,8 +423,8 @@ First we want to explain some definitions that we are going to use in the protoc
 \item \textit{Singleton} -- An object that has only one instance which always exists.
 \item \textit{Identifier} -- Every object has an identifier.
 This is unique number that can be used to identify the object.
-Singleton identifiers start from 1000.
-Other object have an identifier less than 1000.
+Singleton identifiers are below 1000.
+User-defined objects have an identifier of at least 1000.
 \item \textit{Property} -- A single piece of state of an object. Some properties can be read-only.
 Examples are the text of a label, the title of a window or the pressed state of a toggle button.
 \item \textit{Action} -- An action is a method of an object that can be run.
@@ -535,12 +535,12 @@ The error message should be handled just like a close message and just like a co
 There is a connection time-out of 60 seconds on the connection.
 If no messages are sent within that time, the connection should be closed.
 
-A \textit{keep-alive} message should be sent to the server every 10 seconds, if no other message has been sent meanwhile.
+A \textit{keepalive} message should be sent to the server every 10 seconds, if no other message has been sent meanwhile.
 This message prevents closing the connection. It looks like:
 
 \begin{verbatim}
 {
-    "type": "keep-alive"
+    "type": "keepalive"
 }
 \end{verbatim}
 
@@ -560,7 +560,7 @@ Create messages look like:
 
 The \textit{class} property determines the class of the object to be created.
 The \textit{id} property gives the new object an identifier.
-This identifier must be a unique positive integer, less than 1000.
+This identifier must be a unique positive integer of at least 1000.
 The identifier can be used by other message to refer to the newly created object.
 Nothing should be sent back to the server, except for an error message if an error occurred while creating the new object on the client.
 
@@ -675,12 +675,34 @@ This allows the transmission to be performed asynchronously.
 The API layer bridges the gap between the communication layer and the application layer.
 This layer is composed of several different modules, each modeling different knowledge about the system.
 
+\subsubsection{Type abstractions}
+To comply with the strict typing rules of Haskell while not loosing too much modularity, we often pass the type of the implementation as a type argument to the abstract object.
+We have, for example, the \texttt{Object} datatype.
+This type is used to carry several state variables in the implementation of the internal GUI logic, and is therefore highly implementation specific.
+To maintain separatable modularity, we do for instance not want the widget abstraction module to depend on the internal GUI logic module.
+For instance, we represent widgets with an additional type and constructor argument, containing the internal object representation.
+We can then make the abstract object a transitive instance of a type class, if we demand the type argument to be an instance of the same type class.
+
+In module \textit{GUI}, the internal implementation:
+\begin{haskell}
+data Object = Object Type Identifier Global
+instance EventObject Object Event where
+    on (Object t i g) e f = [Implementation Omitted]
+\end{haskell}
+
+In module \textit{Widgets}, the abstract widget object:
+\begin{haskell}
+data ObjectT a b = O { obj :: b }
+instance EventObject b Event => EventObject (ObjectT a b) Event where
+    on (O b) = on b
+\end{haskell}
+
 \subsubsection{Widgets}
 In a GUI, widgets form a strict hierarchical tree of inheritance, where imperatively speaking, the child is a subclass of the parent.
 In Haskell though, there is no straightforward way to express inheritance like we know from imperative languages.
 Gtk2Hs solves this problem by providing explicity casting functions, while wxHaskell solves this problem in a more elegant fashion by leveraging phantom types.
 We will adopt the latter approach.
-The following example shows the \textit{ObjectT} at the top of the hierarchy, with \textit{Widget} immediately below, followed by \textit{Container} and \textit{Box} (the \textit{b} type argument can be ignored for now):
+The following example shows the \textit{ObjectT} at the top of the hierarchy, with \textit{Widget} immediately below, followed by \textit{Container} and \textit{Box} (the \textit{b} type argument is an implementation abstraction like described above):
 \begin{haskell}
 type Widget a b = ObjectT (AbstractWidget a) b
 data AbstractWidget a = AbstractWidget
@@ -705,27 +727,27 @@ box :: ObjectT (AbstractWidget (AbstractContainer (AbstractBox a)))
 The \textit{Widgets} module specifies all widgets the GUI system knows about, and models the properties and actions that can be performed on the respective widgets.
 Therefore, the \textit{Widgets} module depends on the \textit{Properties} and \textit{Actions} module that define available properties and actions.
 
-\subsubsection{Type abstractions}
-To comply with the strict typing rules of Haskell while not loosing too much modularity, we often pass the type of the implementation as a type argument to the abstract object.
-We have, for example, the \texttt{Object} datatype.
-This type is used to carry several state variables in the implementation of the internal GUI logic, and is therefore highly implementation specific.
-To maintain separatable modularity, we do for instance not want the widget abstraction module to depend on the internal GUI logic module.
-Therefore, we represent widgets with an additional type and constructor argument, containing the internal object representation.
-We can then make the abstract object a transitive instance of a type class, if we demand the type argument to be an instance of the same type class.
-
-In module \textit{GUI}, the internal implementation:
+It should of course also be possible to construct a new Widget or similar object using the API.
+This module therefore implements several \textit{new}XXX functions.
 \begin{haskell}
-data Object = Object Type Identifier Global
-instance EventObject Object Event where
-    on (Object t i g) e f = [Implementation Omitted]
+newWindow :: New Window
+newWindow = new windowDefaults
+
+type New obj = (ProtoWidget (obj () o),
+                NewWidget o (obj () o),
+                PropertyObject o) =>
+                  Screen () o -> IO (obj () o)
+
+class ProtoWidget w where
+  widgetClass :: w -> String
+
+class NewWidget o t where
+  new :: ProtoWidget t => [Setting t] -> o -> IO t
 \end{haskell}
 
-In module \textit{Widgets}, the abstract widget object:
-\begin{haskell}
-data ObjectT a b = O { obj :: b }
-instance EventObject b Event => EventObject (ObjectT a b) Event where
-    on (O b) = on b
-\end{haskell}
+Note that the first argument of \textit{newWindow} is not the parent-to-be, but a \textit{Screen}, some representation of the current user connection.
+This allows running multiple instances of the same application at once, all started on demand by an incoming connection.
+Note however that it is the responsibility of the application author to let these instances cooperate if that behaviour is intended, this framework does not provide an abstraction layer for multi-user interaction.
 
 \subsubsection{Properties}
 As described in the section on the client-side widget abstraction, widgets can be altered through a property system.
@@ -842,12 +864,14 @@ Since all above functionality used a type abstraction of some kind of datatype p
 data Object = Object Type Identifier Global
 type Type = String
 type Identifier = Int
-data Global = Global { out      :: Buffer OutputToken
-                     , nextId   :: MVar Identifier
-                     , props    :: State [P.Prop]
-                     , events   :: State [(Event, EventHandler)]
+data Global = Global { out :: Buffer OutputToken
+                     , nextId :: MVar Identifier
+                     , props :: State [Prop]
+                     , events :: State [(Event, EventHandler)]
                      , children :: State [Identifier]
-                     , types    :: State String
+                     , types :: State String
+                     , closed :: TVar Bool
+                     , resetTimeout :: IO ()
                      }
 \end{haskell}
 
@@ -855,18 +879,14 @@ The \textit{Global} datatype is only constructed once for each GUI, and explicit
 It contains several \textit{State}s, mapping \textit{Identifier}s to values of the given type.
 For each \textit{Object}, identified by a number, we keep track of its type (such as \texttt{"Button"}), current property values, event handlers and its direct children.
 We also maintain a reference to the output buffer that is used to write abstract messages to the communication layer for transmission.
-All states live in the IO monad, allowing for monadic modification.
+All states live in the IO monad, allowing for easy monadic modification.
 
-It should of course also be possible to construct a new Widget or similar object using the API.
-The GUI therefore implements several \textit{new}XXX functions.
-\begin{haskell}
-newWindow :: Connection -> IO (Window () Object)
-newWindow = newObject "Window" windowDefaults
-\end{haskell}
-
-Note that the first argument of \textit{newWindow} is not the parent-to-be, but the \textit{Connection}, some representation of the current user connection.
-This allows running multiple instances of the same application at once, all started on demand by an incoming connection.
-Note however that it is the responsibility of the application author to let these instances cooperate if that behaviour is intended, this framework does not provide an abstraction layer for multi-user interaction.
+As expected in a modular system, the \textit{GUI} module knows (almost) nothing about the available widgets and their properties.
+Recall the \textit{ProtoWidget} type class in the \textit{Widgets} module.
+We leverage this type class to translate widgets to their respective high-level communication protocol representation: class names.
+The \textit{Widgets} module makes all widgets instance of this type class, and the type system does ofcourse enforce this.
+The same is done for all \textit{Prop}s.
+It is therefore possible to add and/or remove widgets and properties without having to make changes in the \textit{GUI} module.
 
 \subsubsection{High-level connection management}
 The \textit{GUI} module is also responsible for high-level connection management, on level of input and output tokens.
@@ -897,6 +917,8 @@ When a connection is lost, we just leave the application layer running, allowing
 When the connection is re-established, we promptly recreate the GUI the user was seeing.
 This is made easy by our extensive use of properties: we only have to send create messages for all existing widgets, set all their properties, and add them to their respective parents.
 When a configurable amount of time expires after a connection is lost, we do terminate the application to free resources.
+The \textit{resetTimeout} function is invoked on every keepalive message we receive, resetting the expiration timer.
+For this purpose, we use updatable timers from the module \textit{System.Timer.Updatable} in the \texttt{timers-updatable} library.
 
 \subsection{Application layer}
 % TODO: small and concise application example.
