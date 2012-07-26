@@ -12,7 +12,8 @@ Library
     Build-Depends:
         timers-updatable >= 0.2.0.2
         websockets >= 0.5.2.1,
-        json >= 0.5
+        json >= 0.5,
+        websockets-snap == 0.5.0.1
     Exposed-Modules:
         Graphics.UI.WebGUI.JSON
         Graphics.UI.WebGUI.Events

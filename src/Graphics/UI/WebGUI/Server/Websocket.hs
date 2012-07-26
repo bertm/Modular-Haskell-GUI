@@ -4,7 +4,10 @@
 module Graphics.UI.WebGUI.Server.Websocket
   (
     -- * Starting a server
-    start
+    start,
+    
+    -- * External use
+    serveSocket
   ) where
 
 import Data.Text (Text)
