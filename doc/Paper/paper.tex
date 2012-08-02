@@ -1,6 +1,6 @@
 \documentclass[11pt,a4paper]{article}
 
-\usepackage[a4paper]{geometry}
+\usepackage[a4paper,hmargin=3cm,vmargin=3.5cm]{geometry}
 \usepackage{listings}
 \usepackage{color}
 \usepackage{amsmath}
@@ -20,15 +20,6 @@
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 
 \lstset{
-    basicstyle=\footnotesize,
-    language=PHP,
-    showspaces=false,
-    showtabs=false,
-    % frame=tb,
-    showstringspaces=false ,
-    keywordstyle=\color{blue},          % keyword style
-    commentstyle=\color{dkgreen},       % comment style
-    stringstyle=\color{red},           % string literal style
     escapeinside={\%*}{*)},            % if you want to add a comment within your code
     morekeywords={*,...}               % if you want to add more keywords to the set
 }
@@ -54,8 +45,12 @@
   keywordstyle=\bfseries,
   basicstyle=\relax,
   stringstyle=\ttfamily,
-  flexiblecolumns=false,
   commentstyle=\bfseries,
+  flexiblecolumns=false,
+  showspaces=false,
+  showtabs=false,
+  showstringspaces=false,
+%  frame=tb,
   basewidth=0.55em,
   keywords={forall,case,of,instance,class,data,type},
   identifierstyle=\idstyle,
@@ -77,7 +72,6 @@
 
 
 
-\usepackage[hmargin=3cm,vmargin=3.5cm]{geometry}
 
 
 
@@ -105,7 +99,7 @@
 \title{Modular Asynchronous Haskell Graphical User Interface}
 
 \author{Bert Massop \texttt{<B.Massop@uu.nl>}\\
-Gerben van Veenendaal \texttt{<G.vanVeenendaal@students.uu.nl>}}
+Gerben van Veenendaal \texttt{<gerbenvv@gmail.com>}}
 
 \begin{document}
 
@@ -174,7 +168,7 @@ This chapter walks through the choices of what existing technology to use to cre
 
 As the browser is today the most used interface for most people, we wanted to leverage that.
 Everybody has a browser as it provides an easy way to browse the web and use your favorite web applications.
-Most applications move to the SaaS (Software as a Service) software delivery model.
+Most applications move to the \textit{SaaS} (Software as a Service) software delivery model.
 Browsers are also installed on mobile devices like smart phones and tablets, so by targeting the browser, we target almost all existing platforms.
 
 When you use the browser, you are bound to using a few web languages:
@@ -228,6 +222,7 @@ In that case the firewall at the client must not block that outgoing port.
 On most machines most outgoing ports are not blocked, so that is almost never a problem.
 \end{itemize}
 
+\newpage
 It is quite clear that the WebSocket solution is the best solution there is.
 In time, WebSockets is likely to be implemented by more browsers (currently only Chrome and Firefox support it) and be used by more people.
 Also, because this is a cutting edge library, we want to use the newest technology.
@@ -288,15 +283,83 @@ The \textit{widget layer} actually defines what the user interface looks like an
 It is very thick, it only receives a high-level description of a user interface and builds a user interface from that.
 It supports many different widgets and it supports theming.
 It also has a very easy to use Javascript API, and can therefore easily be used apart from the rest of the stack as alternative Javascript user interface.
-It has features that are comparable to large application user interface libraries like Qt and Gtk+.
-
-More about this layer can be found in the client-side chapter.
+It has features that are comparable to large application user interface libraries like Qt and GTK+.
+% More about this layer can be found in the client-side chapter.
 
 \newpage
 \section{The client-side}
 
 The client-side consists of a widget layer, a communication layer and a transmission layer.
 In this chapter we will look at them in more detail.
+
+\subsection{Class system}
+
+\subsubsection{Prototypal inheritance}
+When working with Javascript, it's important to know that Javascript is by itself not a class-based language.
+It has a very powerful feature called \textit{prototypal inheritance}.
+This means that you can create prototypes, which are objects, and give it some members.
+You can then create an object that is based on that prototype object, thereby inheriting all the members of the prototype.
+In Javascript this can be done by the setting the special \textit{prototype} member and then by using the \textit{new} operator.
+
+\subsubsection{Hierarchical class system}
+We wanted to hide all these nitty-gritty details and build a hierarchical class system on top of this prototype system.
+This is very doable and many other libraries do it these days.
+We have made a system that is very easy to use, readable, and is yet very powerful.
+It allows you to create a new class with the following syntax:
+
+\begin{verbatim}
+Class.define('SomeClassName', {
+    extend: 'ClassToExtendFrom',
+    
+    construct: function(a, b, c)
+    {
+    		// Construction of the object.
+    },
+    
+    someOtherMember: function(a, b)
+    {
+        // Method body.
+    },
+    
+    statics: {
+        someStaticMember: function(a, b)
+        {
+            // Static method body.
+        }
+    }
+});
+\end{verbatim}
+
+\newpage
+As you can see statics can be provides with the special \textit{statics} member.
+The class above can be instanced and used as expected:
+
+\begin{verbatim}
+var obj = new SomeClassName(1, 2, 3);
+
+obj.someOtherMember(1, 2);
+
+SomeClassName.someStaticMember(1, 2);
+\end{verbatim}
+
+\subsubsection{Singletons}
+Singletons are also supported and can be created with:
+
+\begin{verbatim}
+Singleton.define('SomeSingleton', {
+    someMember: function(a, b)
+    {
+        // Method body
+    }
+});
+\end{verbatim}
+
+Singletons only have one instance and that instance is immediately created.
+The instance can be accessed by the class name:
+
+\begin{verbatim}
+SomeSingleton.someMember(1, 2);
+\end{verbatim}
 
 \subsection{High level description}
 
@@ -312,13 +375,14 @@ A high level description comes with one trade-off of having duplicate logic: the
 
 \subsection{Widgets}
 
-We choose the high level description to be widgets.
+We chose the high level description to be widgets.
 Widgets are the entities that are used to build a user interface.
 They are the building blocks of which everything you see on the screen consists.
 Examples of widgets are buttons, windows, menu bars and boxes that horizontally lay out other widgets.
-Each widget has a place in an object hierarchy, for example a CheckButton is a Button, and a CheckMenuItem is a MenuItem.
+The widgets are a hierarchy, for example a CheckButton is a Button, and a CheckMenuItem is a MenuItem.
 Widgets have the following features:
 
+\newpage
 \begin{itemize}
 \item \textit{Properties} -- A property is a piece of state of the widget.
 A window for example has a title property, which is a string, and label has a text property.
@@ -337,16 +401,13 @@ Property changes generate a signal as well.
 This is very powerful and is used to send new properties to the server if they are changed.
 \end{itemize}
 
-\subsection{TODO: Tree structure}
-
-% TODO: ...
-
+\subsection{Tree structure}
 
 Widgets form a tree structure.
 On the top of the tree is either a Window widget or a MainWindow widget.
 The Window widget is a a simple window that you can drag around, maximize, resize, etc.
 The MainWindow widget is the widget that covers the whole browser viewport.
-It cannot be dragged around or maximized or in any interacted with.
+It cannot be dragged around or maximized or in any way interacted with.
 You can of course interact with its child widgets.
 You can separate the available widgets into two groups: those that can have child widgets and those that cannot.
 For example a Window widget can contain a single widget as its content, and a button can contain any widget as well.
@@ -354,57 +415,227 @@ We call such widgets container widgets.
 Examples of widgets that cannot contain other widgets are the Label widget, the ProgressBar widget and the Slider widget.
 These widgets occur at the bottom of the tree.
 
-
-% TODO: ...
-
-
-\subsection{TODO: Size management}
-
-
-% TODO: ...
-
-
-The container widgets can be separated into two groups as well, those who can only contain a single widget, and those who can contain multiple widgets.
+The container widgets can be separated into two groups as well, those who can only contain a single widget, and those that can contain multiple widgets.
 The first group are the Bin widgets.
 The other group are the layouting widgets.
 They lay out their child widgets on the screen in a certain way.
-Currently the only implemented layouting widgets are Box, ButtonBox and Fixed.
+The currently implemented layouting widgets are:
+
+\begin{itemize}
+\item \textit{Box} -- The Box widget lays its children out horizontally or vertically.
+The \textit{orientation} property determined whether it is a a horizontal or vertical box.
+
+\item \textit{ButtonBox} -- A ButtonBox is a subclass of Box and is meant to lay out buttons, for example in a dialog window.
+It gives each button the same width or height depending on its orientation.
+It has powerful button alignment options.
+
+\item \textit{Fixed} -- The Fixed layouting widget puts its children at fixed coordinates.
+It is not recommended to use this, because the children their size and position will be static, even though more size may be available for them.
+\end{itemize}
+
+\subsection{Size management}
 
 Size management determines how much size every widget gets.
 It starts at the top level widget which is a Window or MainWindow.
-It then traverses the tree of widgets and gives each widget a size, keeping in mind their minimum and preferred sizes.
-Every widget has 
+It then traverses the tree of widgets and allocates each widget a size, keeping in mind their minimum and preferred sizes.
+The minimum size is the absolute minimum size of a widget, it cannot be made smaller.
+The preferred size is the size the widget would like to be.
+It must be larger than its minimum size.
+Minimum and preferred sizes are for container widgets often dependant on the child widgets.
+For example if you take a Box widget that lays its children out horizontally, you add the child widgets its minimum width, and take the maximum of their minimum heights.
+The result is the minimum size of the Box widget.
+So although the actual size allocation is top-down, the determination of the minimum and preferred sizes is bottom-up.
 
-Box lays it children out horizontally or vertically.
+Every widget has the following layouting properties:
 
+\begin{itemize}
+\item \textit{h-scale} and \textit{v-scale} -- These properties determine the horizontal and vertical scale of the widget.
+If the h-scale is 1, the widget will take up the full size in the horizontal direction that is allocated to it.
+If it is 0, the widget will take up its minimum horizontal size.
+It can also be anything in between.
 
-A ButtonBox is a subclass of Box and is meant to lay out buttons, for example in a dialog window.
-It gives each button the same width or height depending on its orientation.
+\item \textit{h-align} and \textit{v-align} -- These properties determine the alignment of the widget in its allocated space.
+They only have effect when the scale of the widget in the alignment direction is less than 1.
+If the h-align is 0, the widget will be aligned to the left and if it is 1, it will be aligned to the right.
+It can also be anything in between.
 
+\item \textit{margin}, \textit{margin-top}, \textit{margin-right}, \textit{margin-bottom} and \textit{margin-left} -- These properties determine the margin around the widget.
+The \textit{margin} property sets all margin properties at once to a certain value.
+You can use the others to specify a specific margin for a widget side.
+The margin is always visible outside of the widget.
+It will be automatically added to the minimum and preferred size of the widget.
+\end{itemize}
 
+These properties are automatically handled by the widget system, so by implementing a new widget you do not have to handle these properties.
 
-% TODO: ...
+\subsection{Rendering}
 
+The rendering process of a widget is the process of showing the widget in the browser in its current state.
+Every widget has its HTML structure in the Javascript code as a static string.
+This HTML is used to put the widget in the DOM (Document Object Model) of the browser in order to render it.
+Because browser rendering behavior and the DOM API is very different among browsers, we had to make a DOM element abstraction class.
+This class represents a single HTML element and has properties to change the attributes, styling and contents of the element.
+Changing the DOM elements of a widget to the current state happens on size allocation.
+When a size is allocated to a widget, it calculates all the sizes of its elements and applies them.
+Most changes to the DOM are positioning and sizing changes, which are quite expensive.
+In order to optimize reading the position and size of an element, they are cached in the element object.
+That way, a size allocation of a widget does just writes to the DOM and no reads, which speeds up the rendering a lot.
 
+\subsection{Focus system}
 
+\subsubsection{Focus types}
+The focus system in a user interface takes care of which widgets has the focus and changing the focus.
+There are two types of focus:
 
+\begin{itemize}
+\item \textit{Window focus} -- Window focus is the determination of what visible window has the focus.
+At most one window can have focus at a time.
+Within the focussed window there is at most one focussed widget.
+The main window which covers the whole browser viewport is just another window, it may have focus as well.
+By clicking on the window the window gets focus.
+This happens before the mouse down event gets sent to a widget within the window.
 
-\subsection{TODO: Instances}
+\item \textit{Widget focus} -- Widget focus on the other hand is the determination of what widget within the focussed window has the input focus.
+This can be any widget, but mostly they are input widgets and buttons.
+A window always stores the last focussed widget, so that when it loses window focus and gains it again, it can focus the widget that had focus before.
+Widgets can be made insensitive so that they and their children can not receive focus any more.
 
-All widgets are subclasses of the Instance class.
-This class provides every subclass with the following features:
+\end{itemize}
 
+The focus system implements this system, and makes it so that only one widget within a window can be focussed.
+It also takes care of changing the focus: by tabbing you cycle between the focusable widgets.
+This cycle is determined according to the widget tree structure.
+First a widget tries to gain focus itself, then if that fails it tries to focus its children and so on. 
 
-\subsection{TODO: The rest}
+\subsubsection{Browser support}
 
-Theming, size management, documentation generation, transmission, class system, event system, focus system.
+When working inside the browser you want to leverage the features of the browser as much as possible.
+In the browser, you can make an element focusable by giving it a non-negative \textit{tabindex} attribute.
+However, quite a few problems with this approach arise.
+First off, the browser iterates through all widgets that are focusable, even though they may be inside different windows.
+This can be fixed by only making the widgets under the focussed window receive focus, but that requires a lot of changes to elements on each change of window focus.
+Secondly, the browser also iterates through its own menus and input fields like the address bar.
+Thirdly, in a browser it may be the case that no element and thus no widget has focus at all.
+This is not wanted in an application user interface.
+Finally, some browser do not specify where the focus came from or went to on a focus change event.
+These points are problematic, and so we did not use the browser its focus functionality to create the focus system.
+Instead we hooked into the tab key, and implemented the whole focus system ourselves in Javscript.
 
+\subsection{Event system}
 
-% TODO: ...
+In order to create a user interface, you need to have a powerful event system.
+Events are signals that widgets get when a user has interacted with a widget with the mouse or keyboard.
+Examples of events are when the user scrolls over a widget or presses a key.
+In most user interface libraries mouse events get sent to the widget under which the cursor currently is and key events get sent to the widget that has input focus.
+Widget events can be hooked into by connecting to event signals.
 
+\subsubsection{Event capturing and bubbling}
 
+Events have a source from which they originate.
+However, as the widgets form a tree structure it is not always clear what the origin of the event is.
+For example, for mouse events the source widget is the widget that is currently under the cursor.
+But all the parents of that widget are also under the cursor.
 
+In order to solve this, events are usably sent to multiple widgets in two phases: the \textit{capturing phase} and the \textit{bubbling phase}.
+The capturing phase is the phase in which the event is sent to all parent widgets of the source widget in a top-down manner.
+Any widget may choose to handle the event in this phase which stops the event from being sent to other widgets.
+This phase is handy to prevent (certain) events from reaching child widgets.
+The next phase is the bubbling phase, in which the event gets sent to the source widget and then to all of its parent widgets in a bottom-up manner.
+Again, the event can be stopped anywhere in this phase by handling the event.
+For example when a user scrolls over a Slider widget, the slider will change its value.
+The slider has handled the event, so it will not bubble up.
+If the user scrolls over a label however, the label will not handle the scroll event and it will bubble up.
+It may then for example reach a ScrollArea widget which will handle the event and scroll its contents according to the event.
 
+\subsubsection{Browser support}
+
+In order to create this event system, we had to leverage the event system that the browser had to offer.
+This was not an easy task however, as all browsers implement the event model differently.
+For example, most browsers implement event capturing, but older version of Internet Explorer do not.
+There is also very inconsistent behavior among browsers of the doubleclick event.
+Finally there is a lot of inconsistent behavior with key events.
+% Most key combinations are unusable because they already have a meaning in the browser. (eg: CTRL + P).
+
+We had to implement the whole capturing and bubbling phases ourselves in Javascript.
+In order to do this, we set the widget as a property on the element that it uses.
+We hook into every event type on the body tag, so that we get every event.
+Then we read the source element from the event, and its widget property.
+After this we create a custom event object that abstracts the browser event and run the capture and bubble phases.
+
+\subsubsection{Focus events}
+
+As we have a custom focus system, we cannot use the focus and blur events of the browser.
+Focus events are therefore syntactically created and sent to the widget chains.
+The event system also adds the related widget on focus and blur events, which is the widget that just lost and just gained focus respectively.
+
+\subsection{Theming}
+
+Themability is an important aspect of a user interface.
+Our user interface is fully styled with CSS.
+CSS is purely a styling language, it does not have any programming concepts like variables, conditions or functions.
+Therefore, we have chosen to use SCSS for the styling.
+SCSS is a programming language on top of CSS to make styling programmable.
+SCSS supports variables, conditions and functions.
+Its syntax is much like CSS, in fact, CSS is a subset of SCSS.
+
+Our styling is separated into two categories: base styling and theme styling.
+Base styling styles the absolute bases for the widgets, which will most likely not be overriden by the theme.
+It consists mostly of basic positioning of the widgets.
+Also, it normalizes the browser its default styling of elements, as that is different per browser.
+Finally it provides cursors to use by the user interface.
+Theme styling provides the colors, background images, fonts, etc. for the user interface.
+Every widget has a unique class, so that each widget can be styled differently.
+The styling of the widgets relies on the HTML structure of the widgets, which is specified in the Javascript.
+If the structure changes, the styling must be changed, so the structure has been made very generic to allow all kinds of different themes.
+
+We have made one theme for the user interface: the clearlooks theme.
+It's basically the same as the clearlooks theme for GTK+.
+Because SCSS allows for variables, everything can be changed by a few variables.
+Things like the base color, secondary color and the font can all by changed easily this way.
+We have also made a build script that builds the CSS from the SCSS and colors the theme images according to the base color.
+The coloring is done by replacing the hue of the colors in the image with a the hue component of the new base color.
+
+\subsection{API Documentation}
+
+So support the users that will be using this user interface, good API documentation needs to be provided.
+We did not want to do this manually, as the API is very likely to change in the future.
+Also, it would be very repetitive and boring work.
+So we decided to create an API documentation generator which reads the API from the source code and generates a series of HTML documentation files from it.
+The generator automatically reads the widget hierarchy from the source code.
+The generator uses a Doxygen-like syntax which works by providing explaining comments above widget properties, signals and actions.
+
+\newpage
+An example comment of the \textit{visible} property of Widget:
+\begin{verbatim}
+/**
+ * Whether the widget is visible.
+ *
+ * @type int
+ * @see #show()
+ * @see #hide()
+ */
+visible: {
+
+...
+
+}
+\end{verbatim}
+As you can see it also provides the type of the property and adds references to some actions.
+
+\subsection{Transmission}
+
+The previous sections have described how the widget layer is implemented.
+An important task left is of course the transmission to and from the server.
+That's where the transmission layer kicks in.
+This layer implements the communication protocol as described later on.
+It uses a connection object to abstract the details of the WebSockets away.
+That way, we can easily choose to use another way to communicate in the future.
+The WebSocket API is emulated on browsers that have no WebSocket support with a Flash TCP connection that implements the WebSocket standard.
+
+The transmission layer is completely separate from the widget layer.
+It uses the API of the widget layer to implement the protocol.
+When properties of widgets are changed, signals are sent which can be hooked in to.
+The transmission layer does this for every widget and sends the new value of the property to the server.
 
 \newpage
 \section{The communication protocol}
@@ -485,13 +716,13 @@ Then it sends an \textit{establish} message:
 {
     "type": "establish",
 
-    "caps": ["some-capability", "some-other-capability"]
+    "exts": ["some-extension", "some-other-extension"]
 }
 \end{verbatim}
 
-As you can see the only property that this message has besides the type property is the \textit{caps}.
-This is an array with a list of strings that are the capabilities of the client.
-These capabilities can be used to extend the protocol and therefore make it future proof.
+As you can see the only property that this message has besides the type property is the \textit{exts}.
+This is an array with a list of strings that are the extensions of the client.
+These extensions can be used to extend the protocol and therefore make it future proof.
 After sending this message the connection state should be set to \textit{handshake}.
 
 The server should in case of a success send the \textit{acknowledge} message back:
@@ -617,7 +848,7 @@ When something happens on the client that the server should know about the clien
 {
     "type": "signal",
 
-    "name": "some-weird-signal",
+    "name": "some-signal-name",
     "id": 12,
     "time": 8192381290381,
     "args": [
