@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -XMultiParamTypeClasses -XTypeSynonymInstances -XFlexibleInstances #-}
+
 module Graphics.UI.WebGUI.Properties.Properties (
     Visible (..),
     Size (..),
@@ -19,6 +21,7 @@ module Graphics.UI.WebGUI.Properties.Properties (
   ) where
 
 import {-# SOURCE #-} Graphics.UI.WebGUI.Properties.Props
+import Graphics.UI.WebGUI.Properties.Types
 
 data Visible
 data Size
@@ -56,19 +59,19 @@ instance Show Active
 instance Show Homogeneous
 instance Show Orientation
 
-instance Property Visible
-instance Property Size
-instance Property Margin
-instance Property Sensitive
-instance Property CanFocus
-instance Property Title
-instance Property Opacity
-instance Property Label
-instance Property Text
-instance Property Editable
-instance Property Visibility
-instance Property MaxLength
-instance Property Events
-instance Property Active
-instance Property Homogeneous
-instance Property Orientation
+instance Property Visible VisibleT
+instance Property Size SizeT
+instance Property Margin MarginT
+instance Property Sensitive SensitiveT
+instance Property CanFocus CanFocusT
+instance Property Title TitleT
+instance Property Opacity OpacityT
+instance Property Label LabelT
+instance Property Text TextT
+instance Property Editable EditableT
+instance Property Visibility VisibilityT
+instance Property MaxLength MaxLengthT
+instance Property Events EventsT
+instance Property Active ActiveT
+instance Property Homogeneous HomogeneousT
+instance Property Orientation OrientationT

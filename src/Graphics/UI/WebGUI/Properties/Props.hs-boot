@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -XMultiParamTypeClasses -XFunctionalDependencies #-}
+
 module Graphics.UI.WebGUI.Properties.Props (
     Property (..),
     Prop (..),
@@ -5,7 +7,8 @@ module Graphics.UI.WebGUI.Properties.Props (
     sameProp
   ) where
 
-class Property p where
+class Property p v | p -> v where
+    toValue :: p -> v
     toProp :: p -> Prop
     fromProp :: Prop -> p
 

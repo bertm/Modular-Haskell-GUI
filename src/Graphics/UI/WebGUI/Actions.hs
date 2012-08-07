@@ -11,9 +11,9 @@ module Graphics.UI.WebGUI.Actions (
 import Graphics.UI.WebGUI.Events
 
 -- | Allows to add a Widget to another Widget, or remove it.
-class ActionAddRemove a b where
-    add :: a -> b -> IO ()
-    remove :: a -> b -> IO () -- TODO: why do we specify the parent widget here? it can be implicit.
+class ActionAddRemove parent child where
+    add :: parent -> child -> IO ()
+    remove :: parent -> child -> IO ()
 
 -- | Allows to show a Widget, or hide it again.
 class ActionShowHide a where

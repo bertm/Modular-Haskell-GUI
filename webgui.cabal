@@ -11,8 +11,8 @@ Category:       GUI
 Library
     Build-Depends:
         timers-updatable >= 0.2.0.2
-        websockets >= 0.5.2.1,
-        json >= 0.5,
+        websockets == 0.5.2.1,
+        json == 0.5,
         websockets-snap == 0.5.0.1
     Exposed-Modules:
         Graphics.UI.WebGUI.JSON
@@ -27,6 +27,7 @@ Library
         Graphics.UI.WebGUI.Actions
         Graphics.UI.WebGUI.Types
         Graphics.UI.WebGUI.Server.Websocket
+        Graphics.UI.WebGUI.Server.Snap
         Graphics.UI.WebGUI.Server.Raw
         Graphics.UI.WebGUI.Server.Internal
         Graphics.UI.WebGUI.Server

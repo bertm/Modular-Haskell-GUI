@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -XMultiParamTypeClasses -XFunctionalDependencies #-}
+
 -- | Defines a more generic wrapper around properties, making all of them of the same
 -- type, regardless of the property.
 
@@ -11,7 +13,8 @@ module Graphics.UI.WebGUI.Properties.Props (
 import {-# SOURCE #-} Graphics.UI.WebGUI.Properties.Properties
 
 -- | Property definitions.
-class Property p where
+class Property p v | p -> v where
+    toValue :: p -> v
     toProp :: p -> Prop
     fromProp :: Prop -> p
 

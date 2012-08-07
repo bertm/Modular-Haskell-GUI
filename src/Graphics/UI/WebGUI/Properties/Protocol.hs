@@ -7,6 +7,7 @@ import Graphics.UI.WebGUI.Tokens
 import Graphics.UI.WebGUI.Properties.Props
 import Graphics.UI.WebGUI.Properties.Properties
 import Graphics.UI.WebGUI.Events.Protocol
+import Graphics.UI.WebGUI.Properties.Types
 
 -- | Converts a property name and value to the corresponding Prop, or Nothing if the
 -- property was not intended to be received.
@@ -35,7 +36,8 @@ propToProto p = case p of
               MaxLengthProp (MaxLength v) -> Just ("max-length", IntegerV v)
               EventsProp (Events v) -> Just ("events", IntegerV $ sum $ map eventBitmask v)
               HomogeneousProp (Homogeneous v) -> Just ("homogeneous", BoolV v)
-              OrientationProp (Orientation v) -> Just ("orientation", StringV v)
-              
+              OrientationProp (Orientation HorizontalOrientation) -> Just ("orientation", StringV "horizontal")
+              OrientationProp (Orientation VerticalOrientation) -> Just ("orientation", StringV "vertical")
+              -- Properties that should not be sent to the client.
               ActiveProp (Active v) -> Nothing
-              ParentProp (Parent v) -> error "Setting parent through property is deprecated" -- TODO: remove?
+              ParentProp (Parent v) -> Nothing

@@ -7,20 +7,28 @@ import Graphics.UI.WebGUI.Events
 
 -- Converts an Event into the corresponding event name.
 fromEvent :: Event -> String
-fromEvent = show
+fromEvent MotionEvent = "motion"
+fromEvent ScrollEvent = "scroll"
+fromEvent EnterEvent = "enter"
+fromEvent KeyPressEvent = "key-press"
+fromEvent KeyReleaseEvent = "key-release"
+fromEvent ButtonPressEvent = "button-press"
+fromEvent ButtonReleaseEvent = "button-release"
+fromEvent FocusEvent = "focus"
+fromEvent BlurEvent = "blur"
 
 -- | Converts an event name to the corresponding Event.
 toEvent :: String -> Event
-toEvent "Motion" = MotionEvent
-toEvent "Scroll" = ScrollEvent
-toEvent "Enter" = EnterEvent
-toEvent "Leave" = LeaveEvent
-toEvent "KeyPress" = KeyPressEvent
-toEvent "KeyRelease" = KeyReleaseEvent
-toEvent "ButtonPress" = ButtonPressEvent
-toEvent "ButtonRelease" = ButtonReleaseEvent
-toEvent "Focus" = FocusEvent
-toEvent "Blur" = BlurEvent
+toEvent "motion" = MotionEvent
+toEvent "scroll" = ScrollEvent
+toEvent "enter" = EnterEvent
+toEvent "leave" = LeaveEvent
+toEvent "key-press" = KeyPressEvent
+toEvent "key-release" = KeyReleaseEvent
+toEvent "button-press" = ButtonPressEvent
+toEvent "button-release" = ButtonReleaseEvent
+toEvent "focus" = FocusEvent
+toEvent "blur" = BlurEvent
 
 -- | Returns the bitmask for a given Event.
 eventBitmask :: Event -> Integer

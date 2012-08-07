@@ -18,7 +18,7 @@ module Graphics.UI.WebGUI.GUI (
         Screen,
         
         -- * Interaction
-        on,
+        onEvent,
         quit
     ) where
 
@@ -56,7 +56,6 @@ import Graphics.UI.WebGUI.Actions
 version :: Version
 version = "1.0"
 
-type Parent = Maybe Identifier
 type Screen = W.Screen () Object
 type Type = String
 type EventHandler = Event -> IO ()
@@ -160,7 +159,7 @@ handleServer global out token =
                        mapM_ (\(i, ps) -> mapM_ (oSet global i) ps) prps
                        chls <- HT.toList $ children global
                        mapM_ (\(p, cs) -> mapM_ (\c -> oAction global p "add" [ObjectV [("id", IntegerV c)]]) $ reverse cs) chls
-    ISignal id name time args -> do -- TODO: implement properly
+    ISignal id name time args -> do print $ toEvent name-- TODO: implement properly
                                     es <- getHandlerState (events global) id (toEvent name)
                                     mapM_ (\x -> x (toEvent name)) es
     IKeepalive -> resetTimeout global
@@ -237,29 +236,45 @@ getHandlerState s i e = do mes <- getState s i
 instance PropertyObject Object where
     unsafeSet (Object t i g) prop = do putPropertyState False (props g) i (toProp prop)
                                        oSet g i (toProp prop)
-    unsafeGet (Object t i g) prop = getPropertyState (props g) i (toProp (prop $ error "Property error: undefined"))
+    unsafeGet (Object t i g) prop = getPropertyState (props g) i (toProp (prop $ error "Property unsafeGet error: undefined"))
+    unsafeOnChange (Object t i g) prop f = putHandlerState (events g) i (ChangeEvent (toProp $ prop $ error "Property onChange error: undefined"), const f)
 
 instance EventObject Object Event where
-    on (Object t i g) e f = case e of
-                              (Change a) -> putHandlerState (events g) i ((ChangeEvent . toProp . a $ error "For your eyes only"), f)
-                              _ -> putHandlerState (events g) i (e, f)
+    onEvent (Object t i g) e f = putHandlerState (events g) i (e, f)
 
 instance ActionAddRemove Object Object where
-    add (Object t p g) (Object _ c _) = do s <- getState (children g) p
-                                           case s of
-                                             Just cs -> setState (children g) p $ Just (c:cs)
-                                             Nothing -> setState (children g) p $ Just [c]
-                                           if p >= 1000 -- TODO: should we remove this distinction?
-                                             then oAction g p "add" [ObjectV [("id", IntegerV c)]]
-                                             else return ()
-    remove a b = return () -- TODO
+    add (Object t p g) cc@(Object _ c _) = do ParentProp (Parent n) <- unsafeGet cc Parent
+                                              case n of
+                                                Just _ -> error "Widget add error: already added to another widget"
+                                                Nothing -> return ()
+                                              s <- getState (children g) p
+                                              case s of
+                                                Just cs -> setState (children g) p $ Just (c:cs)
+                                                Nothing -> setState (children g) p $ Just [c]
+                                              if p >= 1000 -- TODO: should we remove this distinction?
+                                                then oAction g p "add" [ObjectV [("id", IntegerV c)]]
+                                                else return ()
+                                              unsafeSet cc (Parent $ Just p)
+    remove (Object t p g) cc@(Object _ c _) = do ParentProp (Parent n) <- unsafeGet cc Parent
+                                                 case n of
+                                                   Just i -> if i == p
+                                                               then return ()
+                                                               else error "Widget remove error: removing from wrong parent"
+                                                   Nothing -> error "Widget remove error: removing orphan"
+                                                 s <- getState (children g) p
+                                                 case s of
+                                                   Just cs -> setState (children g) p $ Just (filter (/= c) cs)
+                                                   Nothing -> error "Widget remove error: inconsistent state"
+                                                 if p >= 1000 -- TODO: should we remove this distinction?
+                                                   then oAction g p "remove" [ObjectV [("id", IntegerV c)]]
+                                                   else return ()
+                                                 unsafeSet cc (Parent Nothing)
 
 instance ActionEvents Object where
     enableEvents (Object t p g) e = oAction g p "enableEvents" [IntegerV $ sum $ map eventBitmask e]
     disableEvents (Object t p g) e = oAction g p "disableEvents" [IntegerV $ sum $ map eventBitmask e]
 
 instance NewWidget Object (ObjectT a Object) where
---  new :: [Setting t] -> o -> IO t
   new ds p = let Object _ _ g = p
              in do i <- getNextId g
                    let o = widgetObject $ Object t i g

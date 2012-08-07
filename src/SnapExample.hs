@@ -59,7 +59,7 @@ logic screen = do mainWindow <- newMainWindow screen
                   set entry2 [CanFocus := True,
                               Visible := True]
                   set box [Visible := True,
-                           Orientation := "vertical"]
+                           Orientation := VerticalOrientation]
                  
                   -- Finally show window, to correctly center it
                   set window [Visible := True]
@@ -67,21 +67,26 @@ logic screen = do mainWindow <- newMainWindow screen
                   -- Add a button to the main window
                   button2 <- newButton screen
                   set button2 [Visible := True,
-                               Label := "Main button label",
-                               CanFocus := True]
+                               Label := "Main button label"]
 
                   set mainWindow [Visible := True]
                 
                   add mainWindow button2
                 
                   -- Capture button releases on button
-                  enableEvents button [ButtonReleaseEvent, ButtonPressEvent, FocusEvent, BlurEvent]
-                  on button (Change Active) $ const (do Text a <- get entry Text
-                                                        set button [Label := ("You typed: " ++ a)]
-                                                        set entry [Text := ""])
+                  enableEvents button [ButtonReleaseEvent]
+                  onEvent button ButtonReleaseEvent $ const (do a <- get entry Text
+                                                                set button [Label := ("You typed: " ++ a)]
+                                                                set entry [Text := ""])
                   -- Monitor for changes on entry text
-                  on entry (Change Text) $ const (do Text a <- get entry Text
-                                                     case a of
-                                                       "quit" -> quit screen
-                                                       _      -> set entry2 [Text := a])
-                                                     
+                  onChange entry Text $ do a <- get entry Text
+                                           case a of
+                                             "quit" -> quit screen
+                                             _      -> set entry2 [Text := a]
+                  
+                  trickButton <- newButton screen
+                  add box trickButton
+                  set trickButton [Visible := True,
+                                   Label := "Get rid of me"]
+                  enableEvents trickButton [ButtonReleaseEvent]
+                  onEvent trickButton ButtonReleaseEvent $ const (remove box trickButton)

@@ -31,7 +31,7 @@ data InputToken
       Identifier  -- Widget id
       String      -- Signal name
       Time        -- Signal time
-      [Value]     -- Signal arguments
+      Value       -- Signal arguments
   | IKeepalive
   | IClose
   | IError 

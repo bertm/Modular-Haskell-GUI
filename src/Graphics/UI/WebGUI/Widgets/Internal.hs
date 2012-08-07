@@ -21,6 +21,7 @@ widgetObject = O
 instance PropertyObject b => PropertyObject (ObjectT a b) where
     unsafeSet (O b) = unsafeSet b
     unsafeGet (O b) = unsafeGet b
+    unsafeOnChange (O b) = unsafeOnChange b
 
 class ProtoWidget w where
   widgetClass :: w -> String

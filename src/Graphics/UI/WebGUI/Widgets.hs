@@ -28,17 +28,15 @@ import Graphics.UI.WebGUI.Events
 import Graphics.UI.WebGUI.Actions
 
 instance EventObject b Event => EventObject (ObjectT a b) Event where
-    on (O b) = on b
+    onEvent (O b) = onEvent b
 
-
--- Widgets
-instance ActionAddRemove a b => ActionAddRemove (Widget x a) (Widget y b) where
+-- All Widgets can be added to and removed from any container widget.
+instance ActionAddRemove a b => ActionAddRemove (Container x a) (Widget y b) where
     add (O a) (O b) = add a b
     remove (O a) (O b) = remove a b
+
+-- All Widgets can receive events.
 instance ActionEvents a => ActionEvents (Widget x a) where
     enableEvents (O a) = enableEvents a
     disableEvents (O a) = enableEvents a
-
-
-
 

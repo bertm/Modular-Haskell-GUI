@@ -193,6 +193,7 @@ Singleton.define('Transmission', {
                 
                 // Register propert-change signal handler.
                 obj.connect('property-change', this.onObjectPropertyChange, this);
+                obj.connect('event', this.onEvent, this);
                 
                 return true;
             };
@@ -470,6 +471,31 @@ Singleton.define('Transmission', {
             id: id,
             name: name,
             value: value
+        });
+    },
+    
+    onEvent: function(obj, event)
+    {
+        // Stop if connection has been closed.
+        if (this.state !== TransmissionState.ESTABLISHED)
+            return;
+        
+        var data = Util.cloneShallow(event);
+        delete data.source;
+        delete data.type;
+        delete data.self;
+        delete data.date;
+        
+        console.log('Sending event: ' + event.type);
+        
+        
+        // Send a set message.
+        this.conn.send({
+            type: MessageType.SIGNAL,
+            id: obj._id,
+            time: event.date.getTime(),
+            name: event.type,
+            args: data
         });
     }
 });

@@ -5,7 +5,8 @@ module Graphics.UI.WebGUI.Properties (
     
     Setting ((:=)),
     get,
-    set
+    set,
+    onChange
   ) where
 
 import Graphics.UI.WebGUI.Properties.Internal

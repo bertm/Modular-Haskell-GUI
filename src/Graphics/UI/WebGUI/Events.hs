@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -XExistentialQuantification #-}
-
 -- | This module defines the events that can occur in the GUI.
 
 module Graphics.UI.WebGUI.Events (
@@ -20,7 +18,6 @@ data Event = MotionEvent
            | ButtonReleaseEvent
            | FocusEvent
            | BlurEvent
-           | forall a p. Property p => Change (a -> p)
            | ChangeEvent Prop
 
 instance Eq Event where
@@ -34,7 +31,6 @@ instance Eq Event where
   ButtonReleaseEvent == ButtonReleaseEvent = True
   FocusEvent == FocusEvent = True
   BlurEvent == BlurEvent = True
-  Change a == Change b = sameProp (toProp $ a undefined) (toProp $ b undefined)
   ChangeEvent a == ChangeEvent b = sameProp a b
   _ == _ = False
 
@@ -48,5 +44,4 @@ instance Show Event where
   show ButtonReleaseEvent = "ButtonReleaseEvent"
   show FocusEvent = "FocusEvent"
   show BlurEvent = "BlurEvent"
-  show (Change _) = "Change"
   show (ChangeEvent _) = "ChangeEvent"
