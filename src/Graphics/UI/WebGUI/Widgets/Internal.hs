@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XMultiParamTypeClasses -XFlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 
 module Graphics.UI.WebGUI.Widgets.Internal (
     ObjectT (..),

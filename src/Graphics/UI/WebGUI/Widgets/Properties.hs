@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XTypeSynonymInstances -XMultiParamTypeClasses -XFlexibleContexts -XRankNTypes -XFlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, FlexibleContexts, RankNTypes, FlexibleInstances #-}
 
 -- | This module defines for each widget which properties can be get and set, and what
 -- the default property values are.

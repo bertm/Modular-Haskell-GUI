@@ -1,3 +1,5 @@
+-- A lightweight protocol-specific translation module for properties, mapping properties
+-- to their protocol representations and vice-versa.
 module Graphics.UI.WebGUI.Properties.Protocol (
     protoToProp,
     propToProto

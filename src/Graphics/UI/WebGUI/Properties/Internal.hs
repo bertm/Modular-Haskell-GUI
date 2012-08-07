@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XMultiParamTypeClasses -XExistentialQuantification #-}
+{-# LANGUAGE MultiParamTypeClasses, ExistentialQuantification #-}
 
 -- | Operations on properties that are mostly for internal use.
 -- Most of the contents of this module should therefore not be exposed to the application

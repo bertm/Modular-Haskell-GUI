@@ -1,4 +1,6 @@
-{-# OPTIONS_GHC -XMultiParamTypeClasses -XFunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
+
+-- TODO: factor out or at least rename this module.
 
 module Graphics.UI.WebGUI.Types
   (

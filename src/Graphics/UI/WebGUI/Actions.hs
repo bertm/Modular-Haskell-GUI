@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XMultiParamTypeClasses #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 -- | Defines Actions that can be performed on certain Widgets.
 module Graphics.UI.WebGUI.Actions (

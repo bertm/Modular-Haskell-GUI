@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XTypeSynonymInstances -XMultiParamTypeClasses -XFlexibleContexts -XRankNTypes #-}
+{-# LANGUAGE TypeSynonymInstances, MultiParamTypeClasses, FlexibleContexts, RankNTypes #-}
 
 -- | A wrapper module for widget-related datatypes and function.
 -- The contents of this module can safely be exposed to the application layer.

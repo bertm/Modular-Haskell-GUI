@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XMultiParamTypeClasses -XFunctionalDependencies -XTypeSynonymInstances -XFlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies, TypeSynonymInstances, FlexibleInstances #-}
 -- | Defines all available properties that may be assigned to widgets.
 
 module Graphics.UI.WebGUI.Properties.Properties (

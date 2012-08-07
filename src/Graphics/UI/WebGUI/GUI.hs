@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XMultiParamTypeClasses -XFlexibleContexts -XFlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, FlexibleInstances #-}
 
 -- | The actual GUI implementation, without the server part.
 -- This module defines the way the GUI is presented to the programmer, as well as some

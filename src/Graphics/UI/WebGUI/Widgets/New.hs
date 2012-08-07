@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -XFlexibleContexts -XRankNTypes #-}
+{-# LANGUAGE FlexibleContexts, RankNTypes #-}
 
 -- | This module defines ways of creating a new widget in the GUI.
 -- This module is exported by the Widgets module, and does therefore usually not have
