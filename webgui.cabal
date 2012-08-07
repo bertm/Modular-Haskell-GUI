@@ -1,5 +1,5 @@
 Name:           webgui
-Version:        0.1
+Version:        0.1.1
 Cabal-Version:  >= 1.10
 Build-Type:     Simple
 Author:         Bert Massop & Gerben van Veenendaal
@@ -10,10 +10,11 @@ Category:       GUI
 
 Library
     Build-Depends:
-        timers-updatable >= 0.2.0.2
+        timers-updatable >= 0.2.0.2,
         websockets == 0.5.2.1,
         json == 0.5,
-        websockets-snap == 0.5.0.1
+        websockets-snap == 0.5.0.1,
+        snap-core == 0.7.0.1
     Exposed-Modules:
         Graphics.UI.WebGUI.JSON
         Graphics.UI.WebGUI.Events
@@ -35,6 +36,7 @@ Library
         Graphics.UI.WebGUI.Properties.Protocol
         Graphics.UI.WebGUI.Properties.Internal
         Graphics.UI.WebGUI.Properties.Props
+        Graphics.UI.WebGUI.Properties.Types
         Graphics.UI.WebGUI.Tokens
         Graphics.UI.WebGUI.ExampleGUI
         Graphics.UI.WebGUI.Events.Protocol
